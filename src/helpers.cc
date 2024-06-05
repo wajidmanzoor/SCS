@@ -1,8 +1,12 @@
 
 __device__ int findIndexKernel(ui *arr,ui start,ui end ,ui target)
-{
 
-        int resultIndex = -1;
+{
+  // Perform a binary search to find the index of the target vertex in the task array.
+  // 'start' and 'end' are the indices of the task array defining the search range.
+  // 'target' is the vertex we are searching for.
+
+        int resultIndex = -1; 
         for (ui index = start; index < end; ++index)
         {
             if (arr[index] == target)
@@ -17,6 +21,12 @@ __device__ int findIndexKernel(ui *arr,ui start,ui end ,ui target)
 
 __inline__ __device__ void warpMin2(ui val, ui &minVal, ui &secondMinVal)
 {
+  // Calculates the second minimum degree within a warp.
+  // This is used to determine the minimum degree of a subgraph.
+  // Each thread in a warp checks the degree of a vertex, and threads that don't check any vertex have their degree initialized to 0.
+  // Therefore, we calculate the second minimum to account for these initialized values.
+
+
     unsigned mask = 0xffffffff;
 
     for (int offset = warpSize / 2; offset > 0; offset /= 2)
@@ -37,40 +47,84 @@ __inline__ __device__ void warpMin2(ui val, ui &minVal, ui &secondMinVal)
 
 __global__ void SBS(ui *tasksOffset,ui *taskList,ui *taskStatus,ui *neighbors,ui *neighborOffset, ui *lowerBoundDegree,ui TaskSize,ui lowerBoundSize, ui upperBoundSize, int numTasks,int *ustarList, ui *degree,ui dmax,ui *distanceFromQID)
 {
+    // This kernel applies a reduction rule to prune the set R.
+  // It compares and updates the minimum degree.
+  // Calculated ustar. 
+  // returns the ustar for each task in the output array.
 
+    // minimum degree intialized to zero.
     ui count = 0;
+
+    // Connection score used to calculate the ustar. 
     double score;
+
+
     ui minVal = UINT_MAX;
     ui secondMinVal = UINT_MAX;
+
+    // intialize max connection score to zero. 
     double maxScore = 0;
+
+    // intilaize ustar to -1, indicating no ustar was found. 
     int ustar = -1;
+
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int wrapId = idx / 32;
     int laneId = idx % 32;
+
+    // Upper bound for distance from query vertex. 
     ui ubD;
+
+
     for(ui i = wrapId; i < numTasks; i+=TOTAL_WARPS)
     {
+
+      // For each task get start index , end index  and total verticies. 
       ui start = tasksOffset[i];
       ui end = tasksOffset[i+1];
       ui total = end-start;
 
+      // If lane id is less than total, lane id will check the vetex
       for(ui j = laneId; j < total ;j+=32)
       {
+
       printf(" wrap id %u start %u end %u \n",i,start,end);
+
+
         int id = j;
         int index = start+id;
+
+        // Vertex 
         ui v = taskList[start+id];
+
+        // vertex status 
         ui stat = taskStatus[start+id];
+
+        // offset for neighbors of vertex v 
         ui start_n = neighborOffset[v];
         ui end_n = neighborOffset[v+1];
-        score = 0; // add later degree / maxdegree
+
+        // intialize connection score to zero. 
+        score = 0; 
+
+
+        // Calculate ustar 
+        // if vertex in R. 
         if(taskStatus[start+id]==0)
         { 
+          // increament connection score 
           score += (double) degree[v]/dmax;
+
+          // will store the index of vertex in task. 
           int resIndex; 
+
+          // Iterate through neighbors of v. 
           for(int k = start_n; k <end_n;k++)
           {
+            // Get index of neighbor of V in task
             resIndex = findIndexKernel(taskList,start,end,neighbors[k]);
+
+            // If neighbor in C increament the connection score. 
             if(taskStatus[resIndex]==1)
             {
                 score += (double) 1 / degree[neighbors[k]];
@@ -79,6 +133,8 @@ __global__ void SBS(ui *tasksOffset,ui *taskList,ui *taskStatus,ui *neighbors,ui
           }
         }
 
+
+        // Using shuffle down get the maximum connection score and the index of vertex (ustar) with max connection score. 
         for (int offset = warpSize / 2; offset > 0; offset /= 2)
         {
             double temp = __shfl_down_sync(0xFFFFFFFF,score , offset);
@@ -89,16 +145,31 @@ __global__ void SBS(ui *tasksOffset,ui *taskList,ui *taskStatus,ui *neighbors,ui
               ustar = otherId;
             }
         }
-          ustar = __shfl_sync(0xFFFFFFFF, ustar,0);
+        
+
+        // Broadcast the index of vertex with max connection score to all threads in wrap. 
+        ustar = __shfl_sync(0xFFFFFFFF, ustar,0);
         //printf(" id : %d score %f vertex %u ustar %d \n ", start+id, score,v,taskList[ustar]);
 
 
+
+        // Calculate min degree of each subgraph
+
+        // In vertex in C. 
         if (taskStatus[start + id]==1)
         {
+
+          // Declare to store the index in task
           int resultIndex;
+
+          // itterate through neighbors of v 
           for(int k = start_n; k <end_n;k++)
           {
+
+            // Get index in task 
             resultIndex = findIndexKernel(taskList,start,end,neighbors[k]);
+
+            // If neighbor in C, increament count by 1. 
             if (taskStatus[resultIndex]==1)
             {
               count ++;
@@ -107,33 +178,60 @@ __global__ void SBS(ui *tasksOffset,ui *taskList,ui *taskStatus,ui *neighbors,ui
         }
 
         printf("Thread Id :  %d wrapId: %d laneId :  %d  Value :  %u Count: %d status %d \n", idx, i,j, v,count,stat);
+
+        // Get second minimum to get the minimum degree. 
+
         warpMin2(count, minVal, secondMinVal);
+
+        // handle a boundary case 
         if(j==0){
           if(secondMinVal==UINT_MAX){
             secondMinVal = minVal;
           }
         }
+
+        // Boardcast the minimum degree to all thread of the warp
         ui boardcastValue = __shfl_sync(0xFFFFFFFF, secondMinVal,0);
+
+      // Calculate the size of the subgraph (C) by summing the status values,
+      // where status is 1 if the vertex is in C.
 
         for (int offset = 16; offset > 0; offset /= 2) {
         stat += __shfl_down_sync(0xFFFFFFFF, stat, offset);
         }
+
+        // Boardcast the current size to each thread inside a warp.
         ui current_size = __shfl_sync(0xFFFFFFFF, stat,0);
+
+        // First thread of the warp. 
         if(j==0)
+        
         {
+
+          // Check if size is between in size limits. 
+
           if(lowerBoundSize <= current_size && current_size <= upperBoundSize)
           {
+
+            // attomic compare the current min degree and current max min degree (k lower)
             atomicMax(lowerBoundDegree,boardcastValue);
             printf(" Lower bound degree %u boardcastValue %u \n",*lowerBoundDegree,boardcastValue);
 
           }
+
+          // if size is less than upper bound, only then we will continue to add vertecies to C. 
+
           if(current_size<upperBoundSize){
+          // ustar of the warp will be addded to global memory. 
           ustarList[i] = (int) taskList[ustar];
-          //printf(" wrap id %u value %u \n",i,ustarList[i] );
+          //printf(" warp id %u value %u \n",i,ustarList[i] );
           }
 
 
         }
+
+        // First thread of the wrap will caculate the upper bound distance. 
+        // Needs to be calculated each time as the curent Max min degree changes. 
         if (j==0){
           ubD = 0; 
           if(*lowerBoundDegree<=1) ubD = upperBoundSize-1;
@@ -155,9 +253,13 @@ __global__ void SBS(ui *tasksOffset,ui *taskList,ui *taskStatus,ui *neighbors,ui
             }
           }
         }
+
+        // Boardcast upper bound distance to each thread inside a warp
         ui uperboundDistance =  __shfl_sync(0xFFFFFFFF, ubD,0);
 
 
+
+        // If distance of vertex is more than the upper bound. change status to 2. 
         if(uperboundDistance < distanceFromQID[j]){
           taskStatus[start+id]=2;
         }
