@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "Graph.h"
-#include "helpers.h"
+#include "./src/Graph.h"
+#include "./src/helpers.cc"
 
 
 void cal_query_dist()

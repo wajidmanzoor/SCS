@@ -1,14 +1,3 @@
-#include <limits.h>
-#include <cuda_runtime.h>
-
-#define BLK_NUMS 2
-#define BLK_DIM 641
-#define TOTAL_THREAD (BLK_NUMS*BLK_DIM)
-#define WARPSIZE 32
-#define WARPS_EACH_BLK (BLK_DIM/32)
-#define TOTAL_WARPS (BLK_NUMS*WARPS_EACH_BLK)
-
-
 
 __device__ int findIndexKernel(ui *arr,ui start,ui end ,ui target)
 {

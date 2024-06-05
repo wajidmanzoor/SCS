@@ -1,4 +1,4 @@
-#include "ListLinearHeap.h"
+#include "../inc/ListLinearHeap.h"
 
 // Description: Read graph from text file
 void load_graph(const char * graph_file)
