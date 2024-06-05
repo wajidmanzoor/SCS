@@ -44,7 +44,7 @@ void cal_query_dist()
 
 int main() {
 
-    load_graph("/content/sample_data/graph.txt");
+    load_graph("data/graph.txt");
 
     QID = 2;
     N1 = 6;
