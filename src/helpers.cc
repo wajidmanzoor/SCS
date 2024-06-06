@@ -181,9 +181,11 @@ __global__ void SBS(ui *tasksOffset,ui *taskList,ui *taskStatus,ui *neighbors,ui
 
         // Get second minimum to get the minimum degree. 
 
+        // TODO: try to make it more efficient
+
         warpMin2(count, minVal, secondMinVal);
 
-        // handle a boundary case 
+        // handle a boundary case  
         if(j==0){
           if(secondMinVal==UINT_MAX){
             secondMinVal = minVal;
@@ -272,8 +274,14 @@ __global__ void SBS(ui *tasksOffset,ui *taskList,ui *taskStatus,ui *neighbors,ui
 __global__ void IntialReductionRules(ui *neighborsOffset,ui *neighbors,ui *degree,ui *distanceFromQID, ui qid, ui vertexSize , ui *taskList, ui * taskStatus, ui upperBoundSize, ui *globalCounter)
 {
 
+  // Intial Reduction rule based on distance. 
+
   extern __shared__ ui shared_memory[];
+
+  // Store the task 
   ui *shared_task = shared_memory;
+
+  // Store the task status
   ui *shared_status = &shared_memory[blockDim.x];
   
 
@@ -281,17 +289,22 @@ __global__ void IntialReductionRules(ui *neighborsOffset,ui *neighbors,ui *degre
   ui thread_id = threadIdx.x;
    __shared__ ui local_counter;
 
+  // Intialize local counter 
   if (thread_id == 0)
   {
         local_counter = 0;
     }
   __syncthreads();
 
-
+// Each thread will handle one vertex 
   for (ui i = idx; i < vertexSize; i += TOTAL_THREAD) {
+
+    // If distance < upperbound add to shared memory
       if (distanceFromQID[i] < upperBoundSize - 1) {
                 ui loc = atomicAdd(&local_counter, 1);
                 shared_task[loc] = i;
+
+                // If query vertex set status to 1 else to zero. 
                 if(i==qid)
                 {
                   shared_status[loc] =1;
@@ -307,7 +320,7 @@ __global__ void IntialReductionRules(ui *neighborsOffset,ui *neighbors,ui *degre
     __syncthreads();
 
 
-
+    // Copy from shared memory to Global memory. 
     for (ui i = thread_id; i < local_counter; i += blockDim.x) {
         taskList[*globalCounter + i] = shared_task[i];
         taskStatus[*globalCounter + i] = shared_status[i];
@@ -315,6 +328,8 @@ __global__ void IntialReductionRules(ui *neighborsOffset,ui *neighbors,ui *degre
 
     }
      __syncthreads();
+
+     // Increament global memory. 
     if (thread_id == 0) {
 
        atomicAdd(globalCounter, local_counter);
@@ -328,38 +343,59 @@ __global__ void IntialReductionRules(ui *neighborsOffset,ui *neighbors,ui *degre
 __global__ void Branching(int *ustarList,ui *inputTaskList,ui *inputTaskOffset,ui *inputTaskStatus, ui *globalCounter, int inputTaskListSize, ui *outputTaskOffset,ui *outputTaskList,ui *outputTaskStatus, ui prevLevelNodeNum,ui currentLevelNodeNum)
 {
 
+  // Create two new tasks based on the old task and ustar 
+
   extern __shared__ ui shared_memory[];
+
+  // Stores new tasks 
   ui *shared_task = shared_memory;
+  // Stores status 
   ui *shared_status = &shared_memory[blockDim.x];
 
+
+// Local counter for this block. 
   __shared__ ui local_counter;
 
 
   ui blockId = blockIdx.x;
-
+//  intialize local counter 
   if(threadIdx.x==0){
     local_counter=0;
 
   }
    __syncthreads();
   
+// Process to create  first new task (C + ustar, R - ustar) 
 
+// Each block handles on task and creates two new tasks
   for (ui i = blockId; i < prevLevelNodeNum; i+= BLK_NUMS )
   {
+
+    // if ustar was found in last kernel call. 
     if(ustarList[i]!=-1){
+
+    // Get start and end index of task
      ui start = inputTaskOffset[i];
      ui end = inputTaskOffset[i+1];
      ui total = end-start;
      
+
+     // Each thread in block check on vertex of a task
      for(ui j = threadIdx.x ; j < total ;j+=BLK_DIM)
       {
         ui ind = start+j;
         ui v = inputTaskList[ind];
+
+        // If vertex in either C or R. I.E wasn't pruned (status set to 2 in SBS function )in last kernel call. 
         if(inputTaskStatus[ind]==0 || inputTaskStatus[ind]==1){
           printf("inputTaskStatus %u \n",inputTaskStatus[ind]);
           ui loc = atomicAdd(&local_counter, 1);
+
+          // Add to shared memory
           shared_task[loc] = v;
           shared_status[loc]= inputTaskStatus[ind];
+
+          // If vertex is ustar , set status to 1 (add to C and remove from R )
           if(v==ustarList[i]){
             shared_status[loc] = 1;
 
@@ -373,23 +409,39 @@ __global__ void Branching(int *ustarList,ui *inputTaskList,ui *inputTaskOffset,u
   }
   __syncthreads();
 
+  // Add end index of first new task to global offset. 
   if(threadIdx.x==0){
         outputTaskOffset[2*blockId+1]=local_counter;
 
       }
 __syncthreads();
+
+
+// Process to create  first new task (C - ustar, R - ustar) 
+
+// Each block handles on task and creates two new tasks
+  
   for (ui i = blockId; i < prevLevelNodeNum; i+= BLK_NUMS )
   {
+    // If ustar is found in last kernel call    
      if(ustarList[i]!=-1){
+
+    // Get start and end index of Task 
      ui start = inputTaskOffset[i];
      ui end = inputTaskOffset[i+1];
      ui total = end-start;
+
+     // Each thread handles one vertex of task 
      for(ui j = threadIdx.x ; j < total ;j+=BLK_DIM)
       {
         ui ind = start+j;
         ui v = inputTaskList[ind];
+
+        // If vertex status is 0 or 1 I.e If vertex is In C or R and vertex is not ustar
         if( (inputTaskStatus[ind]==0 || inputTaskStatus[ind]==1) && v!=ustarList[i]){
           ui loc = atomicAdd(&local_counter, 1);
+
+          // Add to shared memory
           shared_task[loc] = v;
           shared_status[loc] = inputTaskStatus[ind];
 
@@ -403,12 +455,17 @@ __syncthreads();
 
     __syncthreads();
 
+  // Add end index of second new task to global offset. 
+
   if(threadIdx.x==0){
         outputTaskOffset[2*blockId+2]=local_counter;
 
       }
      __syncthreads();
 
+
+      // Copy from shared memory to Global memory
+      // Problem : Not working currently, need to fix code 
      
         ui total;
         
