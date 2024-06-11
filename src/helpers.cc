@@ -19,22 +19,6 @@ __device__ int findIndexKernel(ui *arr,ui start,ui end ,ui target)
         return resultIndex;
 
 }
-
-__device__ int findIndexKernel(ui *arr,ui start,ui end ,ui target)
-{
-
-        int resultIndex = -1;
-        for (ui index = start; index < end; ++index)
-        {
-            if (arr[index] == target)
-            {
-                resultIndex = index;
-                break;
-            }
-        }
-        return resultIndex;
-
-}
 __global__ void SBS(ui *tasksOffset,ui *taskList,ui *taskStatus,ui *neighbors,ui *neighborOffset, ui *lowerBoundDegree,ui TaskSize,ui lowerBoundSize, ui upperBoundSize, int numTasks,int *ustarList, ui *degree,ui dmax,ui *distanceFromQID, bool *flag)
 {
   // This kernel applies a reduction rule to prune the set R.
@@ -447,7 +431,7 @@ __global__ void BranchingFixed(int *ustarList,ui *inputTaskList,ui *inputTaskOff
 
 }
 
-__global__ void Branching(int *ustarList,ui *inputTaskList,ui *inputTaskOffset,ui *inputTaskStatus, ui *globalCounter, int inputTaskListSize, ui *outputTaskOffset,ui *outputTaskList,ui *outputTaskStatus, ui prevLevelNodeNum,ui currentLevelNodeNum)
+/*__global__ void Branching(int *ustarList,ui *inputTaskList,ui *inputTaskOffset,ui *inputTaskStatus, ui *globalCounter, int inputTaskListSize, ui *outputTaskOffset,ui *outputTaskList,ui *outputTaskStatus, ui prevLevelNodeNum,ui currentLevelNodeNum)
 {
 
   // Create two new tasks based on the old task and ustar 
@@ -1004,7 +988,7 @@ __global__ void SBSNew(ui *tasksOffset,ui *taskList,ui *taskStatus,ui *neighbors
 
     }
 
-  }
+  }*/
   
 
      
