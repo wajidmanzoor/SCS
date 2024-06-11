@@ -3,8 +3,8 @@
 #include <limits.h>
 #include <cuda_runtime.h>
 
-#define BLK_NUMS 2
-#define BLK_DIM 641
+#define BLK_NUMS 64
+#define BLK_DIM 1024
 #define TOTAL_THREAD (BLK_NUMS*BLK_DIM)
 #define WARPSIZE 32
 #define WARPS_EACH_BLK (BLK_DIM/32)
