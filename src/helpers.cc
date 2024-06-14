@@ -31,11 +31,10 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
 
     // Stores new tasks
     ui *localCounter = shared_memory;
-    //ui *iter = &shared_memory[blockDim.x];
 
 
     // minimum degree intialized to zero.
-    ui subgraphSize;
+    ui currentMinDegree;
 
     // Connection score used to calculate the ustar.
     double score;
@@ -53,6 +52,17 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
     ui startIndex =  warpId*pSize;
     ui endIndex  =   (warpId+1)*pSize -1;
     ui totalTasks = taskOffset[endIndex];
+
+
+    ui degreeInC =0;
+    ui degreeInR =0;
+
+    ui temp2;
+    ui temp3 = UINT_MAX;
+    int temp4;
+    double temp;
+    int otherId;
+
     //ui iter = 0;
     /*if(laneId==0){
       iter[warpId]=0;
@@ -87,12 +97,11 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
 
             ui startNeighbor = neighborOffset[vertex];
             ui endNeighbor = neighborOffset[vertex+1];
-            ui degreeInC =0;
-            ui degreeInR =0;
+
 
             // intialize connection score to zero.
             score = 0;
-            subgraphSize = 0;
+            currentMinDegree = 0;
 
           if(taskStatus[ind]==0)
           {
@@ -126,8 +135,7 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
               score += (double) degree[vertex]/dmax;
             }
 
-            double temp;
-            int otherId;
+           
             for (int offset = WARPSIZE ; offset > 0; offset /= 2)
             {
               temp = __shfl_down_sync(0xFFFFFFFF, score , offset);
@@ -167,7 +175,8 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
                 // If neighbor in C, increament count by 1.
                   if (taskStatus[resultIndex]==1)
                   {
-                    subgraphSize ++;
+
+                    currentMinDegree ++;
                     degreeInC++;
                   }
 
@@ -180,21 +189,20 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
 
 
             // Using shuffle down get minimun degree
-            ui temp2;
-            ui temp3 = UINT_MAX;
+          
             for (int offset = WARPSIZE ; offset > 0; offset /= 2)
             {
-                temp2 = __shfl_down_sync(0xFFFFFFFF, subgraphSize , offset);
+                temp2 = __shfl_down_sync(0xFFFFFFFF,currentMinDegree  , offset);
 
                 if(temp2 >0 && temp2 < temp3)
                 {
-                  subgraphSize = temp2;
+                  currentMinDegree = temp2;
                   temp3 = temp2;
                 }
             }
 
             // Boardcast the minimum degree to all thread of the warp
-            subgraphSize = __shfl_sync(0xFFFFFFFF, temp3,0);
+            currentMinDegree = __shfl_sync(0xFFFFFFFF, temp3,0);
 
 
             // Calculate the size of the subgraph (C) by summing the status values,
@@ -212,10 +220,10 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
            {
               if( (lowerBoundSize <= current_size) && (current_size <= upperBoundSize))
               {
-                if(subgraphSize!=UINT_MAX){
+                if(currentMinDegree!=UINT_MAX){
 
                 // attomic compare the current min degree and current max min degree (k lower)
-                atomicMax(lowerBoundDegree,subgraphSize);
+                atomicMax(lowerBoundDegree,currentMinDegree);
 
                 }
               }
@@ -245,7 +253,7 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
            // Boardcast upper bound distance to each thread inside a warp
               ui uperboundDistance =  __shfl_sync(0xFFFFFFFF, ubD,0);
 
-              /*if(taskStatus[ind] == 0){
+              if(taskStatus[ind] == 0){
                 // If distance of vertex is more than the upper bound. change status to 2.
                 if(uperboundDistance < distanceFromQID[vertex]){
                   taskStatus[ind]=2;
@@ -256,7 +264,7 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
                   taskStatus[ind]=2;
 
                 }
-              }*/
+              }
 
               // upper bound technique
               if(taskStatus[ind]==1)
@@ -266,7 +274,7 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
                 }
 
 
-              int temp4;
+              
               for (int offset = WARPSIZE ; offset > 0; offset /= 2)
               {
                   temp4 =__shfl_down_sync(0xFFFFFFFF,degreeBasedUpperBound , offset);
@@ -280,6 +288,7 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
 
 
               __syncwarp();
+              
               if((current_size < upperBoundSize) && (score>0)&& (degreeBasedUpperBound >*lowerBoundDegree) )
 
               {
