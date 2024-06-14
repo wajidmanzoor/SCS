@@ -45,8 +45,9 @@ void cal_query_dist()
 
 int main(int argc, const char * argv[] ) {
 
-    if(argc!=4){
+    if(argc!=6){
         cout<<"wrong input parameters!"<<endl;exit(1);
+        exit(1);
 
     }
     // ./SCS ./graph.txt 6 9 2 100000
@@ -55,7 +56,7 @@ int main(int argc, const char * argv[] ) {
     QID = atoi(argv[4]); //Query vertex ID
     ui paritionSize = atoi(argv[5]);
 
-    char * filepath = atoi(argv[1]);
+    const char* filepath = argv[1]
     load_graph(filepath);
 
     ui intialParitionSize = (n/TOTAL_WARPS)+1;
