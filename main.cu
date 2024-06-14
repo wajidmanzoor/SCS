@@ -55,7 +55,8 @@ int main(int argc, const char * argv[] ) {
     QID = atoi(argv[4]); //Query vertex ID
     ui paritionSize = atoi(argv[5]);
 
-    load_graph(atoi(argv[1]));
+    char * filepath = atoi(argv[1]);
+    load_graph(filepath);
 
     ui intialParitionSize = (n/TOTAL_WARPS)+1;
     Timer timer;
