@@ -43,14 +43,20 @@ void cal_query_dist()
 
 
 
-int main() {
+int main(int argc, const char * argv[] ) {
 
-    load_graph("/content/sample_data/updatedEmail.txt");
+    if(argc!=4){
+        cout<<"wrong input parameters!"<<endl;exit(1);
 
-    QID = 2;
-    N1 = 6;
-    N2 = 19;
-    ui paritionSize = 1000000;
+    }
+    // ./SCS ./graph.txt 6 9 2 100000
+    N1 = atoi(argv[2]); //size LB
+    N2 = atoi(argv[3]); //size UB
+    QID = atoi(argv[4]); //Query vertex ID
+    ui paritionSize = atoi(argv[5]);
+
+    load_graph(atoi(argv[1]));
+
     ui intialParitionSize = (n/TOTAL_WARPS)+1;
     Timer timer;
     StartTime = (double)clock() / CLOCKS_PER_SEC;
