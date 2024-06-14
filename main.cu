@@ -41,460 +41,185 @@ void cal_query_dist()
     }
 }
 
+
+
 int main() {
 
-    load_graph("data/graph.txt");
+    load_graph("/content/sample_data/updatedEmail.txt");
 
-    QID = 2;
-    N1 = 5;
-    N2 = 9;
-
-    core_decomposition_linear_list();
-
-    // Description: upper bound defined
-    ku = miv(core[QID], N2-1);
-    kl = 0;
-    ubD = N2-1;
-    cal_query_dist();
-
-    ui *d_offset,*d_neighbors,*d_degree, *d_dist;
-    ui *d_kl;
-
-    cout << " d max " << dMAX<<endl;
-
-
-    cudaMalloc((void**)&d_degree, n * sizeof(ui));
-    cudaMemcpy(d_degree, degree, n * sizeof(ui), cudaMemcpyHostToDevice);
-
-    cudaMalloc((void**)&d_offset, (n+1) * sizeof(ui));
-    cudaMemcpy(d_offset, pstart, (n+1) * sizeof(ui), cudaMemcpyHostToDevice);
-
-
-    cudaMalloc((void**)&d_neighbors, (2*m) * sizeof(ui));
-    cudaMemcpy(d_neighbors, edges, (2*m) * sizeof(ui), cudaMemcpyHostToDevice);
-
-     cudaMalloc((void**)&d_dist, n * sizeof(ui));
-    cudaMemcpy(d_dist, q_dist, n * sizeof(ui), cudaMemcpyHostToDevice);
-
-    cudaMalloc((void**)&d_kl, sizeof(ui));
-    cudaMemcpy(d_kl, &kl,sizeof(ui),cudaMemcpyHostToDevice);
-
-    ui *d_tasks, *d_status,*d_tasks_offset, *d_global_counter;
-
-    int iter = 0;
-    int size_,new_size_;
-    size_ = 1 <<iter;
-
-    cudaMalloc((void**)&d_tasks, (size_*n)*sizeof(ui));
-
-    cudaMalloc((void**)&d_status, (size_*n)*sizeof(ui));
-
-    cudaMalloc((void**)&d_global_counter, sizeof(ui));
-
-    ui h_global_counter = 0;
-    cudaMemcpy(d_global_counter, &h_global_counter, sizeof(ui), cudaMemcpyHostToDevice);
-
-    int shared_memory_size = 2 * BLK_DIM * sizeof(ui);
-
-    IntialReductionRules<<<BLK_NUMS,BLK_DIM,shared_memory_size>>>(d_offset,d_neighbors,d_degree,d_dist,QID,n ,d_tasks, d_status, N2, d_global_counter);
-
-    cudaMemcpy(&h_global_counter,d_global_counter, sizeof(ui), cudaMemcpyDeviceToHost);
-
-    //cout << "Size after reduction = "<<h_global_counter<<endl;
-
-    ui *tasks_offset;
-    tasks_offset = new ui[size_+1];
-
-    ui *d_tasks_new,*d_status_new, *d_tasks_offset_new;
-    cudaMalloc((void**)&d_tasks_new,h_global_counter*sizeof(ui));
-    cudaMalloc((void**)&d_status_new,h_global_counter*sizeof(ui));
-
-
-
-    cudaMemcpy(d_tasks_new,d_tasks,h_global_counter*sizeof(ui),cudaMemcpyDeviceToDevice);
-    cudaMemcpy(d_status_new,d_status,h_global_counter*sizeof(ui),cudaMemcpyDeviceToDevice);
-    cudaFree(d_tasks);
-    cudaFree(d_status);
-
-    tasks_offset[0]=0;
-    tasks_offset[1]= h_global_counter;
-
-    cudaMalloc((void**)&d_tasks_offset_new,(size_+1)* sizeof(ui));
-    cudaMemcpy(d_tasks_offset_new, tasks_offset, (size_+1)* sizeof(ui), cudaMemcpyHostToDevice);
-
-    bool *flag;
-    bool *processed_flag;
-    cudaMalloc((void**)&flag,sizeof(bool));
-
-    bool stop_flag;
-
-
-    int *d_output;
-    int *output;
-    int start,end;
-    while(1){
-
-      cudaMalloc((void**)&d_output,size_*sizeof(ui));
-      cudaMemset(d_output, -1, size_ * sizeof(int));
-      cudaMemset(flag,1,sizeof(bool));
-
-     cout <<endl<<" size "<< size_<<endl;
-
-     SBS<<<BLK_NUMS,BLK_DIM>>>(d_tasks_offset_new,d_tasks_new,d_status_new,d_neighbors,d_offset,d_kl,h_global_counter,N1,N2,size_, d_output,d_degree, dMAX,d_dist,flag);
-
-    cudaMemcpy(&stop_flag,flag,sizeof(bool),cudaMemcpyDeviceToHost);
-    cudaMemcpy(&kl,d_kl,sizeof(ui),cudaMemcpyDeviceToHost);
-
-    cout<< " Max Min degree  "<<kl<<endl;
-    if(stop_flag){
-      cout << "Final MAx Min degree "<<kl<<endl;
-      break;
-    }
-
-     output = new int[size_];
-
-    cudaMemcpy(output,d_output,(size_)* sizeof(int),cudaMemcpyDeviceToHost);
-    cout << endl;
-     for (int i =0;i< size_ ;i++){
-      cout << " CPU ustar " << output[i] << " ";
-     }
-     cout<<endl;
-
-     iter ++;
-     new_size_ = 1 <<iter;
-
-
-
-    cudaMalloc((void**)&d_tasks, (new_size_*h_global_counter)*sizeof(ui));
-
-    cudaMalloc((void**)&d_status, (new_size_*h_global_counter)*sizeof(ui));
-
-    cudaMalloc((void**)&d_tasks_offset,(new_size_+1)* sizeof(ui));
-
-
-
-
-    shared_memory_size = BLK_DIM * sizeof(ui);
-    BranchingFixed <<<BLK_NUMS,BLK_DIM,shared_memory_size>>>(d_output, d_tasks_new, d_tasks_offset_new,d_status_new,h_global_counter, d_tasks_offset,d_tasks,d_status,size_);
-
-
-
-    cudaFree(d_tasks_new);
-    cudaFree(d_status_new);
-    cudaFree(d_tasks_offset_new);
-
-
-
-    cudaMemcpy(&h_global_counter,d_global_counter, sizeof(ui), cudaMemcpyDeviceToHost);
-    cudaMalloc((void**)&d_tasks_new,(new_size_*h_global_counter)*sizeof(ui));
-    cudaMalloc((void**)&d_status_new,(new_size_*h_global_counter)*sizeof(ui));
-    cudaMalloc((void**)&d_tasks_offset_new,(new_size_+1)* sizeof(ui));
-
-
-    cudaMemcpy(d_tasks_new,d_tasks,(new_size_*h_global_counter)*sizeof(ui),cudaMemcpyDeviceToDevice);
-    cudaMemcpy(d_status_new,d_status,(new_size_*h_global_counter)*sizeof(ui),cudaMemcpyDeviceToDevice);
-    cudaMemcpy(d_tasks_offset_new,d_tasks_offset,(new_size_+1)*sizeof(ui),cudaMemcpyDeviceToDevice);
-
-    cudaFree(d_tasks);
-    cudaFree(d_status);
-    cudaFree(d_tasks_offset);
-    cudaFree(d_output);
-    cudaFree(processed_flag);
-
-    ui *temp,*temp1,*temp2;
-    temp = new ui[new_size_+1];
-    temp1 = new ui[new_size_*h_global_counter];
-    temp2 = new ui [new_size_*h_global_counter];
-
-    cudaMemcpy(temp1,d_tasks_new,(new_size_*h_global_counter)*sizeof(ui),cudaMemcpyDeviceToHost);
-    cudaMemcpy(temp2,d_status_new,(new_size_*h_global_counter)*sizeof(ui),cudaMemcpyDeviceToHost);
-
-
-    cudaMemcpy(temp,d_tasks_offset_new,(new_size_+1)*sizeof(ui),cudaMemcpyDeviceToHost);
-    cout<<endl;
-
-
-
-    for(ui i =0;i < (new_size_);i++){
-
-      if(i % 2 ==0 ){
-        start = i * h_global_counter;
-      }else{
-        start = temp[i];
-
-      }
-      end =temp[i+1];
-
-      cout<<endl<<" task "<< i << " Offset "<<start<<" end "<<end<<endl;
-      cout << "vertex in task "<<endl;
-      for(ui j = start; j < end;j++){
-        cout << temp1[j] << " ";
-      }
-
-      cout << endl<<"status in task"<<endl;
-
-      for(ui j = start; j < end;j++){
-        cout << temp2[j] << " ";
-      }
-
-    }
-    size_ = new_size_;
-    cudaDeviceSynchronize();
-    }
-    cudaDeviceSynchronize();
-    return 0;
-}
-
-
-
-
-/*int main() {
-
-    // Load graph 
-
-    load_graph("data/graph.txt");
-
-    // Seting Query Vertex, lower size limit and upper size limit
-    // TODO : will update so can be passed as Arguement.
     QID = 2;
     N1 = 6;
-    N2 = 9;
+    N2 = 19;
+    ui paritionSize = 1000000;
+    ui intialParitionSize = (n/TOTAL_WARPS)+1;
+    Timer timer;
+    StartTime = (double)clock() / CLOCKS_PER_SEC;
 
-    // Calculate the core values of each vertex 
     core_decomposition_linear_list();
 
     // Description: upper bound defined
     ku = miv(core[QID], N2-1);
     kl = 0;
     ubD = N2-1;
-
-    // Calculate distance from query vertex
     cal_query_dist();
 
-    // Declare device pointers  to store graph information 
-    ui *d_offset,*d_neighbors,*d_degree, *d_dist;
-    ui *d_kl;
+    ui *deviceOffset,*deviceNeighbors,*deviceDegree, *deviceDistance,*deviceCore;
+    ui *deviceLowerBoundDegree;
 
-    cout << " d max " << dMAX<<endl;
-
-    // Allocate memory (size will be equal to n assuming no vertex will be pruned)and copy from HOST (CPU) to Device (GPU)
-    cudaMalloc((void**)&d_degree, n * sizeof(ui));
-    cudaMemcpy(d_degree, degree, n * sizeof(ui), cudaMemcpyHostToDevice);
-
-    cudaMalloc((void**)&d_offset, (n+1) * sizeof(ui));
-    cudaMemcpy(d_offset, pstart, (n+1) * sizeof(ui), cudaMemcpyHostToDevice);
+    /*cout << " d max " << dMAX<<endl;
+    for(ui i=0;i<n;i++){
+      if(core[i]==10){
+        cout<<"Vertex "<<i<<" Core "<<core[i]<<endl;
+      }
+    }*/
 
 
-    cudaMalloc((void**)&d_neighbors, (2*m) * sizeof(ui));
-    cudaMemcpy(d_neighbors, edges, (2*m) * sizeof(ui), cudaMemcpyHostToDevice);
+    cudaMalloc((void**)&deviceCore, n * sizeof(ui));
+    cudaMemcpy(deviceCore, core, n * sizeof(ui), cudaMemcpyHostToDevice);
 
-     cudaMalloc((void**)&d_dist, n * sizeof(ui));
-    cudaMemcpy(d_dist, q_dist, n * sizeof(ui), cudaMemcpyHostToDevice);
+    cudaMalloc((void**)&deviceDegree, n * sizeof(ui));
+    cudaMemcpy(deviceDegree, degree, n * sizeof(ui), cudaMemcpyHostToDevice);
 
-    cudaMalloc((void**)&d_kl, sizeof(ui));
-    cudaMemcpy(d_kl, &kl,sizeof(ui),cudaMemcpyHostToDevice);
-
-
-    // Declare device pointers to store task data. 
-    ui *d_tasks, *d_status,*d_tasks_offset, *d_global_counter;
+    cudaMalloc((void**)&deviceOffset, (n+1) * sizeof(ui));
+    cudaMemcpy(deviceOffset, pstart, (n+1) * sizeof(ui), cudaMemcpyHostToDevice);
 
 
-    // Level of the tree 
-    int iter = 0;
+    cudaMalloc((void**)&deviceNeighbors, (2*m) * sizeof(ui));
+    cudaMemcpy(deviceNeighbors, edges, (2*m) * sizeof(ui), cudaMemcpyHostToDevice);
 
-    // number of current task and number of new task
-    int size_,new_size_;
+     cudaMalloc((void**)&deviceDistance, n * sizeof(ui));
+    cudaMemcpy(deviceDistance, q_dist, n * sizeof(ui), cudaMemcpyHostToDevice);
 
-    // current task size = 2**(iter)
-    size_ = 1 <<iter;
+    cudaMalloc((void**)&deviceLowerBoundDegree, sizeof(ui));
+    cudaMemcpy(deviceLowerBoundDegree, &kl,sizeof(ui),cudaMemcpyHostToDevice);
 
-    // Allocate memory in device. 
-    cudaMalloc((void**)&d_tasks, (size_*n)*sizeof(ui));
+    ui *deviceIntialTaskList, *deviceIntialStatusList, *deviceGlobalCounter,*deviceEntries;
 
-    cudaMalloc((void**)&d_status, (size_*n)*sizeof(ui));
+    ui INTOTAL_WARPS=32;
+    ui intialSize = intialParitionSize*INTOTAL_WARPS;
+    cout<<"Psize "<<intialParitionSize<<" Size "<<intialSize<<endl;
 
-    cudaMalloc((void**)&d_global_counter, sizeof(ui));
+    cudaMalloc((void**)&deviceIntialTaskList, intialSize*sizeof(ui));
 
-    // Intilaize global counter in HOST.
+    cudaMalloc((void**)&deviceIntialStatusList, intialSize*sizeof(ui));
 
-    ui h_global_counter = 0;
+    cudaMalloc((void**)&deviceGlobalCounter, sizeof(ui));
+    cudaMalloc((void**)&deviceEntries,INTOTAL_WARPS* sizeof(ui));
 
-    // Set device global counter to zero. 
-    cudaMemcpy(d_global_counter, &h_global_counter, sizeof(ui), cudaMemcpyHostToDevice);
+    ui globalCounter = 0;
+    cudaMemcpy(deviceGlobalCounter, &globalCounter, sizeof(ui), cudaMemcpyHostToDevice);
 
-
-    // Shared memory needed for kernel call. 
-    int shared_memory_size = 2 * BLK_DIM * sizeof(ui);
-
-    // Call Intial reduction rules, returns Tasks and status as pointer d_tasks, d_status
-    IntialReductionRules<<<BLK_NUMS,BLK_DIM,shared_memory_size>>>(d_offset,d_neighbors,d_degree,d_dist,QID,n ,d_tasks, d_status, N2, d_global_counter);
-
-
-    // Copy global counter (i.e Number of elements in d_task ) to host 
-    cudaMemcpy(&h_global_counter,d_global_counter, sizeof(ui), cudaMemcpyDeviceToHost);
-
-    cout << "Size after reduction = "<<h_global_counter<<endl;
-
-    // Create task offset in HOST 
-    ui *tasks_offset;
-    tasks_offset = new ui[size_+1];
-
-    // Declare device pointer to store new task data. (size here will be equal to global counter)
-    ui *d_tasks_new,*d_status_new, *d_tasks_offset_new;
-    cudaMalloc((void**)&d_tasks_new,h_global_counter*sizeof(ui));
-    cudaMalloc((void**)&d_status_new,h_global_counter*sizeof(ui));
-
-
-    // Copy data from task to new task 
-    cudaMemcpy(d_tasks_new,d_tasks,h_global_counter*sizeof(ui),cudaMemcpyDeviceToDevice);
-    cudaMemcpy(d_status_new,d_status,h_global_counter*sizeof(ui),cudaMemcpyDeviceToDevice);
-
-    // Free old task pointers
-    cudaFree(d_tasks);
-    cudaFree(d_status);
-
-    // Intialize offset to [0,global counter]. (global counter is equal to number of elements in task)
-    tasks_offset[0]=0;
-    tasks_offset[1]= h_global_counter;
-
-    // allocated memory (size is 2**(iter) +1 )for offset.  
-    cudaMalloc((void**)&d_tasks_offset_new,(size_+1)* sizeof(ui));
-    cudaMemcpy(d_tasks_offset_new, tasks_offset, (size_+1)* sizeof(ui), cudaMemcpyHostToDevice);
+    int shared_memory_size =  INTOTAL_WARPS* sizeof(ui);
+    IntialReductionRules<<<1,BLK_DIM,shared_memory_size>>>(deviceOffset,deviceNeighbors,deviceDegree,deviceDistance,deviceCore,deviceIntialTaskList,deviceIntialStatusList,deviceEntries, deviceGlobalCounter,QID,n ,N2,kl,intialParitionSize);
+    cudaDeviceSynchronize();
+    cudaMemcpy(&globalCounter,deviceGlobalCounter,sizeof(ui),cudaMemcpyDeviceToHost);
+    cout<<" Total "<<globalCounter<<endl;
+    /*ui *temp,*temp1,*temp2;
+    temp = new ui[intialSize];
+    temp1 = new ui[intialSize];
+    temp2 = new ui[INTOTAL_WARPS];
+    cudaMemcpy(temp,deviceIntialTaskList,intialSize*sizeof(ui),cudaMemcpyDeviceToHost);
+    cudaMemcpy(temp1,deviceIntialStatusList,intialSize*sizeof(ui),cudaMemcpyDeviceToHost);
+    cudaMemcpy(temp2,deviceEntries,INTOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost);
+    ui s;
+    for(int i = 0; i < INTOTAL_WARPS; i++){
+      cout << "Entries "<<temp2[i]<<endl;
+      s = intialParitionSize*i;
+      for(int j=0;j<temp2[i];j++){
+        cout << "Vertex "<<temp[s+j]<<" Satus "<<temp1[s+j]<<endl;
+    }
+    }*/
 
 
-    // Flag for stoping condition, not yet used
-    // TODO : will used to add stoping condition in while loop
-    bool *flag;
-    cudaMalloc((void**)&flag,sizeof(bool));
+    ui *reducedTaskList, *reducedStatusList;
 
-    // device Pointer to store the ustar of each task 
-    int *d_output;
+    cudaMalloc((void**)&reducedTaskList, globalCounter*sizeof(ui));
+    cudaMalloc((void**)&reducedStatusList, globalCounter*sizeof(ui));
 
-    // Variable used for debuging. will remove later. 
-    int c =0;
-    // Host pointer used to store ustar (for debuging) will remove later. 
-    int *output;
+   
 
+    CompressTask<<<1,BLK_DIM>>>(deviceIntialTaskList,deviceIntialStatusList,deviceEntries,reducedTaskList, reducedStatusList,intialParitionSize);
+    cudaDeviceSynchronize();
+
+
+    cudaFree(deviceIntialTaskList);
+    cudaFree(deviceIntialStatusList);
+    cudaFree(deviceEntries);
+    cudaFree(deviceGlobalCounter);
+
+    /*ui *temp3,*temp4;
+    temp3 = new ui[globalCounter];
+    temp4 = new ui[globalCounter];
+
+    cudaMemcpy(temp3,reducedTaskList,globalCounter*sizeof(ui),cudaMemcpyDeviceToHost);
+    cudaMemcpy(temp4,reducedStatusList,globalCounter*sizeof(ui),cudaMemcpyDeviceToHost);
+
+    cout<<"affter "<<endl;
+    for(ui i =0;i<globalCounter;i++){
+      cout<<"Vertex "<<temp3[i]<<"status " <<temp4[i]<<endl;
+    }*/
+
+
+
+
+
+    ui *taskOffset;
+
+    taskOffset = new ui[paritionSize];
+    memset(taskOffset, 0, paritionSize * sizeof(ui));
+    taskOffset[1]= globalCounter;
+    taskOffset[paritionSize-1] = 1;
+
+    ui *deviceTaskList,*deviceStatusList, *deviceTaskOffset;
+
+    cudaMalloc((void**)&deviceTaskList, TOTAL_WARPS*paritionSize*sizeof(ui));
+    cudaMalloc((void**)&deviceStatusList, TOTAL_WARPS*paritionSize*sizeof(ui));
+
+    cudaMemcpy(deviceTaskList, reducedTaskList,globalCounter*sizeof(ui),cudaMemcpyDeviceToDevice);
+    cudaMemcpy(deviceStatusList, reducedStatusList,globalCounter*sizeof(ui),cudaMemcpyDeviceToDevice);
+
+    cudaMalloc((void**)&deviceTaskOffset, TOTAL_WARPS*paritionSize*sizeof(ui));
+    cudaMemcpy(deviceTaskOffset,taskOffset,paritionSize*sizeof(ui),cudaMemcpyHostToDevice);
+
+    cudaFree(reducedTaskList);
+    cudaFree(reducedStatusList);
+
+    bool *deviceStopFlag;
+    bool stopFlag;
+
+    cudaMalloc((void**)&deviceStopFlag,sizeof(bool));
+
+    shared_memory_size = WARPS_EACH_BLK * sizeof(ui);
     while(1){
 
-      // Allocate memory for ustar 
-      cudaMalloc((void**)&d_output,size_*sizeof(ui));
-      cudaMemset(d_output, -1, size_ * sizeof(int));
+        cudaMemset(deviceStopFlag,1,sizeof(bool));
+        cudaMemcpy(&stopFlag,deviceStopFlag,sizeof(bool),cudaMemcpyDeviceToHost);
 
-      cout <<endl<<"size"<<size_<<endl;
+        SCSSpeedEff <<<BLK_NUMS,BLK_DIM,shared_memory_size>>>(deviceTaskList, deviceStatusList,deviceTaskOffset,deviceNeighbors, deviceOffset, deviceDegree, deviceDistance, deviceStopFlag, deviceLowerBoundDegree, N1, N2, paritionSize, dMAX);
 
-    
-    // Kernel that applying pruning rules, does comparison for min degree and calculates ustar. 
-     SBS<<<BLK_NUMS,BLK_DIM>>>(d_tasks_offset_new,d_tasks_new,d_status_new,d_neighbors,d_offset,d_kl,h_global_counter,N1,N2,size_, d_output,d_degree, dMAX,d_dist);
+        cudaMemcpy(&stopFlag,deviceStopFlag,sizeof(bool),cudaMemcpyDeviceToHost);
+        cudaMemcpy(&kl, deviceLowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
+        cudaDeviceSynchronize();
 
-
-    // host array to store ustar (used to debuging will remove latter)
-     output = new int[size_];
-
-    // copy ustar from device to host 
-    cudaMemcpy(output,d_output,(size_)* sizeof(int),cudaMemcpyDeviceToHost);
-    cout << endl;
-     for (int i =0;i< size_ ;i++){
-      cout << "CPU ustar " << output[i] << " ";
-     }
-     cout<<endl;
-
-
-    // Increament itter
-     iter ++;
-
-     // Calculate number of new tasks  
-     new_size_ = 1 <<iter;
-    
-    // Allocated memory for new task pointers (size will be number of new tasks times h_global counter )
-    cudaMalloc((void**)&d_tasks, (new_size_*h_global_counter)*sizeof(ui));
-
-    cudaMalloc((void**)&d_status, (new_size_*h_global_counter)*sizeof(ui));
-
-    cudaMalloc((void**)&d_tasks_offset,(new_size_+1)* sizeof(ui));
-
-    // Set global counter to zero 
-
-    cudaMemset(d_global_counter,0,sizeof(ui));
-    shared_memory_size = 2 * BLK_DIM * sizeof(ui);
-    
-    // Kernel creates new tasks using current task and ustar
-    Branching <<<BLK_NUMS,BLK_DIM,shared_memory_size>>>(d_output, d_tasks_new, d_tasks_offset_new,d_status_new, d_global_counter,h_global_counter, d_tasks_offset,d_tasks,d_status,size_,new_size_);
-
-    // Free current tasks used in this iter
-    cudaFree(d_tasks_new);
-    cudaFree(d_status_new);
-    cudaFree(d_tasks_offset_new);
-
-    // Copy global counter to host 
-    cudaMemcpy(&h_global_counter,d_global_counter, sizeof(ui), cudaMemcpyDeviceToHost);
-
-    cout<< " Size at Itter  = "<<iter <<" = "<<h_global_counter<<endl;
-
-    // Allocate memory for new tasks based on global counter
-    cudaMalloc((void**)&d_tasks_new,h_global_counter*sizeof(ui));
-    cudaMalloc((void**)&d_status_new,h_global_counter*sizeof(ui));
-    cudaMalloc((void**)&d_tasks_offset_new,(new_size_+1)* sizeof(ui));
-
-    // Copy data to new tasks 
-    cudaMemcpy(d_tasks_new,d_tasks,h_global_counter*sizeof(ui),cudaMemcpyDeviceToDevice);
-    cudaMemcpy(d_status_new,d_status,h_global_counter*sizeof(ui),cudaMemcpyDeviceToDevice);
-    cudaMemcpy(d_tasks_offset_new,d_tasks_offset,(new_size_+1)*sizeof(ui),cudaMemcpyDeviceToDevice);
-
-
-    
-    cudaFree(d_tasks);
-    cudaFree(d_status);
-    cudaFree(d_tasks_offset);
-    cudaFree(d_output);
-
-
-    // Used for debug purpose
-    ui *temp,*temp1,*temp2;
-    temp = new ui[new_size_+1];
-    temp1 = new ui[h_global_counter];
-    temp2 = new ui [h_global_counter];
- 
-    cudaMemcpy(temp1,d_tasks_new,h_global_counter*sizeof(ui),cudaMemcpyDeviceToHost);
-    cudaMemcpy(temp2,d_status_new,h_global_counter*sizeof(ui),cudaMemcpyDeviceToHost);
-
-
-    cudaMemcpy(temp,d_tasks_offset_new,(new_size_+1)*sizeof(ui),cudaMemcpyDeviceToHost);
-
-    for(ui i =0;i < (new_size_);i++){
-      cout<<endl<<" task "<< i << " Offset "<<temp[i]<<endl;
-      cout << "vertex in task "<<endl;
-      for(ui j = temp[i]; j < temp[i+1];j++){
-        cout << temp1[j] << " ";
+        if(stopFlag){
+          cout<< " Max Min degree  "<<kl<<endl;
+          cout<<"time = "<<integer_to_string(timer.elapsed()).c_str()<<endl;
+            break;
+        }
       }
+    cudaFree(deviceOffset);
+    cudaFree(deviceNeighbors);
+    cudaFree(deviceDegree);
+    cudaFree(deviceDistance);
+    cudaFree(deviceCore);
 
-      cout << endl<<"status in task"<<endl;
-
-      for(ui j = temp[i]; j < temp[i+1];j++){
-        cout << temp2[j] << " ";
-      }
-
-    }
-    cout <<"Vertex after branching "<<endl;
-    for(ui i =0;i<h_global_counter;i++){
-
-      cout << "  " <<temp1[i]<<"  ";
-    }
-    cout<<endl;
+    cudaFree(deviceLowerBoundDegree);
+    cudaFree(deviceTaskList);
+    cudaFree(deviceStatusList);
+    cudaFree(deviceTaskOffset);
+    cudaFree(deviceStopFlag);
 
 
-    c++;
-
-    if(c==2){
-         break;
-    }
-    // Debug ended 
-
-
-    // Set size equal to new size 
-    size_ = new_size_;
-    cudaDeviceSynchronize();
-    }
-    cudaDeviceSynchronize();
     return 0;
-}*/
+
+}
