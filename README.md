@@ -3,7 +3,7 @@
 ###Note : Intial notes added will add more details 
 
 
-## Problem Statement
+# Problem Statement
 
 Given:
 1. graph $G = (V,E)$
@@ -17,7 +17,7 @@ Find subgraph $H$ of $G$ that satisfies the bellow conditions
 
 
 
-## Serial Code 
+# Serial Code 
 
 Code available at : https://drive.google.com/drive/folders/1yW2aDTX1o8mPuXFYd8WWMcQ_MZrFVyjm?usp=sharing
 
@@ -30,7 +30,7 @@ The Serial code can be divided into the following steps
 - Apply Intial Reduction rules
 - Run proposed algorith with or with out the dominating branching. 
 
-### Read Graph 
+## Read Graph 
 
 **Input** : Edge list text file: Each line contains the vertices of an edge, separated by a tab character (\t). The first line specifies the number of vertices and edges.
 
@@ -45,7 +45,7 @@ The graph information is stored in the following arrays:
 7. **m** : Number of Edges
 8. **dmax** : Maximun degree in the graph
 
-### Get Core Values
+## Get Core Values
 Performs core decomposition on a graph using a peeling algorithm. It updated the *Peel sequence* and *Core* arrays.
 
 It uses a data structure *Linear Heap List*, lets go over the data structure before explaining the process on this function. 
@@ -99,11 +99,12 @@ Note: If a value for a index is not available  in Head, Next or Prev it is set t
 5. Add vertex to *peel Sequence* and its core value (*max_core*) to *Core*.
 6. The key of each neighbor of the removed vertex is decreamented by 1 if neighbor has not been assigned a core value. 
 
-### Get Intial Max min degree using Heuristic Algorithm 
+## Get Intial Max min degree using Heuristic Algorithm 
+Calculates the intial subgraph that statify all the conditions using heuristic algorithm.
 
-We have the following Heuristic Algoriths
+We have the following heuristic Algoriths
 
-#### Heuristic 1 
+### Heuristic 1 
 
 **Intialzie** 
 - Create a vector H to store the subgraph with the maximum minimum degree.
@@ -121,6 +122,53 @@ We have the following Heuristic Algoriths
         - If neighbors status is 2, increamnet degree of removed vertex and neighbor in HDegree. 
     3. If size of H >= Lower Bound size, Compare and update Max Min Degree (kl)
     4. if size of H = Upper Bound Size, Break 
+
+
+### Heuristic 2
+
+**Intialzie** 
+- Create a vector H to store the subgraph with the maximum minimum degree.
+- Initialize kl (the maximum minimum degree) to zero. 
+- Create arrays hDegree (to store the degree of vertices in the subgraph) and sta (to track the status of vertices).
+- Set sta to zero for all vertices. (sta values: 0 = vertex not in Q or H, 1 = vertex in Q, 2 = vertex in H).
+- Create a priority queue Q of vertices, with the priority based on the degree of vertex ($v$) in $H \cup v $.
+
+**Algorithm**
+1. Push query vertex in Queue (Q) and set the status to 1. 
+2. while Q is not empty
+    1. Remove top element from Q. 
+    2. Iterate through neighbors of removed element and Calculate the number of neighbors (d_new) each neighbor of the removed vertex has in H.
+        - If neighbors status is 0, push to Q and set status to 1.
+        - If neighbors status is 1, update prority in Q to d_new. 
+        - If neighbors status is 2, increamnet degree of removed vertex and neighbor in HDegree. 
+    3. If size of H >= Lower Bound size, Compare and update Max Min Degree (kl)
+    4. if size of H = Upper Bound Size, Break 
+
+**Note** : The primary distinction between Heuristic 1 and Heuristic 2 lies in the prioritization criteria. In Heuristic 1, priority is determined by the degree in the original graph, whereas in Heuristic 2, priority is based on the degree in $H \cup v $
+
+
+## Calculate distance from query Vertex
+Calculates the distance of each vetrex from query vertex and stores that information in *q_dist*.
+
+**Intialize**
+- Create a array *q_dist* to store distance of each vertex from query vertex, initializing each element to *INF*. 
+- Create a Queue (Q) to store the vertices to be processed. 
+
+**Algorithm**
+1. While Q is not Empty 
+    1. Remove top element (v) from the  Queue. 
+    2. itterate throught neighbors of removed vertex. 
+        - if neighbors *q_dist* is *INF* update it to be the *q_dist* of the removed vertex plus 1.
+        - Push neighbor to the Queue  
+
+**Note** This is a BFS algorithm 
+
+## Apply Intial Reduction rules
+
+
+## Proposed algorithm with dominating branching. 
+
+
 
 ## Notes
 
