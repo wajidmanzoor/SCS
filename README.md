@@ -106,7 +106,7 @@ We have the following heuristic Algoriths
 
 ### Heuristic 1 
 
-**Intialzie** 
+**Intializie** 
 - Create a vector H to store the subgraph with the maximum minimum degree.
 - Initialize kl (the maximum minimum degree) to zero. 
 - Create arrays hDegree (to store the degree of vertices in the subgraph) and sta (to track the status of vertices).
@@ -126,7 +126,7 @@ We have the following heuristic Algoriths
 
 ### Heuristic 2
 
-**Intialzie** 
+**Intializie** 
 - Create a vector H to store the subgraph with the maximum minimum degree.
 - Initialize kl (the maximum minimum degree) to zero. 
 - Create arrays hDegree (to store the degree of vertices in the subgraph) and sta (to track the status of vertices).
@@ -174,7 +174,7 @@ Reduced the search space $R$ using reduction rules.
 $$
 n(k,D) = 
 \begin{cases}
-    k+D, & \text{if } 1 \leq D \leq 2 or k = 1 \\
+    k+D, & \text{if } 1 \leq D \leq 2 \text{ or } k = 1 \\
     K+D+1+\frac{D}{3}\times (k-2), & \text{otherwise} 
 \end{cases}
 $$
@@ -209,6 +209,35 @@ For all v in R if *q_dist* is less than Diameter D, remove from R
 
 
 ## Proposed algorithm with dominating branching. 
+
+This a a recursive Algorithm. 
+
+**Intialize**
+- VI : Vector of verticies that are in subgraph (C). Push query vertex in VI
+- inVI : Status indicating whether in VI or not. Set status of query vertex to 1 and rest to zero. 
+- VR :  Vector of verticies that are not in  subgraph (R = G - C - verticies removed by intial reduction rules). Push all verticies except query vertex to VR. 
+- inVR : Status indicating whether in VR or not. Set status to 1 for all verticies, except for query vertex. Set to 0 for query vertex. 
+- degVI : Degree in VI, set to 0 for all verticies
+- degVIVR : Degree in VI $\cup$ VR. intialize to value of *G0_degree* for all verticies. 
+- NEI : Vector that stores the Neighbors of all verticies of VI (C) that are present in VR (R).
+- inNEI : Status indicates if in NEI or not. 
+- NEI_score : Stores the connection score value
+
+**Algorithm**
+1. Run function on VI (C), VR (R). 
+2. If size of VI in between l and h, min degree of VI is greater than max min degree, update max min degree. 
+3. if size of VI is greater than or equal to upper bound size, Break 
+4. Apply reduction rules on VR 
+5. Calculate Upper bound degree for current VI and VR. 
+5. If size of VI is less than H, VR is not empty and Upper bound degree > MAx Min degree 
+    - Find Ustar 
+    - Find dominating set of Ustar
+    - Iterate through dominating set ($dv_{i}$)
+        - Call function recursively on $VI \cup \{ustar, dv_{i}\}$ and  $ VR\ \{dv_{1} \text{to} dv_{i}\}$
+6. call function recursively on $VI \cup {ustar}$ and $VR \ {ustar, dominating set}$
+7. call function recursively on $VI$ and $VR \ {ustar, dominating set}$
+
+
 
 
 
