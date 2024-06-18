@@ -51,13 +51,13 @@ Performs core decomposition on a graph using a peeling algorithm. It updated the
 It uses a data structure *Linear Heap List*, lets go over the data structure before explaining the process on this function. 
 
 **Linear Heap List** : It consists of 4 arrays and 3 variables
-a. Heads : Stores the heads of all link list. Each link list has the same Key value (degree). Keys values are intialized to degree of verticies
-b. Prev : Stores the prev element of all link lists 
-c. Next : Stores the Next element of all link lists
-d. Keys : Store the core values
-e. Key Cap : Max allowed core values ( n-1 ).
-f. Max Key : Max core value
-g. Min Key : Min Core Value 
+- Heads : Stores the heads of all link list. Each link list has the same Key value (degree). Keys values are intialized to degree of verticies
+- Prev : Stores the prev element of all link lists 
+- Next : Stores the Next element of all link lists
+- Keys : Store the core values
+- Key Cap : Max allowed core values ( n-1 ).
+- Max Key : Max core value
+- Min Key : Min Core Value 
 
 Lets suppose we have a below graph. 
 <img src="pics/graph1.jpg" width="40%" height="40%"/>
@@ -75,25 +75,8 @@ So if we divide the verticies into sets with same degree we get
 We have 5 total link lists with same key value. 
 
 
-<html>
-<head>
-  
-  <style>
-    img {
-      display: inline-block;
-      width: 10%; 
-      margin: 0 5px; 
-    }
-  </style>
-</head>
-<body>
-  <img src="pics/d6.png" alt="Image 1 description">
-  <img src="pics/d5-.png" alt="Image 2 description">
-  <img src="pics/d3.png" alt="Image 3 description">
-  <img src="pics/d2.png" alt="Image 4 description">
-  <img src="pics/d1.png" alt="Image 5 description">
-</body>
-</html>
+<img src="pics\HeapLists.PNG" width="40%" height="40%"/>
+
 
 As the total number of vertices (n) is 10, the arrays in *Linear Heap List* will be intialized as 
 Note: If a value for a index is not available  in Head, Next or Prev it is set to n (10). 
@@ -105,19 +88,14 @@ Note: If a value for a index is not available  in Head, Next or Prev it is set t
 |Next| 10 | 0 | 10 | 10 | 2 | 10 | 1 | 10 | 3 | 8 |
 |Prev| 1 | 6 | 4 | 8 | 10 | 10 | 10 | 10 | 9 | 10 |
 
+**Core Decomposition Algorithm**
 
-
-
-
-
-
-1.  Set core values to zero, max core to zero and store the data in *Linear Heap List*. 
-
-
-
-
-
-
+1. Set core values to zero, max core to zero and store the data in *Linear Heap List*. 
+2. iterate through 0 to n-1.
+3. Remove the vertex with minimum key value from *Linear Heap List*
+4. If degree of removed vertex is greater that *max_core*, update *max_core*.
+5. Add vertex to *peel Sequence* and its core value (*max_core*) to *Core*.
+6. The key of each neighbor of the removed vertex is decreamented by 1 if neighbor has not been assigned a core value. 
 
 
 ## Notes
