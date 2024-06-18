@@ -23,12 +23,12 @@ Code available at : https://drive.google.com/drive/folders/1yW2aDTX1o8mPuXFYd8WW
 
 The Serial code can be divided into the following steps
 
-1. Read Graph 
-2. Get core values 
-3. Get Intial Max min degree using Heuristic Algorithm 
-4. Calculate distance from query Vertex
-5. Apply Intial Reduction rules
-6. Run proposed algorith with or with out the dominating branching. 
+- Read Graph 
+- Get core values 
+- Get Intial Max min degree using Heuristic Algorithm 
+- Calculate distance from query Vertex
+- Apply Intial Reduction rules
+- Run proposed algorith with or with out the dominating branching. 
 
 ### Read Graph 
 
@@ -74,15 +74,15 @@ So if we divide the verticies into sets with same degree we get
 
 We have 5 total link lists with same key value. 
 
-<!DOCTYPE html>
+
 <html>
 <head>
-  <title>Five Images in a Line</title>
+  
   <style>
     img {
       display: inline-block;
-      width: 10%; /* Adjust width as needed */
-      margin: 0 5px; /* Adjust spacing as needed */
+      width: 10%; 
+      margin: 0 5px; 
     }
   </style>
 </head>
