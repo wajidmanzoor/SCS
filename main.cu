@@ -74,13 +74,6 @@ int main(int argc, const char * argv[] ) {
     ui *deviceOffset,*deviceNeighbors,*deviceDegree, *deviceDistance,*deviceCore;
     ui *deviceLowerBoundDegree;
 
-    /*cout << " d max " << dMAX<<endl;
-    for(ui i=0;i<n;i++){
-      if(core[i]==10){
-        cout<<"Vertex "<<i<<" Core "<<core[i]<<endl;
-      }
-    }*/
-
 
     cudaMalloc((void**)&deviceCore, n * sizeof(ui));
     cudaMemcpy(deviceCore, core, n * sizeof(ui), cudaMemcpyHostToDevice);
@@ -102,8 +95,9 @@ int main(int argc, const char * argv[] ) {
     cudaMemcpy(deviceLowerBoundDegree, &kl,sizeof(ui),cudaMemcpyHostToDevice);
 
     ui *deviceIntialTaskList, *deviceIntialStatusList, *deviceGlobalCounter,*deviceEntries;
-
-    ui INTOTAL_WARPS=32;
+    ui BLK_DIM2 = 1024;
+    ui INTOTAL_WARPS=BLK_DIM2/32;
+    ui intialParitionSize = (n/INTOTAL_WARPS)+1;
     ui intialSize = intialParitionSize*INTOTAL_WARPS;
     cout<<"Psize "<<intialParitionSize<<" Size "<<intialSize<<endl;
 
@@ -117,36 +111,21 @@ int main(int argc, const char * argv[] ) {
     ui globalCounter = 0;
     cudaMemcpy(deviceGlobalCounter, &globalCounter, sizeof(ui), cudaMemcpyHostToDevice);
 
-    int shared_memory_size =  INTOTAL_WARPS* sizeof(ui);
-    IntialReductionRules<<<1,BLK_DIM,shared_memory_size>>>(deviceOffset,deviceNeighbors,deviceDegree,deviceDistance,deviceCore,deviceIntialTaskList,deviceIntialStatusList,deviceEntries, deviceGlobalCounter,QID,n ,N2,kl,intialParitionSize);
+    size_t shared_memory_size =  INTOTAL_WARPS* sizeof(ui);
+
+    IntialReductionRules<<<1,BLK_DIM2,shared_memory_size>>>(deviceOffset,deviceNeighbors,deviceDegree,deviceDistance,deviceCore,deviceIntialTaskList,deviceIntialStatusList,deviceEntries, deviceGlobalCounter,QID,n ,N2,kl,intialParitionSize);
     cudaDeviceSynchronize();
     cudaMemcpy(&globalCounter,deviceGlobalCounter,sizeof(ui),cudaMemcpyDeviceToHost);
     cout<<" Total "<<globalCounter<<endl;
-    /*ui *temp,*temp1,*temp2;
-    temp = new ui[intialSize];
-    temp1 = new ui[intialSize];
-    temp2 = new ui[INTOTAL_WARPS];
-    cudaMemcpy(temp,deviceIntialTaskList,intialSize*sizeof(ui),cudaMemcpyDeviceToHost);
-    cudaMemcpy(temp1,deviceIntialStatusList,intialSize*sizeof(ui),cudaMemcpyDeviceToHost);
-    cudaMemcpy(temp2,deviceEntries,INTOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost);
-    ui s;
-    for(int i = 0; i < INTOTAL_WARPS; i++){
-      cout << "Entries "<<temp2[i]<<endl;
-      s = intialParitionSize*i;
-      for(int j=0;j<temp2[i];j++){
-        cout << "Vertex "<<temp[s+j]<<" Satus "<<temp1[s+j]<<endl;
-    }
-    }*/
-
 
     ui *reducedTaskList, *reducedStatusList;
 
     cudaMalloc((void**)&reducedTaskList, globalCounter*sizeof(ui));
     cudaMalloc((void**)&reducedStatusList, globalCounter*sizeof(ui));
 
-   
 
-    CompressTask<<<1,BLK_DIM>>>(deviceIntialTaskList,deviceIntialStatusList,deviceEntries,reducedTaskList, reducedStatusList,intialParitionSize);
+
+    CompressTask<<<1,BLK_DIM2>>>(deviceIntialTaskList,deviceIntialStatusList,deviceEntries,reducedTaskList, reducedStatusList,intialParitionSize);
     cudaDeviceSynchronize();
 
 
@@ -155,22 +134,6 @@ int main(int argc, const char * argv[] ) {
     cudaFree(deviceEntries);
     cudaFree(deviceGlobalCounter);
 
-    /*ui *temp3,*temp4;
-    temp3 = new ui[globalCounter];
-    temp4 = new ui[globalCounter];
-
-    cudaMemcpy(temp3,reducedTaskList,globalCounter*sizeof(ui),cudaMemcpyDeviceToHost);
-    cudaMemcpy(temp4,reducedStatusList,globalCounter*sizeof(ui),cudaMemcpyDeviceToHost);
-
-    cout<<"affter "<<endl;
-    for(ui i =0;i<globalCounter;i++){
-      cout<<"Vertex "<<temp3[i]<<"status " <<temp4[i]<<endl;
-    }*/
-
-
-
-
-
     ui *taskOffset;
 
     taskOffset = new ui[paritionSize];
@@ -178,7 +141,9 @@ int main(int argc, const char * argv[] ) {
     taskOffset[1]= globalCounter;
     taskOffset[paritionSize-1] = 1;
 
-    ui *deviceTaskList,*deviceStatusList, *deviceTaskOffset;
+    ui *deviceTaskList,*deviceStatusList, *deviceTaskOffset, *deviceSubgraphSize;
+    int *deviceUstar;
+
 
     cudaMalloc((void**)&deviceTaskList, TOTAL_WARPS*paritionSize*sizeof(ui));
     cudaMalloc((void**)&deviceStatusList, TOTAL_WARPS*paritionSize*sizeof(ui));
@@ -189,6 +154,10 @@ int main(int argc, const char * argv[] ) {
     cudaMalloc((void**)&deviceTaskOffset, TOTAL_WARPS*paritionSize*sizeof(ui));
     cudaMemcpy(deviceTaskOffset,taskOffset,paritionSize*sizeof(ui),cudaMemcpyHostToDevice);
 
+    cudaMalloc((void**)&deviceUstar, TOTAL_WARPS*paritionSize*sizeof(int));
+
+    cudaMalloc((void**)&deviceSubgraphSize, TOTAL_WARPS*paritionSize*sizeof(ui));
+
     cudaFree(reducedTaskList);
     cudaFree(reducedStatusList);
 
@@ -197,23 +166,40 @@ int main(int argc, const char * argv[] ) {
 
     cudaMalloc((void**)&deviceStopFlag,sizeof(bool));
 
-    shared_memory_size = WARPS_EACH_BLK * sizeof(ui);
+    shared_memory_size = 3*WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double);
+    size_t shared_memory_size1 = WARPS_EACH_BLK * sizeof(ui);
+
+
+
+    int c= 0;
     while(1){
 
         cudaMemset(deviceStopFlag,1,sizeof(bool));
+        cudaMemset(deviceUstar, -1, TOTAL_WARPS*paritionSize*sizeof(int));
+
         cudaMemcpy(&stopFlag,deviceStopFlag,sizeof(bool),cudaMemcpyDeviceToHost);
 
-        SCSSpeedEff <<<BLK_NUMS,BLK_DIM,shared_memory_size>>>(deviceTaskList, deviceStatusList,deviceTaskOffset,deviceNeighbors, deviceOffset, deviceDegree, deviceDistance, deviceStopFlag, deviceLowerBoundDegree, N1, N2, paritionSize, dMAX);
+        SCSSpeedEff <<<BLK_NUMS,BLK_DIM,shared_memory_size>>>(deviceTaskList, deviceStatusList,deviceTaskOffset,deviceNeighbors, deviceOffset, deviceDegree, deviceDistance, deviceStopFlag, deviceLowerBoundDegree, N1, N2, paritionSize, dMAX,deviceUstar,deviceSubgraphSize);
+        cudaDeviceSynchronize();
+
+        Expand <<<BLK_NUMS,BLK_DIM,shared_memory_size1>>>(deviceTaskList, deviceStatusList,deviceTaskOffset,deviceUstar,deviceSubgraphSize,deviceNeighbors, deviceOffset, deviceDegree, deviceDistance, deviceStopFlag, deviceLowerBoundDegree, N1, N2, paritionSize, dMAX);
 
         cudaMemcpy(&stopFlag,deviceStopFlag,sizeof(bool),cudaMemcpyDeviceToHost);
         cudaMemcpy(&kl, deviceLowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
         cudaDeviceSynchronize();
-
+       // cout<< " Max Min degree  "<<kl<<endl;
         if(stopFlag){
           cout<< " Max Min degree  "<<kl<<endl;
           cout<<"time = "<<integer_to_string(timer.elapsed()).c_str()<<endl;
-            break;
+          cout<< "C "<<c<<endl;
+          break;
         }
+
+        if(c%3==0){
+          cout<<"C= "<<c<<endl;
+        }
+
+        c++;
       }
     cudaFree(deviceOffset);
     cudaFree(deviceNeighbors);

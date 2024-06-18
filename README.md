@@ -1,11 +1,11 @@
 # size-bounded community search (SCS)
 
-###Note : Intial notes added will add more details 
+### Note : Intial notes added will add more details 
 
 
 ## Problem Statement
 
-Given:
+Given: 
 1. graph $G = (V,E)$
 2. query $q \in V$ 
 3. size constraint $[l,h]$
