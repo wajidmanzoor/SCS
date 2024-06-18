@@ -165,8 +165,52 @@ Calculates the distance of each vetrex from query vertex and stores that informa
 
 ## Apply Intial Reduction rules
 
+Reduced the search space $R$ using reduction rules.
+
+**Reduction Rule 1** : If core value of vertex is less than or equal to  current Min Max degree (kl), remove from Verticies. 
+
+**Reduction Rule 2** :  Diameter (D) is the maximum shortest distance between all pair-wise distance between two vertices in graph
+
+$$
+n(k,D) = 
+\begin{cases}
+    k+D, & \text{if } 1 \leq D \leq 2 or k = 1 \\
+    K+D+1+\frac{D}{3}\times (k-2), & \text{otherwise} 
+\end{cases}
+$$
+
+Set n = upper bound size (h) to calculate the Diameter D. 
+
+For all v in R if *q_dist* is less than Diameter D, remove from R
+
+
+**Intialize**
+- G0 : Vector to stores new verticies that were not removed by reduction rules. 
+- G0_Edges : Neighbors of G0.
+- G0_x : Number of Neighbors of each vertex
+- G0_degree : Degree of each vertex.
+- inQ :  status to indicate if in Queue or not.  
+- Create a Queue Q, to store the verticies to be processed. Push query vertex to Q and set status to 1.  
+
+**Algorithm** 
+1. While Q in not Empty
+    1. Remove top vertex from Queue, and push vertex to G0.
+    2. Iterate through neighbors of removed vertex. 
+        - if core value is greater than Min max degree and *q_dist* is greater than Diameter. 
+            - Add neighbor to new Neighbor list *G0_Edges* of vertex.
+            - Increase num neighbors and degree of vertex in *G0_x* and *G0_degree*. 
+        - if  neighbors status is 0, push to Queue and set status to 1. 
+
+**Note** : This algorithm is also BFS staring from the query vertex 
+
+
+
+
+
 
 ## Proposed algorithm with dominating branching. 
+
+
 
 
 
