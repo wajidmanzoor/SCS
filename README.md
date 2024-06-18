@@ -16,6 +16,110 @@ Find subgraph $H$ of $G$ that satisfies the bellow conditions
 3. Minimum degree of H is maximum among all sub graphs that satisfy above conditions
 
 
+
+## Serial Code 
+
+Code available at : https://drive.google.com/drive/folders/1yW2aDTX1o8mPuXFYd8WWMcQ_MZrFVyjm?usp=sharing
+
+The Serial code can be divided into the following steps
+
+1. Read Graph 
+2. Get core values 
+3. Get Intial Max min degree using Heuristic Algorithm 
+4. Calculate distance from query Vertex
+5. Apply Intial Reduction rules
+6. Run proposed algorith with or with out the dominating branching. 
+
+### Read Graph 
+
+**Input** : Edge list text file: Each line contains the vertices of an edge, separated by a tab character (\t). The first line specifies the number of vertices and edges.
+
+The graph information is stored in the following arrays:
+
+1. **G** : A map of vertices to their set of neighbors.
+2. **Peel Sequence** : Vertices in order of their core values (increasing).
+3. **Core** : Core values of the vertices.
+4. **P start** : Neighbors Offset 
+5. **Edges** : List of neighbors.
+6. **n** : Number of Verticies 
+7. **m** : Number of Edges
+8. **dmax** : Maximun degree in the graph
+
+### Get Core Values
+Performs core decomposition on a graph using a peeling algorithm. It updated the *Peel sequence* and *Core* arrays.
+
+It uses a data structure *Linear Heap List*, lets go over the data structure before explaining the process on this function. 
+
+**Linear Heap List** : It consists of 4 arrays and 3 variables
+a. Heads : Stores the heads of all link list. Each link list has the same Key value (degree). Keys values are intialized to degree of verticies
+b. Prev : Stores the prev element of all link lists 
+c. Next : Stores the Next element of all link lists
+d. Keys : Store the core values
+e. Key Cap : Max allowed core values ( n-1 ).
+f. Max Key : Max core value
+g. Min Key : Min Core Value 
+
+Lets suppose we have a below graph. 
+<img src="pics/graph1.jpg" width="40%" height="40%"/>
+
+So if we divide the verticies into sets with same degree we get 
+
+| Degree | vertices |
+|---|---|
+| 6 | { 5 } |
+| 5 | { 2, 4 }|
+| 3 | { 7 }|
+| 2 | { 3, 8, 9} |
+| 1 | { 0, 1, 6 } |
+
+We have 5 total link lists with same key value. 
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Five Images in a Line</title>
+  <style>
+    img {
+      display: inline-block;
+      width: 10%; /* Adjust width as needed */
+      margin: 0 5px; /* Adjust spacing as needed */
+    }
+  </style>
+</head>
+<body>
+  <img src="pics/d6.png" alt="Image 1 description">
+  <img src="pics/d5-.png" alt="Image 2 description">
+  <img src="pics/d3.png" alt="Image 3 description">
+  <img src="pics/d2.png" alt="Image 4 description">
+  <img src="pics/d1.png" alt="Image 5 description">
+</body>
+</html>
+
+As the total number of vertices (n) is 10, the arrays in *Linear Heap List* will be intialized as 
+Note: If a value for a index is not available  in Head, Next or Prev it is set to n (10). 
+
+| Index | Index 0 | Index 1 | Index 2 | Index 3 | Index 4 | Index 5 | Index 6 | Index 7 | Index 8 | Index 9 |
+|---|---|---|---|---|---|---|---|---|---|---|
+|Keys| 1 | 1 | 5 | 2 | 5 | 6 | 1 | 3 | 2 | 2 |
+|Head| 10 |6 | 9 | 7 | 10 | 4 | 5 | 10 | 10 | 10 |
+|Next| 10 | 0 | 10 | 10 | 2 | 10 | 1 | 10 | 3 | 8 |
+|Prev| 1 | 6 | 4 | 8 | 10 | 10 | 10 | 10 | 9 | 10 |
+
+
+
+
+
+
+
+1.  Set core values to zero, max core to zero and store the data in *Linear Heap List*. 
+
+
+
+
+
+
+
+
 ## Notes
 
 
