@@ -79,7 +79,6 @@ We have 5 total link lists with same key value.
 
 
 As the total number of vertices (n) is 10, the arrays in *Linear Heap List* will be intialized as 
-Note: If a value for a index is not available  in Head, Next or Prev it is set to n (10). 
 
 | Index | Index 0 | Index 1 | Index 2 | Index 3 | Index 4 | Index 5 | Index 6 | Index 7 | Index 8 | Index 9 |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -87,6 +86,9 @@ Note: If a value for a index is not available  in Head, Next or Prev it is set t
 |Head| 10 |6 | 9 | 7 | 10 | 4 | 5 | 10 | 10 | 10 |
 |Next| 10 | 0 | 10 | 10 | 2 | 10 | 1 | 10 | 3 | 8 |
 |Prev| 1 | 6 | 4 | 8 | 10 | 10 | 10 | 10 | 9 | 10 |
+
+Note: If a value for a index is not available  in Head, Next or Prev it is set to n (10). 
+
 
 **Core Decomposition Algorithm**
 
@@ -97,6 +99,28 @@ Note: If a value for a index is not available  in Head, Next or Prev it is set t
 5. Add vertex to *peel Sequence* and its core value (*max_core*) to *Core*.
 6. The key of each neighbor of the removed vertex is decreamented by 1 if neighbor has not been assigned a core value. 
 
+### Get Intial Max min degree using Heuristic Algorithm 
+
+We have the following Heuristic Algoriths
+
+#### Heuristic 1 
+
+**Intialzie** 
+- Create a vector H to store the subgraph with the maximum minimum degree.
+- Initialize kl (the maximum minimum degree) to zero. 
+- Create arrays hDegree (to store the degree of vertices in the subgraph) and sta (to track the status of vertices).
+- Set sta to zero for all vertices. (sta values: 0 = vertex not in Q or H, 1 = vertex in Q, 2 = vertex in H).
+- Create a priority queue Q of vertices, with the priority based on the degree of vertex in the original graph.
+
+**Algorithm**
+1. Push query vertex in Queue (Q) and set the status to 1. 
+2. while(Q is not empty)
+    1. Remove top element from Q. 
+    2. Iterate through neighbors of removed element, 
+        - If neighbors status is 0, push to Q and set status to 1.
+        - If neighbors status is 2, increamnet degree of removed vertex and neighbor in HDegree. 
+    3. If size of H >= Lower Bound size, Compare and update Max Min Degree (kl)
+    4. if size of H = Upper Bound Size, Break 
 
 ## Notes
 
