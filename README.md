@@ -234,8 +234,8 @@ This a a recursive Algorithm.
     - Find dominating set of Ustar
     - Iterate through dominating set ($dv_{i}$)
         - Call function recursively on $VI \cup \{ustar, dv_{i}\}$ and  $ VR\ \{dv_{1} \text{to} dv_{i}\}$
-6. call function recursively on $VI \cup {ustar}$ and $VR \ {ustar, dominating set}$
-7. call function recursively on $VI$ and $VR \ {ustar, dominating set}$
+6. call function recursively on $VI \cup \{ustar\}$ and $VR \ \{\text{ustar, dominating set}\}$
+7. call function recursively on $VI$ and $VR \ \{\text{ustar, dominating set}\}$
 
 
 
