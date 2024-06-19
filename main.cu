@@ -59,7 +59,7 @@ int main(int argc, const char * argv[] ) {
     const char* filepath = argv[1];
     load_graph(filepath);
 
-    ui intialParitionSize = (n/TOTAL_WARPS)+1;
+    
     Timer timer;
     StartTime = (double)clock() / CLOCKS_PER_SEC;
 
@@ -104,6 +104,7 @@ int main(int argc, const char * argv[] ) {
     ui *deviceIntialTaskList, *deviceIntialStatusList, *deviceGlobalCounter,*deviceEntries;
 
     ui INTOTAL_WARPS=32;
+    ui intialParitionSize = (n/INTOTAL_WARPS)+1;
     ui intialSize = intialParitionSize*INTOTAL_WARPS;
     cout<<"Psize "<<intialParitionSize<<" Size "<<intialSize<<endl;
 

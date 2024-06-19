@@ -233,9 +233,21 @@ This a a recursive Algorithm.
     - Find Ustar 
     - Find dominating set of Ustar
     - Iterate through dominating set ($dv_{i}$)
-        - Call function recursively on $VI \cup \{ustar, dv_{i}\}$ and  $ VR\ \{dv_{1} \text{to} dv_{i}\}$
-6. call function recursively on $VI \cup \{ustar\}$ and $VR \ \{\text{ustar, dominating set}\}$
-7. call function recursively on $VI$ and $VR \ \{\text{ustar, dominating set}\}$
+        - Call function recursively on $VI \cup \{ustar, dv_{i}\}$ and  $ VR \text{\ } \{dv_{1} \text{to} dv_{i}\}$
+6. call function recursively on $VI \cup \{ustar\}$ and $VR \text{\ } \{\text{ustar, dominating set}\}$
+7. call function recursively on $VI$ and $VR \text{\ } \{\text{ustar, dominating set}\}$
+
+### Calculate Upper bound degree for current VI and VR.
+
+**Degree Based**
+1. $U_{d} = min_{u \in C} min (d_{C \cup R}(u), d_{C}(u)+h-|C|)$
+2. if $U_{d}$ is less than or equal to  Max Min degree, reject the branch. 
+
+**Algorithm**
+
+
+
+
 
 
 
@@ -272,8 +284,21 @@ TODO: Move to GPU
 
 4. IntialReductionRules (GPU): copies vertices with core values > Klower and distance from QID <  upperBoundSize.
 
+<img src="pics\Intial Reduction Rules.png"/>
+
 5. CompressTask (GPU) : Compress array returned by IntialReductionRules Kernel. 
 
-6. SCSSpeedEff (GPU) :  This kernel applies a reduction rule to prune the set $\( R \)$. It also compares and updates the minimum degree, calculates $\( u^* \)$, and determines the potential maximum minimum degree of each subgraph. Using the current task (subgraph) and $\( u^* \)$, it generates new tasks (subgraphs) if the potential maximum degree exceeds $\( k_{\text{lower}} \)$. These new tasks are then added to the task array.
+<img src="pics/Compress Task.png"/>
+
+6. Process Task (GPU) :  This kernel applies a reduction rule to prune the set $\( R \)$. It also compares and updates the minimum degree, calculates $\( u^* \)$, and determines the potential maximum minimum degree of each subgraph. Using the current task (subgraph) and $\( u^* \)$, it generates new tasks (subgraphs) if the potential maximum degree exceeds $\( k_{\text{lower}} \)$. These new tasks are then added to the task array.
+
+<img src="pics/ustar and size.png"/>
+
+
+7. Expand Task (GPU): 
+
+<img src="pics/Expand Task.png"/>
+
+
 
 
