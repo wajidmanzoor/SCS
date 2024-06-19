@@ -24,7 +24,11 @@ Find subgraph $H$ of $G$ that satisfies the bellow conditions
 
 ## Notes
 
-[Serial Code ](SerialCode.md)
+### [Serial Code ](SerialCode.md)
+
+
+### [Parallel Code ](ParallelCode.md)
+
 
 
 
