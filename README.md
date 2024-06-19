@@ -243,7 +243,59 @@ This a a recursive Algorithm.
 1. $U_{d} = min_{u \in C} min (d_{C \cup R}(u), d_{C}(u)+h-|C|)$
 2. if $U_{d}$ is less than or equal to  Max Min degree, reject the branch. 
 
-**Algorithm**
+**Algorithm 1**
+1. Set the minimum upper bound degree to *INF*.
+2. Iterate through each vertex \(u\) in \(VI (C)\).
+    - Calculate the number of neighbors present in \(VR (R)\).
+    - Find its degree \(d_C(u)\) in \(VI (C)\), and compute the sum of this degree and the difference between the upper bound size \(h\) and the subgraph size \(|C|\).
+    - Set the upper bound degree to minimum of the values calculated in the above two steps.
+    - If the upper bound degree is less than the mimimum upper bound degree, update the upper bound degree.
+3. Return minimum upper bound degree. 
+
+**Note**: Time complexity $= |C| \times degree_{avg}$ 
+
+**Algorithm 2**
+1. TODO : Add notes
+
+
+**Algorithm 3**
+1. Add notes
+
+### Find Ustar
+
+*Connection score* of vertex v in R is the reciprocal sum of degrees of neighbors of v if added in C.
+*Ustar* is the vertex from R that has the maximum *connection score*, is used to generate new branches.
+
+
+**Algorithm 1**
+1. Intialize Max connection score to *0* and ustar to *-1*.
+2. Iterate throught verticies in NEI (Neighbors of all verticies of C that are present in R ).
+    - Set connection score to zero. 
+    - For each vertex iterate through the neighbors that are in VI (C).
+        -  Increament connection score by the reciprocal of degree of neighbor in VI (C).
+    - if connection score is greater than Max connection score update Max connection score. Set ustar to vertex. 
+3. Return ustar
+
+**Note**: 
+- Ustar is selected based on the Vertex in R that is more connected to C and connected to those verticies in C that have lower degree. 
+- Time complexity $= |NEI| \times degree_{avg}$ 
+
+**Algorithm 2**
+1. Intialize Max connection score to *0* and ustar to *-1*.
+2. Iterate throught verticies in NEI (Neighbors of all verticies of C that are present in R ).
+    - Set connection score to number of neighbor that are in VI (C). 
+    - if connection score is greater than Max connection score update Max connection score. Set ustar to vertex. 
+3. Return ustar
+
+**Note:**
+- Ustar is selected based on the Vertex in R that is more connected to C. 
+- Time complexity $= |NEI| \times degree_{avg}$  
+
+**Algorithm 3**
+
+
+
+
 
 
 
