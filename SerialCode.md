@@ -288,6 +288,7 @@ Ustar and Dominating set will be used to create new branches.
     - set is_dom to *true*
     - Itterate throught neighbors(u) of vertex (v). 
     - If neighbor is either in C or R.
+        - ==High text==
         - <span style="color:red">If all any neighbor of ustar is greater than neighbor (u), set is_dom to false. </span>  <span style="color:red">Confusion </span>
         - If is_dom is true, Calculate connection score of the vertex (v)
         - Push vertex and connection score to vector pair.
