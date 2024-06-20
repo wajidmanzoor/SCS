@@ -1,3 +1,11 @@
+<style>
+.issue {
+    background-color: yellow;
+}
+</style>
+
+
+
 # Serial Code 
 
 Code available [here](https://drive.google.com/drive/folders/1yW2aDTX1o8mPuXFYd8WWMcQ_MZrFVyjm?usp=sharing)
@@ -289,7 +297,7 @@ Ustar and Dominating set will be used to create new branches.
     - Itterate throught neighbors(u) of vertex (v). 
     - If neighbor is either in C or R.
 
-        - <span style="color:red">If all any neighbor of ustar is greater than neighbor (u), set is_dom to false. </span>  <span style="color:red">Confusion </span>
+        - <span class="issue">If all any neighbor of ustar is greater than neighbor (u), set is_dom to false. </span>  <span style="color:red">Confusion </span>
         - If is_dom is true, Calculate connection score of the vertex (v)
         - Push vertex and connection score to vector pair.
 2. return dominating vertex set in decreasing order of connection score. 
