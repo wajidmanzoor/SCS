@@ -288,10 +288,26 @@ Ustar and Dominating set will be used to create new branches.
     - set is_dom to *true*
     - Itterate throught neighbors(u) of vertex (v). 
     - If neighbor is either in C or R.
-        - `If all any neighbor of ustar is greater than neighbor (u), set is_dom to false`  ***Different***
+        - `If any neighbor of ustar is greater than neighbor (u), set is_dom to false`  ***Different***
         - If is_dom is true, Calculate connection score of the vertex (v)
         - Push vertex and connection score to vector pair.
 2. return dominating vertex set in decreasing order of connection score. 
 
 I have highlighted a step that needs attention. According to the paper, we should be verifying if all the neighbors of a vertex are either neighbors of Ustar or Ustar itself. However, the current code checks if all the neighbors of the vertex are greater than the neighbors of Ustar.
+
+# Papaer and Code Variations. 
+1. Paper claimes that "In Implementation, compute 𝑈𝑑 ,then 𝑈𝑛𝑟, and finally 𝑈𝑑𝑐 in increasing order of their time complexities. Once a computed upper bound is enough to prune the instance (𝐶, 𝑅), we terminate the upper bound computation immediately." But in code all three are executed and the one with most tight upper bound is used for pruning branches. *SBS.h line 355*
+2. For applying reduction rule 1, paper suggests to remove the vertex if $min{𝑑_{𝐶 \cup 𝑅} (𝑣), 𝑑_{𝐶 \cup 𝑣 } (𝑣) + ℎ − |𝐶| − 1} ≤ 𝑘$ However the code only considers the condition $𝑑_{𝐶 \cup v} (𝑣) + ℎ − |𝐶| − 1 ≤ 𝑘$, ignoring the minimum function involving $𝑑_{𝐶 \cup 𝑅} (𝑣)$. *SBS.h Line 236, 277*
+3. While calculating the connection score code add an adtional term $d_{R} (v) / d_{max}$ . Not mentioned in paper. *helpers.h line 120 186*
+4. Code does not recursively call function on C + ustar , R- ustar - dominating set. Even when it is claimed in paper. *SBS.h Line 1088*
+5. For calculating dominating set according to the paper, we should be verifying if all the neighbors of a vertex are either neighbors of Ustar or Ustar itself. However, the current code checks if all the neighbors of the vertex are greater than the neighbors of Ustar. *helpers.h code 293*
+ 
+ # Don't know reason 
+ 1. If size of VI (C) is greater than $\frac{2 \times H}{5}$, use the less expensive ustar method.
+ 
+
+ # Issue 
+ 1. After appying recuction rule 3, which included all verticies of R whose degree = K+1 in C, if size of C exceeds h, we remove all verticies. Shouldn't we just add till the size is less than h . Rather than removing all. *SBS.h line 118, 630*
+ 2. After adding ustar to C and removing from R, code doesn't decreament 1 from the neighbors of ustar in R. *code 352*
+ 3. Code doesn't update subgraph with max min degree (H) correctly. *Heusritic.h line 100*
 
