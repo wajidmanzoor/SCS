@@ -29,38 +29,33 @@ Once a warp has processed all *psize* vertices, the first thread of the warp wil
 
 **Input**: Core Value Array, Distance from Query Vertex Array
 
-$$
-\begin{algorithm}
-\text{Assumption: } \text{local\_counter is in shared memory}
-\begin{algorithmic}[1]
-\If{laneId = 0}
-    \State local\_counter[warpId] \gets 0
-\EndIf
-\State \_\_syncwarp()
-\State start, writeOffset \gets \text{warpId} \times \text{pSize}
-\State end \gets \min((\text{warpId} + 1) \times \text{pSize}, \text{size})
-\State total \gets \text{end - start}
-\For{i \gets \text{laneId} \text{ to } \text{total - 1} \text{ step } 32}
-    \State vertex \gets \text{start + i}
-    \If{coreValues[vertex] > \text{lowerBoundDegree} \text{ and } distanceFromQID[vertex] < (\text{upperBoundSize} - 1)}
-        \State loc \gets \text{atomicAdd}(local\_counter[\text{warpId}], 1)
-        \State taskList[loc + \text{writeOffset}] \gets \text{vertex}
-        \If{vertex = \text{queryVertex}}
-            \State taskStatus[loc + \text{writeOffset}] \gets 1
-        \Else
-            \State taskStatus[loc + \text{writeOffset}] \gets 0
-        \EndIf
-    \EndIf
-\EndFor
-\State \_\_syncwarp()
-\If{laneId = 0}
-    \State numEntries[\text{warpId}] \gets \text{local\_counter}[\text{warpId}]
-    \State \text{atomicAdd}(globalCounter, \text{local\_counter}[\text{warpId}])
-\EndIf
-\end{algorithmic}
-\end{algorithm}
-$$
-
+```cpp
+// Assumption: local_counter is in shared memory
+1: if laneId == 0 then
+2:     local_counter[warpId] ← 0
+3: end if
+4: __syncwarp()
+5: start,writeOffset ← warpId * pSize
+6: end ← min((warpId + 1) * pSize, size)
+7: total ← end - start
+8: for i ← laneId to total - 1 step 32 do
+9:     vertex ← start + i
+10:    if coreValues[vertex] > lowerBoundDegree and distanceFromQID[vertex] < (upperBoundSize - 1) then
+11:        loc ← atomicAdd(local_counter[warpId], 1)
+12:        taskList[loc + writeOffset] ← vertex
+13:        if vertex == queryVertex then
+14:            taskStatus[loc + writeOffset] ← 1
+15:        else
+16:            taskStatus[loc + writeOffset] ← 0
+17:        end if
+18:    end if
+19: end for
+20: __syncwarp()
+21: if laneId == 0 then
+22:    numEntries[warpId] ← local_counter[warpId]
+23:    atomicAdd(globalCounter, local_counter[warpId])
+24: end if
+```
 
 **Output**: Vertex Array, Status Array, Num Counter Array, Global Count
 
