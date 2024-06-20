@@ -1,6 +1,6 @@
 # Serial Code 
 
-Code available at : https://drive.google.com/drive/folders/1yW2aDTX1o8mPuXFYd8WWMcQ_MZrFVyjm?usp=sharing
+Code available [here](https://drive.google.com/drive/folders/1yW2aDTX1o8mPuXFYd8WWMcQ_MZrFVyjm?usp=sharing)
 
 The Serial code can be divided into the following steps
 
@@ -85,7 +85,7 @@ Calculates the intial subgraph that statify all the conditions using heuristic a
 
 We have the following heuristic Algoriths
 
-### Heuristic 1 
+### 3.1. Heuristic 1 
 
 **Intializie** 
 - Create a vector H to store the subgraph with the maximum minimum degree.
@@ -105,7 +105,7 @@ We have the following heuristic Algoriths
     4. if size of H = Upper Bound Size, Break 
 
 
-### Heuristic 2
+### 3.2. Heuristic 2
 
 **Intializie** 
 - Create a vector H to store the subgraph with the maximum minimum degree.
@@ -218,7 +218,7 @@ This a a recursive Algorithm.
 6. call function recursively on $VI \cup \{ustar\}$ and $VR \text{\ } \{\text{ustar, dominating set}\}$
 7. call function recursively on $VI$ and $VR \text{\ } \{\text{ustar, dominating set}\}$
 
-### Calculate Upper bound degree for current VI and VR.
+### 6.1. Calculate Upper bound degree for current VI and VR.
 
 **Degree Based**
 1. $U_{d} = min_{u \in C} min (d_{C \cup R}(u), d_{C}(u)+h-|C|)$
@@ -242,7 +242,7 @@ This a a recursive Algorithm.
 **Algorithm 3**
 1. Add notes
 
-### Find Ustar
+### 6.2 Find Ustar
 
 *Connection score* of vertex v in R is the reciprocal sum of degrees of neighbors of v if added in C.
 *Ustar* is the vertex from R that has the maximum *connection score*, is used to generate new branches.
@@ -273,3 +273,26 @@ This a a recursive Algorithm.
 - Time complexity $= |NEI| \times degree_{avg}$  
 
 **Algorithm 3**
+Todo: add notes later 
+
+### 6.3. Find dominating set of Ustar
+
+**Vertex Domination*: Given at vertex $v \in R$ and $v^{'} \in R$, V dominates $v^{'}$ if every neighbor of $v^{'}$ in $(C \cup R)$ is either neighbor of v or v itself. 
+
+*Dominating set* : consistes of all verticies of R that are dominated by Ustar.
+
+Ustar and Dominating set will be used to create new branches.
+
+**Algorithm 1**
+1. itterate through verticies (v) in NEI.
+    - set is_dom to *true*
+    - Itterate throught neighbors(u) of vertex (v). 
+    - If neighbor is either in C or R.
+        - <span style="color:red">If all any neighbor of ustar is greater than neighbor (u), set is_dom to false. </span> // <span style="color:red">Confusion </span>
+        - If is_dom is true, Calculate connection score of the vertex (v)
+        - Push vertex and connection score to vector pair.
+2. return dominating vertex set in decreasing order of connection score. 
+
+I have highlighted a step in red. We should be checking if the all the neighbors of vertex are either neighbors of Ustar or ustar itself. But the code is check if all the neighbors of vertex are greater than neighbors of Ustar. 
+
+
