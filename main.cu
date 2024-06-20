@@ -59,7 +59,6 @@ int main(int argc, const char * argv[] ) {
     const char* filepath = argv[1];
     load_graph(filepath);
 
-    ui intialParitionSize = (n/TOTAL_WARPS)+1;
     Timer timer;
     StartTime = (double)clock() / CLOCKS_PER_SEC;
 
