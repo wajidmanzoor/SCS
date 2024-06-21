@@ -1,5 +1,25 @@
 # Our code 
 
+## Host Program
+
+```cpp
+1: Read Graph
+2: Get Core values of each vertex
+3: ku = min(core[QID], N2-1)
+4: kl = 0
+5: ubD = N2-1
+6: Calculate distance from query vertex
+7: Apply intial reduction rules 
+8: Compress the tasks and status.
+9: while True do
+10:     Process Tasks 
+11:     Expand Task
+12:     if stopFlag then
+13:         break
+14:     end if
+15: end while
+```
+
 ## 1. Read Graphs
 The Graph should be edge list (seperated by tab ) with the first line represents numVerticies and numEdges
     The Data is stored in 
