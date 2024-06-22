@@ -311,3 +311,4 @@ I have highlighted a step that needs attention. According to the paper, we shoul
  2. After adding ustar to C and removing from R, code doesn't decreament 1 from the neighbors of ustar in R. *code 352*
  3. Code doesn't update subgraph with max min degree (H) correctly. *Heusritic.h line 100*
 
+ 
