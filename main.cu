@@ -95,7 +95,7 @@ int main(int argc, const char * argv[] ) {
           cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
           cout<<"Level " <<c<< "Max min degree "<<kl<<endl;
         }
-        c++
+        c++;
 
     }
     /*ui *task, *status, *size, *off,*dc,*dr;
