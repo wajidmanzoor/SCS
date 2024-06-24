@@ -93,7 +93,7 @@ int main(int argc, const char * argv[] ) {
         }
 
     }
-    ui *task, *status, *size, *off,*dc,*dr;
+    /*ui *task, *status, *size, *off,*dc,*dr;
     task = new ui[TOTAL_WARPS*paritionSize];
     status = new ui[TOTAL_WARPS*paritionSize];
     size = new ui[TOTAL_WARPS*paritionSize];
@@ -139,7 +139,7 @@ int main(int argc, const char * argv[] ) {
         cout <<endl;
 
       }
-    }
+    }*/
 
     freeInterPointer(intialTask);
     freeGraph(deviceGraph);
