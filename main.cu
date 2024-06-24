@@ -33,11 +33,11 @@ int main(int argc, const char * argv[] ) {
     deviceGraphPointers deviceGraph;
     memoryAllocationGraph(deviceGraph);
 
-    ui BLK_DIM2 = 64;
+    ui BLK_DIM2 = 128;
     ui BLK_NUM2 = 1;
     ui INTOTAL_WARPS=(BLK_NUM2*BLK_DIM2)/32;
     ui intialParitionSize = (n/INTOTAL_WARPS)+1;
-    cout<<"here "<<INTOTAL_WARPS<<intialParitionSize<<endl;
+    cout<<"here "<<INTOTAL_WARPS<<" here "<<intialParitionSize<<endl;
 
     deviceInterPointers intialTask;
     memoryAllocationIntialTask(intialTask,INTOTAL_WARPS,intialParitionSize);
@@ -70,7 +70,7 @@ int main(int argc, const char * argv[] ) {
     size_t sharedMemrySizeTask = 3*WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double);
     size_t sharedMemrySizeExpand = WARPS_EACH_BLK * sizeof(ui);
     bool stopFlag;
-    //int c=0;
+    int c=0;
 
     while(1){
 
@@ -91,6 +91,11 @@ int main(int argc, const char * argv[] ) {
           
           break;
         }
+        if(c%10==0){
+          cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
+          cout<<"Level " <<c<< "Max min degree "<<kl<<endl;
+        }
+        c++
 
     }
     /*ui *task, *status, *size, *off,*dc,*dr;

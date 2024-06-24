@@ -1,3 +1,7 @@
+__device__ int minn(int a, int b) {
+    return (a < b) ? a : b;
+}
+
 __device__ int findIndexKernel(ui *arr,ui start,ui end ,ui target)
 
 {
@@ -194,6 +198,9 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             ui ind = startIndex+start+i;
             ui vertex = T.taskList[ind];
             ui status = T.statusList[ind];
+            ui degR = T.degreeInR[ind];
+            ui degC = T.degreeInC[ind];
+            ui hSize = T.size[ind];
         //printf("iter %u wrap %u lane id %u ind %u vertex %u status %u \n",iter,warpId,i,ind,vertex,status);
 
 
@@ -205,6 +212,29 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             currentMinDegree = UINT_MAX;
 
             ustar = -1;
+           
+
+            /*if(status==0){
+              if(minn(degR, degC+upperBoundSize-hSize-1) <= G.lowerBoundDegree){
+                T.statusList[ind]=2;
+                status = 2;
+                T.degreeInR[ind] = 0;
+                degR = 0;
+                T.degreeInC[ind] =0;
+                degC = 0;
+                for(int j = startNeighbor; j < endNeighbor; j++){
+                  resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[j]);
+                  if(resultIndex!=-1){
+                    if(T.degreeInr[resultIndex]!=0){
+                      atomicAdd(T.degreeInr[resultIndex], -1);
+                    }
+                  }
+                }
+
+
+              }
+            }*/
+
 
             if(status==0)
             {
@@ -376,6 +406,7 @@ __global__ void Expand(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundS
                         }
 
                       }
+                      
                     }
                     T.degreeInR[writeOffset+loc]=degInR;
                     T.degreeInC[writeOffset+loc]=degInC;
