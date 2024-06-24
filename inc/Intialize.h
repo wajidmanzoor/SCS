@@ -89,7 +89,7 @@ double time_find_NEI;
 double time_find_usatr;
 double time_comp_ub;
 
-typedef struct deviceGraphPointers {
+typedef struct  {
     ui *offset;
     ui *neighbors;
     ui *degree;
@@ -98,9 +98,9 @@ typedef struct deviceGraphPointers {
     ui *lowerBoundDegree;
 
     
-};
+}deviceGraphPointers;
 
-typedef struct deviceTaskPointers {
+typedef struct  {
      ui *taskList;
      ui *statusList;
      ui *taskOffset; 
@@ -111,11 +111,11 @@ typedef struct deviceTaskPointers {
      bool *flag;
 
 
-};
+}deviceTaskPointers;
 
-typedef struct deviceInterPointers {
+typedef struct  {
      ui *intialTaskList;
      ui *globalCounter;
      ui *entries;
 
-};
+}deviceInterPointers;
