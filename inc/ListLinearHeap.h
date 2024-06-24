@@ -5,7 +5,7 @@
  *      Author: Lijun Chang
  *      Email: ljchang@outlook.com
  */
-
+#pragma once
 #include "Intialize.h"
 
 

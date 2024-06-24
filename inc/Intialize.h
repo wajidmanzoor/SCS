@@ -88,3 +88,34 @@ double time_del_from_VR;
 double time_find_NEI;
 double time_find_usatr;
 double time_comp_ub;
+
+typedef struct deviceGraphPointers {
+    ui *offset;
+    ui *neighbors;
+    ui *degree;
+    ui *distance;
+    ui *core;
+    ui *lowerBoundDegree;
+
+    
+};
+
+typedef struct deviceTaskPointers {
+     ui *taskList;
+     ui *statusList;
+     ui *taskOffset; 
+     ui *size;
+     ui *degreeInR;
+     ui *degreeInC;
+     int *ustar;
+     bool *flag;
+
+
+};
+
+typedef struct deviceInterPointers {
+     ui *intialTaskList;
+     ui *globalCounter;
+     ui *entries;
+
+};

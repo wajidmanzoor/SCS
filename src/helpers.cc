@@ -1,5 +1,3 @@
-// Reduction rule 1,2,3 added in SBSNEW
-// Upperbound technique 1 added.
 __device__ int findIndexKernel(ui *arr,ui start,ui end ,ui target)
 
 {
@@ -19,13 +17,118 @@ __device__ int findIndexKernel(ui *arr,ui start,ui end ,ui target)
         return resultIndex;
 
 }
+__global__ void IntialReductionRules(deviceGraphPointers G,deviceInterPointers P,ui size, ui upperBoundSize,ui lowerBoundDegree, ui pSize)
+{
 
-__global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *neighbors,ui *neighborOffset, ui *degree,ui *distanceFromQID, bool *flag, ui *lowerBoundDegree,ui lowerBoundSize, ui upperBoundSize, ui pSize,ui dmax,int *ustarList,ui *subgraphSize)
+  // Intial Reduction rule based on core value and distance.
+  extern __shared__ ui shared_memory1[];
+
+  // Store the counter
+  ui *local_counter = shared_memory1;
+
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  int warpId = idx / 32;
+  int laneId = idx % 32;
+
+  ui start = warpId*pSize;
+  ui end = (warpId+1)*pSize;
+  ui writeOffset = warpId*pSize;
+  if(end>size){
+    end = size;
+  }
+  if(start>size){
+    start = size;
+  }
+  ui total = end -start;
+
+  if(laneId==0){
+    local_counter[threadIdx.x/32]=0;
+  //printf("wrapId %d start %u end %u  \n",warpId,start,end);
+
+  }
+  __syncwarp();
+
+  for(ui i=laneId;i<total;i+=32){
+
+    ui vertex = start+i;
+    if( (G.core[vertex] > lowerBoundDegree) && (G.distance[vertex] < (upperBoundSize-1)) ){
+      ui loc = atomicAdd(&local_counter[threadIdx.x/32],1);
+      P.intialTaskList[loc+writeOffset]=vertex;
+    //printf("block id %u wrapId %u lane id %u vertex %u degree %u \n",blockIdx.x,warpId,i,vertex,G.degree[vertex]);
+
+    }else{
+      G.degree[vertex]=0;
+    }
+
+
+    }
+
+      __syncwarp();
+    if(laneId==0){
+      P.entries[warpId] =local_counter[threadIdx.x/32];
+
+      atomicAdd(P.globalCounter,local_counter[threadIdx.x/32]);
+      //printf("block %d wrapId %d entries %u g %u \n",blockIdx.x,warpId,P.entries[warpId],*(P.globalCounter));
+
+
+    }
+
+}
+
+__global__ void CompressTask(deviceGraphPointers G,deviceInterPointers P, deviceTaskPointers T, ui pSize, ui queryVertex){
+
+  ui idx = blockIdx.x * blockDim.x + threadIdx.x;
+  int warpId = idx / 32;
+  int laneId = idx % 32;
+
+  ui start = warpId*pSize;
+  int temp = warpId-1;
+  ui total = P.entries[warpId];
+  ui writeOffset = 0;
+  if(idx==0){
+    T.size[0]=1;
+  }
+
+  for(ui i=laneId;i<total;i+=32){
+
+      while(temp>=0){
+        writeOffset += P.entries[temp];
+        temp--;
+      }
+    int vertex = P.intialTaskList[start+i];
+    T.taskList[writeOffset+i] = vertex;
+    T.statusList[writeOffset+i] = (vertex == queryVertex ) ? 1 :0;
+    ui nStart = G.offset[vertex];
+    ui nEnd = G.offset[vertex+1];
+    ui degInR = 0;
+    ui degInc =0;
+    for(ui k = nStart; k < nEnd; k++){
+      if((G.neighbors[k]!=queryVertex) && (G.degree[G.neighbors[k]]!=0)){
+        degInR++;
+      }
+      if(G.neighbors[k]==queryVertex){
+        degInc++;
+
+      }
+
+    }
+
+
+    T.degreeInR[writeOffset+i] = degInR;
+    T.degreeInC[writeOffset+i] = degInc;
+    //printf("warp id %u lane id %u vertex %u status %u degree %u dR %u dC %u \n",warpId,i,T.taskList[writeOffset+i],T.statusList[writeOffset+i],G.degree[vertex], T.degreeInR[writeOffset+i],T.degreeInC[writeOffset+i]);
+
+
+  }
+
+}
+
+__global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundSize, ui upperBoundSize, ui pSize,ui dmax)
 {
     extern __shared__ char shared_memory[];
     ui sizeOffset = 0;
     // Stores new tasks
-    ui *sharedSize = (ui*)(shared_memory + sizeOffset);
+    ui *sharedUBDegree = (ui*)(shared_memory + sizeOffset);
     sizeOffset += WARPS_EACH_BLK * sizeof(ui);
 
     ui *sharedDegree = (ui*)(shared_memory + sizeOffset);
@@ -48,16 +151,11 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
 
     double temp;
     ui temp2;
-    ui temp3;
 
     int otherId;
 
-    // Declare to store the index in task
     int resultIndex;
-
-    // will store the index of vertex in task.
-
-    ui current_size;
+    ui currentSize;
 
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int warpId = idx / 32;
@@ -68,13 +166,13 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
 
     ui startIndex =  warpId*pSize;
     ui endIndex  =   (warpId+1)*pSize -1;
-    ui totalTasks = taskOffset[endIndex];
+    ui totalTasks = T.taskOffset[endIndex];
     if(laneId==0)
         {
-            sharedSize[warpId] = 0;
-            sharedScore[warpId] = 0;
-            sharedUstar[warpId] = -1;
-            sharedDegree[warpId]= UINT_MAX;
+            sharedUBDegree[threadIdx.x/32] = UINT_MAX;
+            sharedScore[threadIdx.x/32] = 0;
+            sharedUstar[threadIdx.x/32] = -1;
+            sharedDegree[threadIdx.x/32]= UINT_MAX;
 
 
         }
@@ -84,8 +182,8 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
      for(ui iter =0; iter<totalTasks;iter++)
      {
 
-        ui start = taskOffset[startIndex+iter];
-        ui end = taskOffset[startIndex+iter+1];
+        ui start = T.taskOffset[startIndex+iter];
+        ui end = T.taskOffset[startIndex+iter+1];
         ui total = end - start;
         //printf("iter %u wrap %u total %u \n",iter,warpId,totalTasks);
 
@@ -94,66 +192,42 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
         {
             int index = startIndex+start+i;
             ui ind = startIndex+start+i;
-            ui vertex = taskList[ind];
-            ui status = taskStatus[ind];
-            ui stat = taskStatus[ind];
+            ui vertex = T.taskList[ind];
+            ui status = T.statusList[ind];
+        //printf("iter %u wrap %u lane id %u ind %u vertex %u status %u \n",iter,warpId,i,ind,vertex,status);
 
 
-            ui startNeighbor = neighborOffset[vertex];
-            ui endNeighbor = neighborOffset[vertex+1];
 
+            ui startNeighbor = G.offset[vertex];
+            ui endNeighbor = G.offset[vertex+1];
 
-            // intialize.
             score = 0;
-            currentMinDegree = 0;
+            currentMinDegree = UINT_MAX;
 
             ustar = -1;
-            temp3 = UINT_MAX;
-            //printf("block %u iter %u Wrap %u Lane id %u index %u vertex %u status %u size %u score %f s %u e %u \n",blockIdx.x,iter,warpId,i,ind,vertex,status,subgraphSize[startIndex+iter],score,start,end);
 
             if(status==0)
             {
-
-
-                // Iterate through neighbors of v.
                 for(int j = startNeighbor; j < endNeighbor; j++)
                 {
-                    // Get index of neighbor of V in task
-
-                    resultIndex = findIndexKernel(taskList,startIndex+start,startIndex+end,neighbors[j]);
-                        //printf(" vertex %u index %u result index %d status %u ver %u neighbor %u s %u e %u \n",vertex,ind,resultIndex, taskStatus[resultIndex], taskList[resultIndex],neighbors[j],start,end);
-
+                    resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[j]);
                     if(resultIndex!=-1)
                     {
-
-                        // If neighbor in C increament the connection score.
-                        if(taskStatus[resultIndex]==1)
+                        if(T.degreeInC[resultIndex]!=0)
                         {
-                            score += (double) 1 / degree[neighbors[j]];
-                            //printf(" score %f ",score);
+                            score += (double) 1 / T.degreeInC[resultIndex];
 
-
-                            //degreeInC++;
                         }
-
-                        /*if((taskStatus[resultIndex]==1) || (taskStatus[resultIndex]==0))
-                        {
-                            degreeInR++;
-                        }*/
-
-
+                        if(T.statusList[resultIndex]==1){
+                          score+=1;
+                        }
                     }
                 }
-                //printf("\n");
             }
-
             if(score>0)
             {
-              // increament connection score, if vertex can be connected to C
-              score += (double) degree[vertex]/dmax;
+              score += (double) T.degreeInR[vertex]/dmax;
             }
-
-
             for (int offset = WARPSIZE/2 ; offset > 0; offset /= 2)
             {
               temp = __shfl_down_sync(0xFFFFFFFF, score , offset);
@@ -162,87 +236,44 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
               if(temp> score && temp > 0)
               {
                 score = temp;
-
                 index = otherId;
               }
-
             }
-
-
-
-            // Broadcast the index of vertex and max connection score to all threads in wrap.
             ustar = __shfl_sync(0xFFFFFFFF, index,0);
             score = __shfl_sync(0xFFFFFFFF, score,0);
+        //printf("iter %u wrap %u lane id %u ind %u vertex %u status %u ustar %d score %f \n",iter,warpId,i,ind,vertex,status,ustar,score);
 
 
-            // Calculate min degree of each subgraph
-
-            // In vertex in C.
             if (status==1)
             {
-
-
-              // itterate through neighbors of v
-              for(int j = startNeighbor; j < endNeighbor; j++)
-              {
-                // Get index in task
-                resultIndex = findIndexKernel(taskList,startIndex+start,startIndex+end,neighbors[j]);
-
-                if(resultIndex!=-1){
-                // If neighbor in C, increament count by 1.
-                  if (taskStatus[resultIndex]==1)
-                  {
-
-                    currentMinDegree ++;
-                    //degreeInC++;
-                  }
-
-                  /*if((taskStatus[resultIndex]==1) || (taskStatus[resultIndex]==0)){
-                    degreeInR++;
-                  }*/
-                }
-              }
+              currentMinDegree = T.degreeInC[ind];
             }
 
-
-            // Using shuffle down get minimun degree
 
             for (int offset = WARPSIZE/2 ; offset > 0; offset /= 2)
             {
                 temp2 = __shfl_down_sync(0xFFFFFFFF,currentMinDegree  , offset);
 
-                if(temp2 >0 && temp2 < temp3)
+                if((temp2 < currentMinDegree) && (temp2>0))
                 {
                   currentMinDegree = temp2;
-                  temp3 = temp2;
                 }
             }
 
-            // Boardcast the minimum degree to all thread of the warp
-            currentMinDegree = __shfl_sync(0xFFFFFFFF, temp3,0);
-
-
-            // Calculate the size of the subgraph (C) by summing the status values,
-            // where status is 1 if the vertex is in C.
-            for (int offset = WARPSIZE/2 ; offset > 0; offset /= 2)
-            {
-              stat += __shfl_down_sync(0xFFFFFFFF, stat, offset);
-            }
-
-            // Boardcast the current size to each thread inside a warp.
-            current_size = __shfl_sync(0xFFFFFFFF, stat, 0);
+            currentMinDegree = __shfl_sync(0xFFFFFFFF, currentMinDegree,0);
+        //printf("iter %u wrap %u lane id %u ind %u vertex %u status %u ustar %d score %f curr degree %u \n",iter,warpId,i,ind,vertex,status,ustar,score,currentMinDegree);
 
 
             if(i%32==0)
             {
-              sharedSize[warpId] += current_size;
-              if (currentMinDegree<sharedDegree[warpId]){
-                sharedDegree[warpId] = currentMinDegree;
+              if (currentMinDegree<sharedDegree[threadIdx.x/32]){
+                sharedDegree[threadIdx.x/32] = currentMinDegree;
+                //printf(" shared min deg %u \n",sharedDegree[threadIdx.x/32]);
               }
-              if(score>sharedScore[warpId]){
+              if(score>sharedScore[threadIdx.x/32]){
 
-                sharedScore[warpId] = score;
-                sharedUstar[warpId] = ustar;
+                sharedScore[threadIdx.x/32] = score;
+                sharedUstar[threadIdx.x/32] = ustar;
               }
 
 
@@ -252,28 +283,23 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
         }
 
         if(laneId==0){
-
-            if( (lowerBoundSize <= sharedSize[warpId]) && (sharedSize[warpId] <= upperBoundSize))
+            currentSize = T.size[startIndex+iter];
+            if( (lowerBoundSize <= currentSize) && (currentSize <= upperBoundSize))
             {
-                if(sharedDegree[warpId]!=UINT_MAX){
-
-                // attomic compare the current min degree and current max min degree (k lower)
-                atomicMax(lowerBoundDegree,sharedDegree[warpId]);
+                if(sharedDegree[threadIdx.x/32]!=UINT_MAX){
+                atomicMax(G.lowerBoundDegree,sharedDegree[threadIdx.x/32]);
 
                 }
             }
             int writeOffset = warpId*pSize;
 
-            if( sharedScore[warpId]>0){
-            ustarList[writeOffset+iter] = sharedUstar[warpId];
+            if( sharedScore[threadIdx.x/32]>0){
+            T.ustar[writeOffset+iter] = sharedUstar[threadIdx.x/32];
             }
-            subgraphSize[writeOffset+iter] = sharedSize[warpId];
-            //printf("iter %u wrap %u  scire %f ustar %d size %u\n ",iter,warpId,sharedScore[warpId],ustarList[writeOffset+iter],subgraphSize[writeOffset+iter]);
-            //printf("lower bound degree %u  sharedSize %u sharedUstar %d \n",sharedDegree[warpId],sharedSize[warpId],sharedUstar[warpId]);
-            sharedSize[warpId] = 0;
-            sharedScore[warpId] = 0;
-            sharedUstar[warpId] = -1;
-            sharedDegree[warpId]= UINT_MAX;
+            sharedUBDegree[threadIdx.x/32] = UINT_MAX;
+            sharedScore[threadIdx.x/32] = 0;
+            sharedUstar[threadIdx.x/32] = -1;
+            sharedDegree[threadIdx.x/32]= UINT_MAX;
 
 
         }
@@ -282,38 +308,32 @@ __global__ void SCSSpeedEff(ui *taskList, ui *taskStatus, ui *taskOffset, ui *ne
     }
 }
 
-
-__global__ void Expand(ui *taskList, ui *taskStatus, ui *taskOffset, int *ustarList,ui *subgraphSize,ui *neighbors,ui *neighborOffset, ui *degree,ui *distanceFromQID, bool *flag, ui *lowerBoundDegree,ui lowerBoundSize, ui upperBoundSize, ui pSize,ui dmax){
+__global__ void Expand(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundSize, ui upperBoundSize, ui pSize,ui dmax){
 
     extern __shared__ char sharedMemory[];
     size_t sizeOffset = 0;
-    // Stores new tasks
+
     ui *sharedCounter = (ui*)(sharedMemory + sizeOffset);
     sizeOffset += WARPS_EACH_BLK * sizeof(ui);
-
-
 
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int warpId = idx / 32;
     int laneId = idx % 32;
 
-
-
-
     ui startIndex =  warpId*pSize;
     ui endIndex  =   (warpId+1)*pSize -1;
-    ui totalTasks = taskOffset[endIndex];
+    ui totalTasks = T.taskOffset[endIndex];
 
     if(laneId==0){
-            sharedCounter[warpId] = 0;
+            sharedCounter[threadIdx.x/32] = 0;
         }
      __syncwarp();
 
      for(ui iter =0; iter<totalTasks;iter++)
      {
 
-        ui start = taskOffset[startIndex+iter];
-        ui end = taskOffset[startIndex+iter+1];
+        ui start = T.taskOffset[startIndex+iter];
+        ui end = T.taskOffset[startIndex+iter+1];
         ui total = end - start;
 
          for(ui i = laneId; i < total ;i+=32)
@@ -322,124 +342,77 @@ __global__ void Expand(ui *taskList, ui *taskStatus, ui *taskOffset, int *ustarL
             //printf("inside expand ui wrap id %u lane %u totalver %u \n",warpId,i,total);
 
             ui ind = startIndex+start+i;
-            ui vertex = taskList[ind];
-            ui status = taskStatus[ind];
+            ui vertex = T.taskList[ind];
+            ui status = T.statusList[ind];
 
-             if((subgraphSize[warpId*pSize+iter] < upperBoundSize) && (ustarList[warpId*pSize+iter]!=-1)){
+             if((T.size[warpId*pSize+iter] < upperBoundSize) && (T.ustar[warpId*pSize+iter]!=-1)){
                 ui bufferNum = warpId+2;
                 if(bufferNum>TOTAL_WARPS){
                     bufferNum=1;
                 }
-                //printf("Wrap id %u lane id %u actual %u buffer num % u total % u \n",warpId,i,warpId+2,bufferNum,TOTAL_WARPS);
-                ui totalTasksWrite = taskOffset[bufferNum*pSize -1];
-                ui writeOffset =  ((bufferNum-1)*pSize) + taskOffset[(bufferNum-1)*pSize+totalTasksWrite];
+                ui totalTasksWrite = T.taskOffset[bufferNum*pSize -1];
+                ui writeOffset =  ((bufferNum-1)*pSize) + T.taskOffset[(bufferNum-1)*pSize+totalTasksWrite];
+
+                //printf("Wrap id %u lane id %u vertex %u status %u \n",warpId,i,T.taskList[ind], T.statusList[ind]);
+                ui ustar = T.taskList[T.ustar[warpId*pSize+iter]];
+                ui degInR;
+                ui degInC;
+                if((vertex!=ustar) && (status!=2)){
+                    ui loc = atomicAdd(&sharedCounter[threadIdx.x/32],1);
+                    T.taskList[writeOffset+loc] = vertex;
+                    T.statusList[writeOffset+loc] = status;
+                    degInR = T.degreeInR[ind];
+                    degInC = T.degreeInC[ind];
+
+                    for (ui k = G.offset[vertex]; k < G.offset[vertex+1]; k++){
+                      if(G.neighbors[k]==ustar){
+
+                        
+                        T.degreeInC[ind]++;
+                        
+                        if(degInR!=0){
+                        degInR --;
+                        T.degreeInR[ind]--;
+                        }
+
+                      }
+                    }
+                    T.degreeInR[writeOffset+loc]=degInR;
+                    T.degreeInC[writeOffset+loc]=degInC;
 
 
-                if((vertex!=taskList[ustarList[warpId*pSize+iter]]) && (status!=2)){
-                    ui loc = atomicAdd(&sharedCounter[warpId],1);
-                    taskList[writeOffset+loc] = vertex;
-                    taskStatus[writeOffset+loc] = status;
-                    //printf("iter % u wrap %d lane %u vertex %u status %u index %u \n",iter,warpId,i,taskList[writeOffset+loc],taskStatus[writeOffset+loc],writeOffset+loc);
+
+                    //printf("iter % u wrap %d lane %u vertex %u status %u index %u \n",iter,warpId,i,T.taskList[writeOffset+loc],T.statusList[writeOffset+loc],writeOffset+loc);
                 }
 
              }
-            // __syncwarp();
 
 
         }
         if (laneId==0){
-            if((subgraphSize[warpId*pSize+iter] < upperBoundSize) && (ustarList[warpId*pSize+iter]!=-1) ){
-            *flag=0;
+            if((T.size[warpId*pSize+iter] < upperBoundSize) && (T.ustar[warpId*pSize+iter]!=-1) ){
+            *(T.flag)=0;
             ui bufferNum = warpId+2;
             if(bufferNum>TOTAL_WARPS){
                 bufferNum=1;
             }
-            ui totalTasksWrite = taskOffset[bufferNum*pSize -1];
-            taskStatus[taskList[ustarList[warpId*pSize+iter]]]=1;
-            taskOffset[(bufferNum-1)*pSize+totalTasksWrite+1] = taskOffset[(bufferNum-1)*pSize+totalTasksWrite]+ sharedCounter[warpId];
-            taskOffset[bufferNum*pSize -1]++;
-            //printf("iter % u wrap %d offset %u offsetloc %u num tasks %u loc %u \n",iter,warpId,taskOffset[(bufferNum-1)*pSize+totalTasksWrite+1],(bufferNum-1)*pSize+totalTasksWrite+1,taskOffset[bufferNum*pSize -1],bufferNum*pSize -1);
+            ui totalTasksWrite = T.taskOffset[bufferNum*pSize -1];
+            //printf("ustar change loc %u \n",T.ustar[warpId*pSize+iter]);
+            T.statusList[T.ustar[warpId*pSize+iter]]=1;
+
+            T.taskOffset[(bufferNum-1)*pSize+totalTasksWrite+1] = T.taskOffset[(bufferNum-1)*pSize+totalTasksWrite]+ sharedCounter[threadIdx.x/32];
+            T.taskOffset[bufferNum*pSize -1]++;
+            T.size[(bufferNum-1)*pSize+totalTasksWrite] = T.size[warpId*pSize+iter];
+            T.size[warpId*pSize+iter] +=1;
+            //printf("iter % u wrap %d ustar %u offset %u offsetloc %u num tasks %u loc %u \n",iter,warpId,T.taskList[T.ustar[warpId*pSize+iter]],T.taskOffset[(bufferNum-1)*pSize+totalTasksWrite+1],(bufferNum-1)*pSize+totalTasksWrite+1,T.taskOffset[bufferNum*pSize -1],bufferNum*pSize -1);
             }
 
-            sharedCounter[warpId]=0;
+            sharedCounter[threadIdx.x/32]=0;
         }
 
 
 
      }
 
-
-}
-
-__global__ void IntialReductionRules(ui *neighborsOffset,ui *neighbors,ui *degree,ui *distanceFromQID,ui *coreValues , ui *taskList, ui * taskStatus, ui *numEntries, ui *globalCounter,ui queryVertex , ui size  , ui upperBoundSize, ui lowerBoundDegree,ui pSize)
-{
-
-  // Intial Reduction rule based on core value and distance.
-  extern __shared__ ui shared_memory1[];
-
-  // Store the counter
-  ui *local_counter = shared_memory1;
-
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int warpId = idx / 32;
-  int laneId = idx % 32;
-
-  ui start = warpId*pSize;
-  ui end = (warpId+1)*pSize;
-  ui writeOffset = warpId*pSize;
-  if(end>size){
-    end = size;
-  }
-  ui total = end -start;
-  if(laneId==0){
-    local_counter[warpId]=0;
-  //printf("wrapId %d start %u end %u \n",warpId,start,end);
-  }
-  __syncwarp();
-
-  for(ui i=laneId;i<total;i+=32){
-
-    ui vertex = start+i;
-    if( (coreValues[vertex] > lowerBoundDegree) && (distanceFromQID[vertex] < (upperBoundSize-1)) ){
-      ui loc = atomicAdd(&local_counter[warpId],1);
-      taskList[loc+writeOffset]=vertex;
-      taskStatus[loc+writeOffset] = (vertex == queryVertex) ? 1 : 0;
-
-
-    }
-
-
-    }
-      __syncwarp();
-    if(laneId==0){
-      numEntries[warpId] =local_counter[warpId];
-      atomicAdd(globalCounter,local_counter[warpId]);
-  //printf("wrapId %d local c %u counter %u \n",warpId,local_counter[warpId],*globalCounter);
-
-    }
-
-}
-__global__ void CompressTask(ui *taskList, ui * taskStatus, ui *numEntries, ui *outputTasks, ui *outputStatus,ui pSize){
-
-  ui idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int warpId = idx / 32;
-  int laneId = idx % 32;
-
-  ui start = warpId*pSize;
-  int temp = warpId-1;
-  ui total = numEntries[warpId];
-  ui writeOffset = 0;
-
-  for(ui i=laneId;i<total;i+=32){
-
-      while(temp>=0){
-        writeOffset += numEntries[temp];
-        temp--;
-      }
-
-    outputTasks[writeOffset+i] = taskList[start+i];
-    outputStatus[writeOffset+i] = taskStatus[start+i];
-
-  }
 
 }

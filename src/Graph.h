@@ -112,3 +112,41 @@ void core_decomposition_linear_list()
     }
     delete linear_heap;
 }
+
+void cal_query_dist()
+{
+
+    // Description : Intialize querry distance array with INF
+    q_dist = new ui[n];
+    for(ui i =0;i<n;i++)
+        q_dist[i] = INF;
+
+    // Description: Queue that stores vertices
+    queue<ui> Q;
+
+    // Description : set distance of querry vertex as 0.
+    q_dist[QID] = 0;
+
+    // Description: Push querry vertex to Queue.
+    Q.push(QID);
+
+    // Description : Itterate till queue is empty
+    while (!Q.empty()) {
+
+        // Description : Get first vertex (v) from queue.
+        ui v = Q.front();
+        Q.pop();
+
+        // Description: Iterate through the neighbors of V
+        for(ui i = pstart[v]; i < pstart[v+1]; i++){
+            ui w = edges[i];
+
+            // Description : if distance of neighbor is INF, set to dstance of parent + 1.
+            // Push neighbor to queue.
+            if(q_dist[w] == INF){
+                q_dist[w] = q_dist[v] + 1;
+                Q.push(w);
+            }
+        }
+    }
+}
