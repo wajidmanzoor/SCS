@@ -212,8 +212,6 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             currentMinDegree = UINT_MAX;
 
             ustar = -1;
-
-
             if(status==0){
               if(minn((degR+degC), (degC+upperBoundSize-hSize-1)) <= *G.lowerBoundDegree){
                 //printf("removed %u size %u \n",vertex,hSize);
@@ -264,6 +262,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
               }
 
             }
+
             __syncwarp();
             status = T.statusList[ind];
             degR = T.degreeInR[ind];
@@ -322,7 +321,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
 
             }
        //printf("iter %u wrap %u lane id %u ind %u vertex %u status %u  curr degree %u \n",iter,warpId,i,ind,vertex,status,currentMinDegree);
-
+              //atomicMin(&sharedDegree[threadIdx.x/32],currentMinDegree);
 
             for (int offset = WARPSIZE/2 ; offset > 0; offset /= 2)
             {
@@ -337,6 +336,9 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             }
 
             currentMinDegree = __shfl_sync(0xFFFFFFFF, currentMinDegree,0);
+
+            
+            
 
 
             if(i%32==0)
@@ -362,6 +364,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             if( (lowerBoundSize <= currentSize) && (currentSize <= upperBoundSize))
             {
                 if(sharedDegree[threadIdx.x/32]!=UINT_MAX){
+                  //printf("iter %u wrap %u shared min %u min %u \n",iter,warpId,sharedDegree[threadIdx.x/32],*G.lowerBoundDegree);
                 atomicMax(G.lowerBoundDegree,sharedDegree[threadIdx.x/32]);
 
                 }
@@ -384,7 +387,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
 }
 
 
-__global__ void Expand(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundSize, ui upperBoundSize, ui pSize,ui dmax){
+__global__ void Expand(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundSize, ui upperBoundSize, ui pSize,ui dmax,ui jump){
 
     extern __shared__ char sharedMemory[];
     size_t sizeOffset = 0;
@@ -422,9 +425,9 @@ __global__ void Expand(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundS
             ui status = T.statusList[ind];
 
              if((T.size[warpId*pSize+iter] < upperBoundSize) && (T.ustar[warpId*pSize+iter]!=-1)){
-                ui bufferNum = warpId+2;
+                ui bufferNum = warpId+jump;
                 if(bufferNum>TOTAL_WARPS){
-                    bufferNum=1;
+                    bufferNum= bufferNum%TOTAL_WARPS;
                 }
                 ui totalTasksWrite = T.taskOffset[bufferNum*pSize -1];
                 ui writeOffset =  ((bufferNum-1)*pSize) + T.taskOffset[(bufferNum-1)*pSize+totalTasksWrite];
@@ -469,9 +472,9 @@ __global__ void Expand(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundS
         if (laneId==0){
             if((T.size[warpId*pSize+iter] < upperBoundSize) && (T.ustar[warpId*pSize+iter]!=-1) ){
             *(T.flag)=0;
-            ui bufferNum = warpId+2;
+            ui bufferNum = warpId+jump;
             if(bufferNum>TOTAL_WARPS){
-                bufferNum=1;
+                bufferNum=bufferNum%TOTAL_WARPS;
             }
             ui totalTasksWrite = T.taskOffset[bufferNum*pSize -1];
             //printf("ustar change loc %u \n",T.ustar[warpId*pSize+iter]);

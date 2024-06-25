@@ -2,6 +2,8 @@
 #include "./src/Graph.h"
 #include "./src/helpers.cc"
 #include "./src/gpuMemoryAllocation.cu"
+#include <random>
+
 
 
 int main(int argc, const char * argv[] ) {
@@ -22,6 +24,11 @@ int main(int argc, const char * argv[] ) {
 
     Timer timer;
     StartTime = (double)clock() / CLOCKS_PER_SEC;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1,TOTAL_WARPS/2);
+    ui jump; 
 
     core_decomposition_linear_list();
 
@@ -81,8 +88,9 @@ int main(int argc, const char * argv[] ) {
 
         ProcessTask <<<BLK_NUMS,BLK_DIM,sharedMemrySizeTask>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX);
         cudaDeviceSynchronize();
-
-        Expand <<<BLK_NUMS,BLK_DIM,sharedMemrySizeExpand>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX);
+       jump = (ui) dis(gen);
+        //cout<<"jump "<<jump<<endl;
+        Expand <<<BLK_NUMS,BLK_DIM,sharedMemrySizeExpand>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX,jump);
         cudaDeviceSynchronize();
         cudaMemcpy(&stopFlag,deviceTask.flag,sizeof(bool),cudaMemcpyDeviceToHost);
         //cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
@@ -125,7 +133,7 @@ int main(int argc, const char * argv[] ) {
         }
       for(ui j =0;j<off[(i+1)*paritionSize-1] ;j++){
         cout <<"start "<<off[i*paritionSize+j]<<" end "<<off[i*paritionSize+j+1] <<" size "<<size[i*paritionSize+j]<<" ustar "<<ustar[i*paritionSize+j]<<endl;
-        for(ui k = off[i*paritionSize+j]; k <off[i*paritionSize+j+1];k++){
+       for(ui k = off[i*paritionSize+j]; k <off[i*paritionSize+j+1];k++){
           cout<< task[i*paritionSize+k] << " ";
 
         }
@@ -144,7 +152,7 @@ int main(int argc, const char * argv[] ) {
           cout<< dr[i*paritionSize+k] << " ";
 
         }
-        cout <<endl;
+        //cout <<endl;
 
       }
     }*/
