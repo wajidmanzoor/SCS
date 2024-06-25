@@ -1,16 +1,16 @@
-__device__ int minn(int a, int b) {
+__device__ ui minn(ui a, ui b) {
     return (a < b) ? a : b;
 }
 
 __device__ int findIndexKernel(ui *arr,ui start,ui end ,ui target)
 
 {
-  // Perform a binary search to find the index of the target vertex in the task array.
+  // Perform a linear search to find the index of the target vertex in the task array.
   // 'start' and 'end' are the indices of the task array defining the search range.
   // 'target' is the vertex we are searching for.
 
         int resultIndex = -1;
-        for (ui index = start; index < end; ++index)
+        for (ui index = start; index < end; index++)
         {
             if (arr[index] == target)
             {
@@ -147,7 +147,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
 
 
     // minimum degree intialized to zero.
-    ui currentMinDegree;
+    ui currentMinDegree = UINT_MAX;
 
     // Connection score used to calculate the ustar.
     double score;
@@ -200,7 +200,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             ui status = T.statusList[ind];
             ui degR = T.degreeInR[ind];
             ui degC = T.degreeInC[ind];
-            ui hSize = T.size[ind];
+            ui hSize = T.size[startIndex+iter];
         //printf("iter %u wrap %u lane id %u ind %u vertex %u status %u \n",iter,warpId,i,ind,vertex,status);
 
 
@@ -212,28 +212,63 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             currentMinDegree = UINT_MAX;
 
             ustar = -1;
-           
 
-            /*if(status==0){
-              if(minn(degR, degC+upperBoundSize-hSize-1) <= G.lowerBoundDegree){
+
+            if(status==0){
+              if(minn(degR+degC, degC+upperBoundSize-hSize-1) <= *G.lowerBoundDegree){
+                //printf("removed %u size %u \n",vertex,hSize);
                 T.statusList[ind]=2;
-                status = 2;
                 T.degreeInR[ind] = 0;
-                degR = 0;
                 T.degreeInC[ind] =0;
-                degC = 0;
                 for(int j = startNeighbor; j < endNeighbor; j++){
                   resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[j]);
                   if(resultIndex!=-1){
-                    if(T.degreeInr[resultIndex]!=0){
-                      atomicAdd(T.degreeInr[resultIndex], -1);
+                    if(T.degreeInR[resultIndex]!=0){
+                      atomicSub(&T.degreeInR[resultIndex], 1);
                     }
                   }
                 }
 
 
               }
-            }*/
+            }
+            ui neig;
+            if((status==1)&&((degC+degR)==(*G.lowerBoundDegree+1))){
+              for(int j = startNeighbor; j < endNeighbor; j++){
+                resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[j]);
+                if(resultIndex!=-1){
+                  if(T.statusList[resultIndex]==0){
+                    
+                    T.statusList[resultIndex] =1;
+                    atomicAdd(&T.size[startIndex+iter],1);
+                    neig = T.taskList[resultIndex];
+                    for(int k = G.offset[neig]; k < G.offset[neig+1]; k++){
+                      resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[k]);
+                      if(resultIndex!=-1){
+                        //if(T.statusList[resultIndex]==1){
+                          atomicAdd(&T.degreeInC[resultIndex], 1);
+                        //}
+                        if(T.degreeInR[resultIndex]!=0){
+                          atomicSub(&T.degreeInR[resultIndex], 1);
+
+                        }
+                      }
+
+
+                    }
+
+
+                  }
+                }
+
+              }
+
+            }
+            __syncwarp();
+            status = T.statusList[ind];
+            degR = T.degreeInR[ind];
+            degC = T.degreeInC[ind];
+            hSize = T.size[startIndex+iter];
 
 
             if(status==0)
@@ -242,14 +277,17 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
                 {
                     resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[j]);
                     if(resultIndex!=-1)
-                    {
-                        if(T.degreeInC[resultIndex]!=0)
-                        {
+                    {   
+                        if(T.statusList[resultIndex]==1){
+                          if(T.degreeInC[resultIndex]!=0)
+                          {
                             score += (double) 1 / T.degreeInC[resultIndex];
 
-                        }
-                        if(T.statusList[resultIndex]==1){
-                          score+=1;
+                          }else{
+                              score+=1;
+                          }
+                       // printf("Iter %u warp %u lane id % u neighbor %u found %u status %u degof neighbor %u score %f \n ",iter,warpId,i,G.neighbors[j],T.taskList[resultIndex],T.statusList[resultIndex],T.degreeInC[resultIndex],score);
+
                         }
                     }
                 }
@@ -258,6 +296,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             {
               score += (double) T.degreeInR[vertex]/dmax;
             }
+
             for (int offset = WARPSIZE/2 ; offset > 0; offset /= 2)
             {
               temp = __shfl_down_sync(0xFFFFFFFF, score , offset);
@@ -274,6 +313,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
         //printf("iter %u wrap %u lane id %u ind %u vertex %u status %u ustar %d score %f \n",iter,warpId,i,ind,vertex,status,ustar,score);
 
 
+
             if (status==1)
             {
               currentMinDegree = T.degreeInC[ind];
@@ -284,14 +324,14 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             {
                 temp2 = __shfl_down_sync(0xFFFFFFFF,currentMinDegree  , offset);
 
-                if((temp2 < currentMinDegree) && (temp2>0))
+                if((temp2 < currentMinDegree))
                 {
                   currentMinDegree = temp2;
                 }
             }
 
             currentMinDegree = __shfl_sync(0xFFFFFFFF, currentMinDegree,0);
-        //printf("iter %u wrap %u lane id %u ind %u vertex %u status %u ustar %d score %f curr degree %u \n",iter,warpId,i,ind,vertex,status,ustar,score,currentMinDegree);
+       // printf("iter %u wrap %u lane id %u ind %u vertex %u status %u ustar %d score %f curr degree %u \n",iter,warpId,i,ind,vertex,status,ustar,score,currentMinDegree);
 
 
             if(i%32==0)
@@ -337,6 +377,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
 
     }
 }
+
 
 __global__ void Expand(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundSize, ui upperBoundSize, ui pSize,ui dmax){
 
@@ -397,17 +438,17 @@ __global__ void Expand(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundS
                     for (ui k = G.offset[vertex]; k < G.offset[vertex+1]; k++){
                       if(G.neighbors[k]==ustar){
 
-                        
+
                         T.degreeInC[ind]++;
-                        
+
                         if(degInR!=0){
                         degInR --;
                         T.degreeInR[ind]--;
                         }
 
                       }
-                      
                     }
+                    
                     T.degreeInR[writeOffset+loc]=degInR;
                     T.degreeInC[writeOffset+loc]=degInC;
 
