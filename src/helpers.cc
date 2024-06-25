@@ -215,7 +215,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
 
 
             if(status==0){
-              if(minn(degR+degC, degC+upperBoundSize-hSize-1) <= *G.lowerBoundDegree){
+              if(minn((degR+degC), (degC+upperBoundSize-hSize-1)) <= *G.lowerBoundDegree){
                 //printf("removed %u size %u \n",vertex,hSize);
                 T.statusList[ind]=2;
                 T.degreeInR[ind] = 0;
@@ -238,16 +238,16 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
                 resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[j]);
                 if(resultIndex!=-1){
                   if(T.statusList[resultIndex]==0){
-                    
+
                     T.statusList[resultIndex] =1;
                     atomicAdd(&T.size[startIndex+iter],1);
                     neig = T.taskList[resultIndex];
                     for(int k = G.offset[neig]; k < G.offset[neig+1]; k++){
                       resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[k]);
                       if(resultIndex!=-1){
-                        //if(T.statusList[resultIndex]==1){
+                        if(T.statusList[resultIndex]==1){
                           atomicAdd(&T.degreeInC[resultIndex], 1);
-                        //}
+                        }
                         if(T.degreeInR[resultIndex]!=0){
                           atomicSub(&T.degreeInR[resultIndex], 1);
 
@@ -277,7 +277,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
                 {
                     resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[j]);
                     if(resultIndex!=-1)
-                    {   
+                    {
                         if(T.statusList[resultIndex]==1){
                           if(T.degreeInC[resultIndex]!=0)
                           {
@@ -317,21 +317,26 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             if (status==1)
             {
               currentMinDegree = T.degreeInC[ind];
+            }else{
+              currentMinDegree = UINT_MAX;
+
             }
+       //printf("iter %u wrap %u lane id %u ind %u vertex %u status %u  curr degree %u \n",iter,warpId,i,ind,vertex,status,currentMinDegree);
 
 
             for (int offset = WARPSIZE/2 ; offset > 0; offset /= 2)
             {
                 temp2 = __shfl_down_sync(0xFFFFFFFF,currentMinDegree  , offset);
+      //printf("iter %u wrap %u lane id %u offset %u ind %u vertex %u status %u  curr degree %u \n",iter,warpId,i,offset,ind,vertex,status,temp2);
 
-                if((temp2 < currentMinDegree))
+
+                if(temp2 < currentMinDegree)
                 {
                   currentMinDegree = temp2;
                 }
             }
 
             currentMinDegree = __shfl_sync(0xFFFFFFFF, currentMinDegree,0);
-       // printf("iter %u wrap %u lane id %u ind %u vertex %u status %u ustar %d score %f curr degree %u \n",iter,warpId,i,ind,vertex,status,ustar,score,currentMinDegree);
 
 
             if(i%32==0)
@@ -448,7 +453,7 @@ __global__ void Expand(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundS
 
                       }
                     }
-                    
+
                     T.degreeInR[writeOffset+loc]=degInR;
                     T.degreeInC[writeOffset+loc]=degInC;
 

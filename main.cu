@@ -3,6 +3,7 @@
 #include "./src/helpers.cc"
 #include "./src/gpuMemoryAllocation.cu"
 
+
 int main(int argc, const char * argv[] ) {
 
     if(argc!=6){
@@ -70,7 +71,7 @@ int main(int argc, const char * argv[] ) {
     size_t sharedMemrySizeTask = 3*WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double);
     size_t sharedMemrySizeExpand = WARPS_EACH_BLK * sizeof(ui);
     bool stopFlag;
-    int c=0;
+    //int c=0;
     while(1){
 
         cudaMemset(deviceTask.flag,1,sizeof(bool));
@@ -84,21 +85,16 @@ int main(int argc, const char * argv[] ) {
         Expand <<<BLK_NUMS,BLK_DIM,sharedMemrySizeExpand>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX);
         cudaDeviceSynchronize();
         cudaMemcpy(&stopFlag,deviceTask.flag,sizeof(bool),cudaMemcpyDeviceToHost);
-        cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
-        cout <<"level "<<c<<" Max min degre"<<kl<<endl;
+        //cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
+        //cout <<"level "<<c<<" Max min degre"<<kl<<endl;
         if(stopFlag){
           cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
           cout << "Max min degree "<<kl<<endl;
+          cout<<"time = "<<integer_to_string(timer.elapsed()).c_str()<<endl;
 
           break;
         }
-        c++;
-        if(c==40){
-          break;
-        }
-
-
-
+        //c++;
     }
     /*ui *task, *status, *size, *off,*dc,*dr;
     int *ustar;
