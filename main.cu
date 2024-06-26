@@ -22,6 +22,7 @@ int main(int argc, const char * argv[] ) {
     const char* filepath = argv[1];
     load_graph(filepath);
 
+    
     Timer timer;
     StartTime = (double)clock() / CLOCKS_PER_SEC;
 
@@ -38,6 +39,55 @@ int main(int argc, const char * argv[] ) {
     ubD = N2-1;
     cal_query_dist();
 
+    ui *deviceOffset,*deviceNeighbors,*deviceDegree, *deviceDistance,*deviceCore;
+    ui *deviceLowerBoundDegree;
+
+    /*cout << " d max " << dMAX<<endl;
+    for(ui i=0;i<n;i++){
+      if(core[i]==10){
+        cout<<"Vertex "<<i<<" Core "<<core[i]<<endl;
+      }
+    }*/
+
+
+    cudaMalloc((void**)&deviceCore, n * sizeof(ui));
+    cudaMemcpy(deviceCore, core, n * sizeof(ui), cudaMemcpyHostToDevice);
+
+    cudaMalloc((void**)&deviceDegree, n * sizeof(ui));
+    cudaMemcpy(deviceDegree, degree, n * sizeof(ui), cudaMemcpyHostToDevice);
+
+    cudaMalloc((void**)&deviceOffset, (n+1) * sizeof(ui));
+    cudaMemcpy(deviceOffset, pstart, (n+1) * sizeof(ui), cudaMemcpyHostToDevice);
+
+
+    cudaMalloc((void**)&deviceNeighbors, (2*m) * sizeof(ui));
+    cudaMemcpy(deviceNeighbors, edges, (2*m) * sizeof(ui), cudaMemcpyHostToDevice);
+
+     cudaMalloc((void**)&deviceDistance, n * sizeof(ui));
+    cudaMemcpy(deviceDistance, q_dist, n * sizeof(ui), cudaMemcpyHostToDevice);
+
+    cudaMalloc((void**)&deviceLowerBoundDegree, sizeof(ui));
+    cudaMemcpy(deviceLowerBoundDegree, &kl,sizeof(ui),cudaMemcpyHostToDevice);
+
+    ui *deviceIntialTaskList, *deviceIntialStatusList, *deviceGlobalCounter,*deviceEntries;
+
+    ui INTOTAL_WARPS=32;
+    ui intialParitionSize = (n/INTOTAL_WARPS)+1;
+    ui intialSize = intialParitionSize*INTOTAL_WARPS;
+    cout<<"Psize "<<intialParitionSize<<" Size "<<intialSize<<endl;
+
+    cudaMalloc((void**)&deviceIntialTaskList, intialSize*sizeof(ui));
+
+    cudaMalloc((void**)&deviceIntialStatusList, intialSize*sizeof(ui));
+
+    cudaMalloc((void**)&deviceGlobalCounter, sizeof(ui));
+    cudaMalloc((void**)&deviceEntries,INTOTAL_WARPS* sizeof(ui));
+
+    ui globalCounter = 0;
+    cudaMemcpy(deviceGlobalCounter, &globalCounter, sizeof(ui), cudaMemcpyHostToDevice);
+
+    int shared_memory_size =  INTOTAL_WARPS* sizeof(ui);
+    IntialReductionRules<<<1,BLK_DIM,shared_memory_size>>>(deviceOffset,deviceNeighbors,deviceDegree,deviceDistance,deviceCore,deviceIntialTaskList,deviceIntialStatusList,deviceEntries, deviceGlobalCounter,QID,n ,N2,kl,intialParitionSize);
     deviceGraphPointers deviceGraph;
     memoryAllocationGraph(deviceGraph);
 
