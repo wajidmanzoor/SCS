@@ -1,3 +1,5 @@
+
+
 #include <stdio.h>
 #include "./src/Graph.h"
 #include "./src/helpers.cc"
@@ -226,6 +228,7 @@ int main(int argc, const char * argv[] ) {
     cudaFree(deviceTaskList);
     cudaFree(deviceStatusList);
     cudaFree(deviceTaskOffset);
+    
     cudaFree(deviceStopFlag);
 
 
