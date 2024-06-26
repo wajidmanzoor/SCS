@@ -5,7 +5,7 @@
  *      Author: Lijun Chang
  *      Email: ljchang@outlook.com
  */
-
+#pragma once
 #ifndef TIMER_H_
 #define TIMER_H_
 

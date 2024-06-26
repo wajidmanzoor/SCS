@@ -88,3 +88,34 @@ double time_del_from_VR;
 double time_find_NEI;
 double time_find_usatr;
 double time_comp_ub;
+
+typedef struct  {
+    ui *offset;
+    ui *neighbors;
+    ui *degree;
+    ui *distance;
+    ui *core;
+    ui *lowerBoundDegree;
+
+    
+}deviceGraphPointers;
+
+typedef struct  {
+     ui *taskList;
+     ui *statusList;
+     ui *taskOffset; 
+     ui *size;
+     ui *degreeInR;
+     ui *degreeInC;
+     int *ustar;
+     bool *flag;
+
+
+}deviceTaskPointers;
+
+typedef struct  {
+     ui *intialTaskList;
+     ui *globalCounter;
+     ui *entries;
+
+}deviceInterPointers;
