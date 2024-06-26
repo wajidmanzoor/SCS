@@ -1,4 +1,3 @@
-#pragma once
 #ifndef utility_h
 #define utility_h
 
