@@ -127,7 +127,7 @@ __global__ void CompressTask(deviceGraphPointers G,deviceInterPointers P, device
 
 }
 
-__global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundSize, ui upperBoundSize, ui pSize,ui dmax)
+__global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundSize, ui upperBoundSize, ui pSize,ui dmax,ui *H,ui level)
 {
     extern __shared__ char shared_memory[];
     ui sizeOffset = 0;
@@ -147,7 +147,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
 
 
     // minimum degree intialized to zero.
-    ui currentMinDegree = UINT_MAX;
+    ui currentMinDegree;
 
     // Connection score used to calculate the ustar.
     double score;
@@ -191,16 +191,17 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
         ui total = end - start;
         //printf("iter %u wrap %u total %u \n",iter,warpId,totalTasks);
 
-
+        if(T.ustar[warpId*pSize+iter]!=INT_MAX){
+        ui maskGen = total;
         for(ui i = laneId; i < total ;i+=32)
         {
             int index = startIndex+start+i;
             ui ind = startIndex+start+i;
             ui vertex = T.taskList[ind];
             ui status = T.statusList[ind];
-            ui degR = T.degreeInR[ind];
-            ui degC = T.degreeInC[ind];
-            ui hSize = T.size[startIndex+iter];
+            //ui degR = T.degreeInR[ind];
+            //ui degC = T.degreeInC[ind];
+            //ui hSize = T.size[startIndex+iter];
         //printf("iter %u wrap %u lane id %u ind %u vertex %u status %u \n",iter,warpId,i,ind,vertex,status);
 
 
@@ -212,62 +213,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             currentMinDegree = UINT_MAX;
 
             ustar = -1;
-            if(status==0){
-              if(minn((degR+degC), (degC+upperBoundSize-hSize-1)) <= *G.lowerBoundDegree){
-                //printf("removed %u size %u \n",vertex,hSize);
-                T.statusList[ind]=2;
-                T.degreeInR[ind] = 0;
-                T.degreeInC[ind] =0;
-                for(int j = startNeighbor; j < endNeighbor; j++){
-                  resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[j]);
-                  if(resultIndex!=-1){
-                    if(T.degreeInR[resultIndex]!=0){
-                      atomicSub(&T.degreeInR[resultIndex], 1);
-                    }
-                  }
-                }
 
-
-              }
-            }
-            ui neig;
-            if((status==1)&&((degC+degR)==(*G.lowerBoundDegree+1))){
-              for(int j = startNeighbor; j < endNeighbor; j++){
-                resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[j]);
-                if(resultIndex!=-1){
-                  if(T.statusList[resultIndex]==0){
-
-                    T.statusList[resultIndex] =1;
-                    atomicAdd(&T.size[startIndex+iter],1);
-                    neig = T.taskList[resultIndex];
-                    for(int k = G.offset[neig]; k < G.offset[neig+1]; k++){
-                      resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[k]);
-                      if(resultIndex!=-1){
-                        if(T.statusList[resultIndex]==1){
-                          atomicAdd(&T.degreeInC[resultIndex], 1);
-                        }
-                        if(T.degreeInR[resultIndex]!=0){
-                          atomicSub(&T.degreeInR[resultIndex], 1);
-
-                        }
-                      }
-
-
-                    }
-
-
-                  }
-                }
-
-              }
-
-            }
-
-            __syncwarp();
-            status = T.statusList[ind];
-            degR = T.degreeInR[ind];
-            degC = T.degreeInC[ind];
-            hSize = T.size[startIndex+iter];
 
 
             if(status==0)
@@ -295,13 +241,27 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             {
               score += (double) T.degreeInR[vertex]/dmax;
             }
+             unsigned int mask;
+            ui cond;
+            if(maskGen>32){
+               mask = (1u << 31) - 1;
+              maskGen-=32;
+              cond = 32;
+
+            }
+            else{
+               mask = (1u << maskGen) - 1;
+               cond = maskGen;
+
+            }
+            __syncwarp();
 
             for (int offset = WARPSIZE/2 ; offset > 0; offset /= 2)
             {
-              temp = __shfl_down_sync(0xFFFFFFFF, score , offset);
-              otherId = __shfl_down_sync(0xFFFFFFFF, index, offset);
+              temp = __shfl_down_sync(mask, score , offset);
+              otherId = __shfl_down_sync(mask, index, offset);
 
-              if(temp> score && temp > 0)
+              if(temp> score && temp > 0 && (laneId+offset < cond))
               {
                 score = temp;
                 index = otherId;
@@ -316,36 +276,36 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             if (status==1)
             {
               currentMinDegree = T.degreeInC[ind];
-            }else{
-              currentMinDegree = UINT_MAX;
-
             }
-       //printf("iter %u wrap %u lane id %u ind %u vertex %u status %u  curr degree %u \n",iter,warpId,i,ind,vertex,status,currentMinDegree);
+
               //atomicMin(&sharedDegree[threadIdx.x/32],currentMinDegree);
 
-            for (int offset = WARPSIZE/2 ; offset > 0; offset /= 2)
+
+            for (int offset = 16 ; offset > 0; offset /= 2)
             {
-                temp2 = __shfl_down_sync(0xFFFFFFFF,currentMinDegree  , offset);
+                temp2 = __shfl_down_sync(mask,currentMinDegree  , offset);
       //printf("iter %u wrap %u lane id %u offset %u ind %u vertex %u status %u  curr degree %u \n",iter,warpId,i,offset,ind,vertex,status,temp2);
 
 
-                if(temp2 < currentMinDegree)
+                if(laneId+offset <cond)
                 {
-                  currentMinDegree = temp2;
+                  currentMinDegree = min(currentMinDegree,temp2);
                 }
             }
 
-            currentMinDegree = __shfl_sync(0xFFFFFFFF, currentMinDegree,0);
+            /*if((iter==8)&&(warpId==732) &&(level==15)){
+              printf("iter %u wrap %u lane id %u ind %u vertex %u status %u  curr degree %u mask %u cond %u \n",iter,warpId,i,ind,vertex,status,currentMinDegree,mask,cond);
+            }*/
 
-            
-            
 
 
+
+
+             __syncwarp();
             if(i%32==0)
             {
               if (currentMinDegree<sharedDegree[threadIdx.x/32]){
                 sharedDegree[threadIdx.x/32] = currentMinDegree;
-                //printf(" shared min deg %u \n",sharedDegree[threadIdx.x/32]);
               }
               if(score>sharedScore[threadIdx.x/32]){
 
@@ -356,6 +316,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
 
 
             }
+            __syncwarp();
 
         }
 
@@ -364,15 +325,30 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
             if( (lowerBoundSize <= currentSize) && (currentSize <= upperBoundSize))
             {
                 if(sharedDegree[threadIdx.x/32]!=UINT_MAX){
-                  //printf("iter %u wrap %u shared min %u min %u \n",iter,warpId,sharedDegree[threadIdx.x/32],*G.lowerBoundDegree);
-                atomicMax(G.lowerBoundDegree,sharedDegree[threadIdx.x/32]);
+                ui oldvalue = atomicMax(G.lowerBoundDegree,sharedDegree[threadIdx.x/32]);
+                if (oldvalue<sharedDegree[threadIdx.x/32]){
+                  printf("iter %u wrap %u shared min %u min %u old % u\n",iter,warpId,sharedDegree[threadIdx.x/32],*G.lowerBoundDegree,oldvalue);
 
+                int y =0;
+                for(ui x = 0; x < total ;x+=1){
+                  if (T.statusList[startIndex+start+x]==1){
+                    H[y] = T.taskList[startIndex+start+x];
+                    y++;
+                    printf(" iter %u wrap %u vertex %u status %u degIc %u \n",iter,warpId,T.taskList[startIndex+start+x],T.statusList[startIndex+start+x],T.degreeInC[startIndex+start+x]);
+                  }
+
+                }
+                H[100] = y;
+
+                }
                 }
             }
             int writeOffset = warpId*pSize;
 
             if( sharedScore[threadIdx.x/32]>0){
             T.ustar[writeOffset+iter] = sharedUstar[threadIdx.x/32];
+            }else{
+              T.ustar[writeOffset+iter] =INT_MAX;
             }
             sharedUBDegree[threadIdx.x/32] = UINT_MAX;
             sharedScore[threadIdx.x/32] = 0;
@@ -382,6 +358,7 @@ __global__ void ProcessTask(deviceGraphPointers G,deviceTaskPointers T,ui lowerB
 
         }
 
+        }
 
     }
 }
@@ -414,7 +391,7 @@ __global__ void Expand(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundS
         ui start = T.taskOffset[startIndex+iter];
         ui end = T.taskOffset[startIndex+iter+1];
         ui total = end - start;
-
+        if((T.ustar[warpId*pSize+iter]!= INT_MAX) && (T.ustar[warpId*pSize+iter]!=-1)){
          for(ui i = laneId; i < total ;i+=32)
         {
 
@@ -489,9 +466,101 @@ __global__ void Expand(deviceGraphPointers G,deviceTaskPointers T,ui lowerBoundS
 
             sharedCounter[threadIdx.x/32]=0;
         }
+        }
+
+      __syncwarp();
+
+     }
+
+
+}
+
+__global__ void reduce(deviceGraphPointers G,deviceTaskPointers T,ui pSize, ui upperBoundSize){
+
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int warpId = idx / 32;
+    int laneId = idx % 32;
+    int resultIndex;
 
 
 
+
+    ui startIndex =  warpId*pSize;
+    ui endIndex  =   (warpId+1)*pSize -1;
+    ui totalTasks = T.taskOffset[endIndex];
+    for(ui iter =0; iter<totalTasks;iter++)
+     {
+
+        ui start = T.taskOffset[startIndex+iter];
+        ui end = T.taskOffset[startIndex+iter+1];
+        ui total = end - start;
+        //printf("iter %u wrap %u total %u \n",iter,warpId,totalTasks);
+
+        for(ui i = laneId; i < total ;i+=32)
+
+        {
+          ui ind = startIndex+start+i;
+            ui vertex = T.taskList[ind];
+            ui status = T.statusList[ind];
+            ui degR = T.degreeInR[ind];
+            ui degC = T.degreeInC[ind];
+            ui hSize = T.size[startIndex+iter];
+            ui startNeighbor = G.offset[vertex];
+            ui endNeighbor = G.offset[vertex+1];
+
+          if(status==0){
+              if(minn((degR+degC), (degC+upperBoundSize-hSize-1)) <= *G.lowerBoundDegree){
+                //printf("removed %u size %u \n",vertex,hSize);
+                T.statusList[ind]=2;
+                T.degreeInR[ind] = 0;
+                T.degreeInC[ind] =0;
+                for(int j = startNeighbor; j < endNeighbor; j++){
+                  resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[j]);
+                  if(resultIndex!=-1){
+                    if(T.degreeInR[resultIndex]!=0){
+                      atomicSub(&T.degreeInR[resultIndex], 1);
+                    }
+                  }
+                }
+
+
+              }
+            }
+            ui neig;
+            if((status==1)&&((degC+degR)==(*G.lowerBoundDegree+1))){
+              for(int j = startNeighbor; j < endNeighbor; j++){
+                resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[j]);
+                if(resultIndex!=-1){
+                  if(T.statusList[resultIndex]==0){
+
+                    T.statusList[resultIndex] =1;
+                    atomicAdd(&T.size[startIndex+iter],1);
+                    neig = T.taskList[resultIndex];
+                    for(int k = G.offset[neig]; k < G.offset[neig+1]; k++){
+                      resultIndex = findIndexKernel(T.taskList,startIndex+start,startIndex+end,G.neighbors[k]);
+                      if(resultIndex!=-1){
+                        //if(T.statusList[resultIndex]==1){
+                          atomicAdd(&T.degreeInC[resultIndex], 1);
+                        //}
+                        if(T.degreeInR[resultIndex]!=0){
+                          atomicSub(&T.degreeInR[resultIndex], 1);
+
+                        }
+                      }
+
+
+                    }
+
+
+                  }
+                }
+
+              }
+
+            }
+
+
+        }
      }
 
 

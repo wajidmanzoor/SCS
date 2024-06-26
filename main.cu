@@ -2,9 +2,6 @@
 #include "./src/Graph.h"
 #include "./src/helpers.cc"
 #include "./src/gpuMemoryAllocation.cu"
-#include <random>
-
-
 
 int main(int argc, const char * argv[] ) {
 
@@ -25,10 +22,8 @@ int main(int argc, const char * argv[] ) {
     Timer timer;
     StartTime = (double)clock() / CLOCKS_PER_SEC;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(1,TOTAL_WARPS/2);
-    ui jump; 
+
+    ui jump = TOTAL_WARPS;
 
     core_decomposition_linear_list();
 
@@ -78,23 +73,33 @@ int main(int argc, const char * argv[] ) {
     size_t sharedMemrySizeTask = 3*WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double);
     size_t sharedMemrySizeExpand = WARPS_EACH_BLK * sizeof(ui);
     bool stopFlag;
-    //int c=0;
+    int c=0;
+
+    ui *H;
+    cudaMalloc((void**)&H,(globalCounter+1)*sizeof(ui));
+    cudaMemset(H,0,sizeof(ui));
+    cudaMemset(deviceTask.ustar, -1, TOTAL_WARPS*paritionSize*sizeof(int));
+
     while(1){
 
         cudaMemset(deviceTask.flag,1,sizeof(bool));
-        cudaMemset(deviceTask.ustar, -1, TOTAL_WARPS*paritionSize*sizeof(int));
 
         cudaMemcpy(&stopFlag,deviceTask.flag,sizeof(bool),cudaMemcpyDeviceToHost);
 
-        ProcessTask <<<BLK_NUMS,BLK_DIM,sharedMemrySizeTask>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX);
+        ProcessTask <<<BLK_NUMS,BLK_DIM,sharedMemrySizeTask>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX,H,c);
         cudaDeviceSynchronize();
-       jump = (ui) dis(gen);
+       //jump = (ui) dis(gen);
+        jump = jump>> 1;
         //cout<<"jump "<<jump<<endl;
         Expand <<<BLK_NUMS,BLK_DIM,sharedMemrySizeExpand>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX,jump);
+
+        cudaDeviceSynchronize();
+        reduce <<<BLK_NUMS,BLK_DIM,sharedMemrySizeTask>>>(deviceGraph,deviceTask,paritionSize,N2);
         cudaDeviceSynchronize();
         cudaMemcpy(&stopFlag,deviceTask.flag,sizeof(bool),cudaMemcpyDeviceToHost);
         //cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
-        //cout <<"level "<<c<<" Max min degre"<<kl<<endl;
+        cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
+        cout <<"level "<<c<<"min degree "<<kl<<endl;
         if(stopFlag){
           cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
           cout << "Max min degree "<<kl<<endl;
@@ -102,8 +107,21 @@ int main(int argc, const char * argv[] ) {
 
           break;
         }
-        //c++;
+        if(jump==1){
+          jump = TOTAL_WARPS;
+        }
+        c++;
     }
+
+    /*ui *hH;
+    hH = new ui[globalCounter+1];
+    cudaMemcpy(hH,H,(globalCounter+1)*sizeof(ui),cudaMemcpyDeviceToHost);
+    cout << "H ";
+    for(ui i =0;i<hH[globalCounter];i++){
+      cout<<hH[i]<<" ";
+    }
+    cout <<endl;
+    cout<<endl;*/
     /*ui *task, *status, *size, *off,*dc,*dr;
     int *ustar;
     task = new ui[TOTAL_WARPS*paritionSize];
@@ -127,13 +145,14 @@ int main(int argc, const char * argv[] ) {
 
 
     for(ui i =0;i<TOTAL_WARPS;i++){
-      if(off[(i+1)*paritionSize-1]!=0){
+      if(off[(i+1)*paritionSize-1]==0){
         cout<<" partion "<<i<<" Num tasks "<<off[(i+1)*paritionSize-1]<<endl;
 
         }
       for(ui j =0;j<off[(i+1)*paritionSize-1] ;j++){
+        if(off[i*paritionSize+j+1]>=100000){
         cout <<"start "<<off[i*paritionSize+j]<<" end "<<off[i*paritionSize+j+1] <<" size "<<size[i*paritionSize+j]<<" ustar "<<ustar[i*paritionSize+j]<<endl;
-       for(ui k = off[i*paritionSize+j]; k <off[i*paritionSize+j+1];k++){
+       }for(ui k = off[i*paritionSize+j]; k <off[i*paritionSize+j+1];k++){
           cout<< task[i*paritionSize+k] << " ";
 
         }
