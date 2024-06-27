@@ -208,12 +208,12 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowe
         unsigned int mask;
         ui cond;
         if (maskGen > 32) {
-          mask = (1 u << 31) - 1;
+          mask = (1u << 31) - 1;
           maskGen -= 32;
           cond = 32;
 
         } else {
-          mask = (1 u << maskGen) - 1;
+          mask = (1u << maskGen) - 1;
           cond = maskGen;
 
         }
