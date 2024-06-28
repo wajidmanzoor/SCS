@@ -440,9 +440,27 @@ __global__ void reduce(deviceGraphPointers G, deviceTaskPointers T, ui pSize, ui
         ui hSize = T.size[startIndex + iter];
         ui startNeighbor = G.offset[vertex];
         ui endNeighbor = G.offset[vertex + 1];
+        ui ubD;
+        ui kl = *G.lowerBoundDegree;
+
+        for(ui d = 1; d <= upperBoundSize; d++){
+                if(d == 1 || d == 2){
+                    if(kl+ d > upperBoundSize){
+                        ubD = d-1;
+                        break;
+                    }
+                }
+                else{
+                    ui min_n = kl + d + 1 + floor(d/3) * (kl - 2);
+                    if(upperBoundSize < min_n){
+                        ubD = d - 1;
+                        break;
+                    }
+                }
+            }
 
         if (status == 0) {
-          if (minn((degR + degC), (degC + upperBoundSize - hSize - 1)) <= * G.lowerBoundDegree) {
+          if ((minn((degR + degC), (degC + upperBoundSize - hSize - 1)) <= * G.lowerBoundDegree) || (ubD > G.distance[vertex])){
             T.statusList[ind] = 2;
             T.degreeInR[ind] = 0;
             T.degreeInC[ind] = 0;
