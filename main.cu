@@ -45,7 +45,7 @@ int main(int argc,
   deviceGraphPointers deviceGraph;
   memoryAllocationGraph(deviceGraph);
 
-  ui BLK_DIM2 = 128;
+  ui BLK_DIM2 = 1024;
   ui BLK_NUM2 = 1;
   ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
   ui intialParitionSize = (n / INTOTAL_WARPS) + 1;
