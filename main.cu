@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "./src/Graph.h"
+#include "./inc/heuristic.h"
 #include "./src/helpers.cc"
 #include "./src/gpuMemoryAllocation.cu"
 
