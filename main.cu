@@ -32,6 +32,14 @@ int main(int argc,
   ku = miv(core[QID], N2 - 1);
   kl = 0;
   ubD = N2 - 1;
+  CSSC_heu();
+  if(kl==ku){
+        cout<<"heuristic find the OPT!"<<endl;
+        cout<<"mindeg = "<<kl<<endl;
+        cout<<"H.size = "<<H.size()<<endl;
+        cout<<"time = "<<integer_to_string(timer.elapsed()).c_str()<<endl;
+        return;
+    }
   cal_query_dist();
 
   deviceGraphPointers deviceGraph;
