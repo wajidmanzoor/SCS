@@ -460,7 +460,7 @@ __global__ void reduce(deviceGraphPointers G, deviceTaskPointers T, ui pSize, ui
             }
 
         if (status == 0) {
-          if ((minn((degR + degC), (degC + upperBoundSize - hSize - 1)) <= * G.lowerBoundDegree)){
+          if ((minn((degR + degC), (degC + upperBoundSize - hSize - 1)) <= * G.lowerBoundDegree) || (ubD < G.distance[vertex])){
             T.statusList[ind] = 2;
             T.degreeInR[ind] = 0;
             T.degreeInC[ind] = 0;

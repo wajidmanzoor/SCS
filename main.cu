@@ -33,6 +33,8 @@ int main(int argc,
   kl = 0;
   ubD = N2 - 1;
   CSSC_heu();
+  cout<< "Heuristic Kl "<< kl << " Ku "<<ku<<endl;
+
   if(kl==ku){
         cout<<"heuristic find the OPT!"<<endl;
         cout<<"mindeg = "<<kl<<endl;
