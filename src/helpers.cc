@@ -20,25 +20,6 @@ __device__ int findIndexKernel(ui * arr, ui start, ui end, ui target)
   return resultIndex;
 
 }
- __device__ int binarySearch(ui *array, ui left, ui right, ui key) {
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-        
-        // Check if the key is present at mid
-        if (array[mid] == key)
-            return mid;
-        
-        // If key greater, ignore left half
-        if (array[mid] < key)
-            left = mid + 1;
-        // If key is smaller, ignore right half
-        else
-            right = mid - 1;
-    }
-    
-    // Key not found
-    return -1;
- }
 
 __global__ void IntialReductionRules(deviceGraphPointers G, deviceInterPointers P, ui size, ui upperBoundSize, ui lowerBoundDegree, ui pSize) {
 
@@ -206,7 +187,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowe
         ui vertex = T.taskList[ind];
         ui status = T.statusList[ind];
 
-        //printf(" after : iter %u wrapId %u lane id %u  vertex %u status %u dc %u dr %u \n", iter, warpId, i, vertex, status, T.degreeInC[ind], T.degreeInR[ind]);
+        //printf(" after : iter %u wrapId %u lane id %u  vertex %u status %u dc %u dr %u size %u \n", iter, warpId, i, vertex, status, T.degreeInC[ind], T.degreeInR[ind],T.size[warpId * pSize + iter]);
 
         ui startNeighbor = G.offset[vertex];
         ui endNeighbor = G.offset[vertex + 1];
@@ -219,7 +200,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowe
 
         if (status == 0) {
           for (int j = startNeighbor; j < endNeighbor; j++) {
-            resultIndex = binarySearch(T.taskList, startIndex + start, startIndex + end, G.neighbors[j]);
+            resultIndex = findIndexKernel(T.taskList, startIndex + start, startIndex + end, G.neighbors[j]);
             if (resultIndex != -1) {
               if (T.statusList[resultIndex] == 1) {
                 if (T.degreeInC[resultIndex] != 0) {
@@ -386,7 +367,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoun
           ui degInR;
           ui degInC;
           if ((vertex != ustar) && (status != 2)) {
-            ui loc = atomicAdd( & sharedCounter[threadIdx.x / 32], 1);
+            ui loc = atomicAdd( &sharedCounter[threadIdx.x / 32], 1);
             T.taskList[writeOffset + loc] = vertex;
             T.statusList[writeOffset + loc] = status;
             degInR = T.degreeInR[ind];
@@ -394,7 +375,6 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoun
             T.degreeInR[writeOffset + loc] = (degInR != 4294967295) ? degInR : 0;
             T.degreeInR[ind] = (degInR != 4294967295) ? degInR : 0;
             T.degreeInC[writeOffset + loc] = degInC;
-            //printf(" first %u ",degInR);
 
           }
 
@@ -454,7 +434,7 @@ __global__ void DegreeUpdate(deviceGraphPointers G, deviceTaskPointers T, ui pSi
         int key;
         if ((status == 0) || (status == 1)) {
           for (ui j = startNeighbor; j < endNeighbor; j++) {
-            key = binarySearch(T.taskList, startIndex + start, startIndex + end, G.neighbors[j]);
+            key = findIndexKernel(T.taskList, startIndex + start, startIndex + end, G.neighbors[j]);
             if (key != -1) {
               if (T.statusList[key] == 0) {
                 degR++;
@@ -535,12 +515,12 @@ __global__ void ReductionRules(deviceGraphPointers G, deviceTaskPointers T, ui p
         int resInd;
         if ((status == 1) && ((degC + degR) == ( * G.lowerBoundDegree + 1))) {
           for (int j = startNeighbor; j < endNeighbor; j++) {
-            resKey = binarySearch(T.taskList, startIndex + start, startIndex + end, G.neighbors[j]);
+            resKey = findIndexKernel(T.taskList, startIndex + start, startIndex + end, G.neighbors[j]);
             if (resKey != -1) {
               if (T.statusList[resKey] == 0) {
 
                 T.statusList[resKey] = 1;
-                atomicAdd( & T.size[startIndex + iter], 1);
+                atomicAdd(&T.size[startIndex + iter], 1);
 
               }
             }
