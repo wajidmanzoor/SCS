@@ -109,6 +109,7 @@ typedef struct  {
      ui *degreeInC;
      int *ustar;
      bool *flag;
+     ui *doms;
 
 
 }deviceTaskPointers;

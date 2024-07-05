@@ -54,6 +54,7 @@ void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize){
     chkerr(cudaMalloc((void**)&(p.size), numWraps*pSize*sizeof(ui)));
     chkerr(cudaMemset(p.size,0,numWraps*pSize*sizeof(ui)));
 
+    chkerr(cudaMalloc((void**)&(p.doms), numWraps*pSize*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.flag),sizeof(bool)));
 
 
