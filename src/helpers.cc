@@ -1,5 +1,3 @@
-%%writefile helpers.cc
-
 __device__ ui minn(ui a, ui b) {
   return (a < b) ? a : b;
 }
