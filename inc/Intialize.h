@@ -110,6 +110,7 @@ typedef struct  {
      int *ustar;
      bool *flag;
      ui *doms;
+     double *cons
 
 
 }deviceTaskPointers;
