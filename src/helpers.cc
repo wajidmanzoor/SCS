@@ -1,4 +1,3 @@
-
 __device__ ui minn(ui a, ui b) {
   return (a < b) ? a : b;
 }
@@ -217,6 +216,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowe
         if (score > 0) {
           score += (double) T.degreeInR[vertex] / dmax;
         }
+
         unsigned int mask;
         ui cond;
         if (maskGen > 32) {
@@ -629,7 +629,7 @@ __global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, 
 
         if (is_doms) {
           ui writeOffset = startIndex + start;
-          ui loc = atomicAdd( & sharedCounter[threadIdx.x / 32], 1);
+          ui loc = atomicAdd( &sharedCounter[threadIdx.x / 32], 1);
           T.doms[writeOffset + loc] = vertex;
           T.cons[writeOffset + loc] = score;
           //printf("iter %u wrap %u lane %u vertex %u status %u loc %u score %f\n",iter,warpId,laneId,vertex,status,loc,T.cons[writeOffset + loc]);
@@ -640,6 +640,9 @@ __global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, 
       __syncwarp();
       if (laneId == 0) {
         T.doms[startIndex + end - 1] = sharedCounter[threadIdx.x / 32];
+        if( sharedCounter[threadIdx.x / 32]>0){
+          printf("Iter %u wrap %u total doms %u shard doms %u ind %u \n",iter,warpId,T.doms[startIndex + end - 1],sharedCounter[threadIdx.x / 32],startIndex + end - 1);
+        }
         sharedCounter[threadIdx.x / 32] = 0;
 
       }
@@ -725,6 +728,7 @@ __global__ void ExpandNew(deviceGraphPointers G, deviceTaskPointers T, ui lowerB
           T.size[(bufferNum - 1) * pSize + totalTasksWrite] = T.size[warpId * pSize + iter];
           T.size[warpId * pSize + iter] += 1;
           if(T.doms[warpId*pSize + end -1 ]!=0){
+          printf("expand new : iter %u wrap %u doms %u index %u \n",iter, warpId,T.doms[warpId*pSize + end -1 ],warpId*pSize + end -1);
           T.ustar[(bufferNum - 1) * pSize + totalTasksWrite] = -3;
           T.doms[(bufferNum - 1) * pSize + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite ]] = warpId;
           T.doms[(bufferNum - 1) * pSize + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite ] + 1] = iter;
@@ -770,17 +774,21 @@ __global__ void ExpandDoms(deviceGraphPointers G, deviceTaskPointers T, ui lower
       ui prevUstar = T.taskList[T.ustar[prevWrap * pSize + prevIter]];
       ui newWriteOffset = startIndex + T.taskOffset[startIndex+totalTasks];
       ui totalWrite = total + 1;
-      //printf("wrap id %u lane id %u totalTasks %u ustar %d total %u ustar prev %u domsstart %u total doms %u \n", warpId, laneId, totalTasks, T.ustar[warpId * pSize + iter], total, prevUstar, domStart, totalDoms);
-      if(totalDoms!=0){
+      //if(laneId==0)
+      //printf("wrap id %u lane id %u totalTasks %u ustar %d total %u ustar prev %u domsstart %u total doms %u prev iter %u prev wrap %u \n", warpId, laneId, totalTasks, T.ustar[warpId * pSize + iter], total, prevUstar, domStart, totalDoms,prevIter,prevWrap);
+      ui maskGen = total;
       for (ui i = laneId; i < total; i += 32) {
         //printf("Inside");
         ui ind = laneId;
         ui index = startIndex + start + laneId;
+        //printf("Inside ");
+
 
         ui vertex = T.taskList[index];
-        //printf("inside %u ", index);
+        //printf("inside %u \n", index);
 
         ui status = T.statusList[index];
+        int processed = 1;
 
         ui degR = T.degreeInR[index];
         ui degC = T.degreeInC[index];
@@ -811,20 +819,30 @@ __global__ void ExpandDoms(deviceGraphPointers G, deviceTaskPointers T, ui lower
 
         }
 
-      }}
+        unsigned int mask;
+        if (maskGen > 32) {
+          mask = (1u << 31) - 1;
+          maskGen -= 32;
+
+        } else {
+          mask = (1u << maskGen) - 1;
+
+        }
+
+        processed =  __shfl_sync(mask, processed, 0);
+
+      }
+
       __syncwarp();
-      if(laneId==0){
+      
+      if(laneId ==0){
         ui current = 1;
-        ui totalTasksWrite = T.taskOffset[(warpId+1)*pSize-1];
-        ui wrapNew = warpId+1;
-        if (wrapNew>TOTAL_WARPS)
-          wrapNew = 0;
         while(current<=totalDoms){
           T.taskList[newWriteOffset+ (totalWrite*current)-1] = prevUstar;
           T.statusList[newWriteOffset+ (totalWrite*current)-1] = 1;
-          T.size[warpId * pSize + totalTasksWrite+current-1] = T.size[warpId * pSize + iter]+2;
-          T.taskOffset[warpId* pSize + totalTasksWrite +current] = T.taskOffset[ warpId* pSize + totalTasksWrite ] +(current*totalWrite);
-          T.taskOffset[( warpId+1) * pSize - 1]++;
+          T.size[warpId * pSize + totalTasks+current-1] = T.size[warpId * pSize + iter]+2;
+          T.taskOffset[warpId* pSize + totalTasks +current] = T.taskOffset[ warpId* pSize + totalTasks ] +(current*totalWrite);
+          T.taskOffset[(warpId+1) * pSize - 1]++;
           current++;
 
 
@@ -833,6 +851,9 @@ __global__ void ExpandDoms(deviceGraphPointers G, deviceTaskPointers T, ui lower
 
 
       }
+      //__syncwarp();
+
+
 
 
     }
