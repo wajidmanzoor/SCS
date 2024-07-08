@@ -180,7 +180,7 @@ int main(int argc, const char * argv[] ) {
           x = i+1;
           //cout<<x<<" ";
           if(off[x*paritionSize-1]!=0){
-          cout<<"Partition "<<i<<" Task Num" <<off[x*paritionSize-1]<< "  ";
+          cout<<"Partition "<<i<<" Task Num " <<off[x*paritionSize-1]<<" Available End index "<<(i*off[x*paritionSize-1]-1) <<" Offset of Last Task " <<off[i*paritionSize+off[x*paritionSize-1]];
           /*cout<<"Offs ";
           for(ui j =i*paritionSize; j<x*paritionSize;j++){
             cout<<off[j]<<" ";
