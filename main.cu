@@ -4,6 +4,18 @@
 #include "./src/gpuMemoryAllocation.cu"
 
 
+
+#define cudaCheckError() { \
+    cudaError_t e = cudaGetLastError(); \
+    if (e != cudaSuccess) { \
+        printf("CUDA Error %s:%d: %s\n", __FILE__, __LINE__, cudaGetErrorString(e)); \
+        exit(EXIT_FAILURE); \
+    } \
+}
+
+
+
+
 int main(int argc, const char * argv[] ) {
 
     if(argc!=6){
@@ -84,6 +96,7 @@ int main(int argc, const char * argv[] ) {
 
     IntialReductionRules<<<BLK_NUM2,BLK_DIM2,sharedMemrySizeIntial>>>(deviceGraph,intialTask,n ,N2,kl,intialParitionSize);
     cudaDeviceSynchronize();
+    
 
     ui globalCounter;
     cudaMemcpy(&globalCounter,intialTask.globalCounter,sizeof(ui),cudaMemcpyDeviceToHost);
@@ -140,11 +153,9 @@ int main(int argc, const char * argv[] ) {
         cudaDeviceSynchronize();
         ExpandNew <<<BLK_NUMS,BLK_DIM,sharedMemrySizeExpand>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX,jump);
         cudaDeviceSynchronize();
-        //if(c==0){
 
         ExpandDoms<<<BLK_NUMS,BLK_DIM>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX,jump);
         cudaDeviceSynchronize();
-        //}
 
         ReductionRules << < BLK_NUMS, BLK_DIM>>> (deviceGraph, deviceTask, paritionSize, N2);
         cudaDeviceSynchronize();
@@ -164,52 +175,55 @@ int main(int argc, const char * argv[] ) {
 
 
 
-        ui start,total;
-        for(ui x =0;x<6;x++){
-          ui i = pars[x];
-          cout<<"Partition "<<i<<endl;
+        /*ui start,total,x;
+        for(ui i =0;i<TOTAL_WARPS;i++){
+          x = i+1;
+          //cout<<x<<" ";
+          if(off[x*paritionSize-1]!=0){
+          cout<<"Partition "<<i<<" Task Num" <<off[x*paritionSize-1]<<endl;
           cout<<"Offs ";
-          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+          for(ui j =i*paritionSize; j<x*paritionSize;j++){
             cout<<off[j]<<" ";
           }
           cout<<endl;
           cout<<"Task ";
-          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+          for(ui j =i*paritionSize; j<x*paritionSize;j++){
             cout<<task[j]<<" ";
           }
           cout<<endl;
           cout<<"Stat ";
 
-          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+          for(ui j =i*paritionSize; j<x*paritionSize;j++){
             cout<<status[j]<<" ";
           }
           cout<<endl;
           cout<<"Usta ";
 
-          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+          for(ui j =i*paritionSize; j<x*paritionSize;j++){
             cout<<ustar[j]<<" ";
           }
           cout<<endl;
 
           cout<<"Size ";
 
-          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+          for(ui j =i*paritionSize; j<x*paritionSize;j++){
             cout<<hsize[j]<<" ";
           }
           cout<<endl;
           cout<<"Doms ";
 
-          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+          for(ui j =i*paritionSize; j<x*paritionSize;j++){
             cout<<doms[j]<<" ";
           }
           cout<<endl;
           cout<<"Cons ";
 
-          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+          for(ui j =i*paritionSize; j<x*paritionSize;j++){
             cout<<cons[j]<<" ";
           }
           cout<<endl;
         }
+        }*/
         cudaMemset(deviceTask.doms,0,TOTAL_WARPS*paritionSize*sizeof(ui));
 
 
@@ -223,7 +237,7 @@ int main(int argc, const char * argv[] ) {
         }
         cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
 
-        
+
 
 
         if(jump==1){
@@ -231,15 +245,15 @@ int main(int argc, const char * argv[] ) {
         }
         c++;
         //cout<< "Level "<<c<<endl;
-        if(c==3)
+        if(c==20)
         break;
 
 
     }
 
- 
 
-    
+
+
     cudaDeviceSynchronize();
 
     //freeInterPointer(intialTask);
