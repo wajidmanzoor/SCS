@@ -3,6 +3,7 @@
 #include "./src/helpers.cc"
 #include "./src/gpuMemoryAllocation.cu"
 
+
 int main(int argc, const char * argv[] ) {
 
     if(argc!=6){
@@ -106,11 +107,27 @@ int main(int argc, const char * argv[] ) {
 
     size_t sharedMemrySizeTask = 3*WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double);
     size_t sharedMemrySizeExpand = WARPS_EACH_BLK * sizeof(ui);
+    size_t sharedMemrySizeDoms = WARPS_EACH_BLK * sizeof(ui);
+
+
     bool stopFlag;
     cudaMemset(deviceTask.ustar, -1, TOTAL_WARPS*paritionSize*sizeof(int));
+    ui *off,*task,*status,*hsize;
+    ui *doms;
+    int *ustar;
+    double *cons;
 
-    //ui *off, *hsize, *task_h, *status_h, degc_h, degR_h;
-    //int *ustar;
+
+    off = new ui[TOTAL_WARPS*paritionSize];
+    doms = new ui[TOTAL_WARPS*paritionSize];
+    task = new ui[TOTAL_WARPS*paritionSize];
+    status = new ui[TOTAL_WARPS*paritionSize];
+    hsize = new ui[TOTAL_WARPS*paritionSize];
+    ustar = new int[TOTAL_WARPS*paritionSize];
+    cons = new double[TOTAL_WARPS*paritionSize];
+    ui pars[6] = {0,1727,2590,3455,5182,6045};
+
+    int c =0;
     while(1){
 
         cudaMemset(deviceTask.flag,1,sizeof(bool));
@@ -118,12 +135,84 @@ int main(int argc, const char * argv[] ) {
         ProcessTask <<<BLK_NUMS,BLK_DIM,sharedMemrySizeTask>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX);
         cudaDeviceSynchronize();
         jump = jump>>1;
-        ReductionRules << < BLK_NUMS, BLK_DIM>>> (deviceGraph, deviceTask, paritionSize, N2);
+        //cout<<"Total Waraps "<<TOTAL_WARPS<<" jump "<<jump<<endl;
+        FindDoms<<<BLK_NUMS, BLK_DIM,sharedMemrySizeDoms>>>(deviceGraph, deviceTask,paritionSize,dMAX);
         cudaDeviceSynchronize();
-        Expand <<<BLK_NUMS,BLK_DIM,sharedMemrySizeExpand>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX,jump);
+        ExpandNew <<<BLK_NUMS,BLK_DIM,sharedMemrySizeExpand>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX,jump);
+        cudaDeviceSynchronize();
+        //if(c==0){
+
+        ExpandDoms<<<BLK_NUMS,BLK_DIM>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX,jump);
+        cudaDeviceSynchronize();
+        //}
+
+        ReductionRules << < BLK_NUMS, BLK_DIM>>> (deviceGraph, deviceTask, paritionSize, N2);
         cudaDeviceSynchronize();
         DegreeUpdate << < BLK_NUMS, BLK_DIM>>> (deviceGraph, deviceTask, paritionSize);
         cudaDeviceSynchronize();
+        cout<< "***********************************Level********************************** "<<c<<" KL  "<<kl<<endl;
+
+        cudaMemcpy(off,deviceTask.taskOffset,TOTAL_WARPS*paritionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+        cudaMemcpy(doms,deviceTask.doms,TOTAL_WARPS*paritionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+        cudaMemcpy(task,deviceTask.taskList,TOTAL_WARPS*paritionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+        cudaMemcpy(status,deviceTask.statusList,TOTAL_WARPS*paritionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+        cudaMemcpy(hsize,deviceTask.size,TOTAL_WARPS*paritionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+        cudaMemcpy(ustar,deviceTask.ustar,TOTAL_WARPS*paritionSize*sizeof(int),cudaMemcpyDeviceToHost);
+        cudaMemcpy(cons,deviceTask.cons,TOTAL_WARPS*paritionSize*sizeof(double),cudaMemcpyDeviceToHost);
+
+
+
+
+
+        ui start,total;
+        for(ui x =0;x<6;x++){
+          ui i = pars[x];
+          cout<<"Partition "<<i<<endl;
+          cout<<"Offs ";
+          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+            cout<<off[j]<<" ";
+          }
+          cout<<endl;
+          cout<<"Task ";
+          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+            cout<<task[j]<<" ";
+          }
+          cout<<endl;
+          cout<<"Stat ";
+
+          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+            cout<<status[j]<<" ";
+          }
+          cout<<endl;
+          cout<<"Usta ";
+
+          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+            cout<<ustar[j]<<" ";
+          }
+          cout<<endl;
+
+          cout<<"Size ";
+
+          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+            cout<<hsize[j]<<" ";
+          }
+          cout<<endl;
+          cout<<"Doms ";
+
+          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+            cout<<doms[j]<<" ";
+          }
+          cout<<endl;
+          cout<<"Cons ";
+
+          for(ui j =i*paritionSize; j<(i+1)*paritionSize;j++){
+            cout<<cons[j]<<" ";
+          }
+          cout<<endl;
+        }
+        cudaMemset(deviceTask.doms,0,TOTAL_WARPS*paritionSize*sizeof(ui));
+
+
         cudaMemcpy(&stopFlag,deviceTask.flag,sizeof(bool),cudaMemcpyDeviceToHost);
         if(stopFlag){
           cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
@@ -132,78 +221,30 @@ int main(int argc, const char * argv[] ) {
 
           break;
         }
-        //cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
+        cudaMemcpy(&kl,deviceGraph.lowerBoundDegree,sizeof(ui),cudaMemcpyDeviceToHost);
 
-        //cout<<"KL  "<<kl<<endl;
+        
 
 
         if(jump==1){
           jump = TOTAL_WARPS;
         }
+        c++;
+        //cout<< "Level "<<c<<endl;
+        if(c==3)
+        break;
+
 
     }
 
-    	  /*off = new ui[TOTAL_WARPS*paritionSize];
-        ustar = new int[TOTAL_WARPS*paritionSize];
-        hsize = new ui[TOTAL_WARPS*paritionSize];
+ 
 
-        task_h = new ui[TOTAL_WARPS*paritionSize];
-        status_h = new ui[TOTAL_WARPS*paritionSize];
-        degc_h = new ui[TOTAL_WARPS*paritionSize];
-        degR_h = new ui[TOTAL_WARPS*paritionSize];
-
-
-
-
-
-        cudaMemcpy(off,deviceTask.taskOffset,TOTAL_WARPS*paritionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-      cudaMemcpy(ustar,deviceTask.ustar,TOTAL_WARPS*paritionSize*sizeof(int),cudaMemcpyDeviceToHost);
-      cudaMemcpy(hsize,deviceTask.size,TOTAL_WARPS*paritionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-
-      cudaMemcpy(task_h,deviceTask.taskList,TOTAL_WARPS*paritionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-      cudaMemcpy(status_h,deviceTask.statusList,TOTAL_WARPS*paritionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-      cudaMemcpy(degR_h,deviceTask.degreeInR,TOTAL_WARPS*paritionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-      cudaMemcpy(degc_h,deviceTask.degreeInC,TOTAL_WARPS*paritionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-
-        for(ui i =0;i<TOTAL_WARPS;i++){
-            
-           
-            if (off[(i+1)*paritionSize-1]>0){
-              for(ui j = 0; j<off[(i+1)*paritionSize-1];j++){
-                for(ui k = off[i*paritionSize+j];k<off[i*paritionSize+j+1];k++){
-                  cout<<task_h[i*paritionSize+j+k]<<" ";
-                }
-                cout<<endl;
-                for(ui k = off[i*paritionSize+j];k<off[i*paritionSize+j+1];k++){
-                  cout<<status_h[i*paritionSize+j+k]<<" ";
-                }
-                cout<<endl;
-
-                for(ui k = off[i*paritionSize+j];k<off[i*paritionSize+j+1];k++){
-                  cout<<degR_h[i*paritionSize+j+k]<<" ";
-                }
-                cout<<endl;
-
-                for(ui k = off[i*paritionSize+j];k<off[i*paritionSize+j+1];k++){
-                  cout<<degc_h[i*paritionSize+j+k]<<" ";
-                }
-                cout<<endl;
-              cout<<endl;
-
-              }
-            }
-            
-
-
-        }*/
-
-
-
+    
     cudaDeviceSynchronize();
 
-    freeInterPointer(intialTask);
-    freeGraph(deviceGraph);
-    freeTaskPointer(deviceTask);
+    //freeInterPointer(intialTask);
+    //freeGraph(deviceGraph);
+    //freeTaskPointer(deviceTask);
 
 
     return 0;
