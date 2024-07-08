@@ -175,13 +175,13 @@ int main(int argc, const char * argv[] ) {
 
 
 
-        /*ui start,total,x;
+        ui start,total,x;
         for(ui i =0;i<TOTAL_WARPS;i++){
           x = i+1;
           //cout<<x<<" ";
           if(off[x*paritionSize-1]!=0){
-          cout<<"Partition "<<i<<" Task Num" <<off[x*paritionSize-1]<<endl;
-          cout<<"Offs ";
+          cout<<"Partition "<<i<<" Task Num" <<off[x*paritionSize-1]<< "  ";
+          /*cout<<"Offs ";
           for(ui j =i*paritionSize; j<x*paritionSize;j++){
             cout<<off[j]<<" ";
           }
@@ -221,9 +221,10 @@ int main(int argc, const char * argv[] ) {
           for(ui j =i*paritionSize; j<x*paritionSize;j++){
             cout<<cons[j]<<" ";
           }
-          cout<<endl;
+          cout<<endl;*/
         }
-        }*/
+        }
+        cout<<endl;
         cudaMemset(deviceTask.doms,0,TOTAL_WARPS*paritionSize*sizeof(ui));
 
 
