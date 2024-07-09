@@ -148,6 +148,9 @@ int main(int argc, const char * argv[] ) {
         ProcessTask <<<BLK_NUMS,BLK_DIM,sharedMemrySizeTask>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX);
         cudaDeviceSynchronize();
         jump = jump>>1;
+         if(jump==1){
+          jump = TOTAL_WARPS;
+        }
         //cout<<"Total Waraps "<<TOTAL_WARPS<<" jump "<<jump<<endl;
         FindDoms<<<BLK_NUMS, BLK_DIM,sharedMemrySizeDoms>>>(deviceGraph, deviceTask,paritionSize,dMAX);
         cudaDeviceSynchronize();
