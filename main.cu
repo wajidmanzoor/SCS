@@ -246,7 +246,7 @@ int main(int argc, const char * argv[] ) {
         }
         c++;
         //cout<< "Level "<<c<<endl;
-        if(c==20)
+        if(c==13)
         break;
 
 
