@@ -20,6 +20,45 @@ __device__ int findIndexKernel(ui * arr, ui start, ui end, ui target)
 
 }
 
+__device__ void warpBitonicSortByKey(double* keys, ui* values, ui start, ui end) {
+    unsigned int n = end - start + 1;
+    unsigned int mask = 0xffffffff;
+    for (unsigned int k = 2; k <= n; k <<= 1) {
+        for (unsigned int j = k >> 1; j > 0; j >>= 1) {
+            for (unsigned int i = threadIdx.x; i < n; i += WARP_SIZE) {
+                unsigned int globalI = start + i;
+                unsigned int ixj = globalI ^ j;
+                if (ixj > globalI && ixj <= end) {
+                    if ((i & k) == 0) {
+                        if (keys[globalI] > keys[ixj]) {
+                            // Swap keys
+                            double tempKey = keys[globalI];
+                            keys[globalI] = keys[ixj];
+                            keys[ixj] = tempKey;
+                            // Swap corresponding values
+                            unsigned int tempValue = values[globalI];
+                            values[globalI] = values[ixj];
+                            values[ixj] = tempValue;
+                        }
+                    } else {
+                        if (keys[globalI] < keys[ixj]) {
+                            // Swap keys
+                            double tempKey = keys[globalI];
+                            keys[globalI] = keys[ixj];
+                            keys[ixj] = tempKey;
+                            // Swap corresponding values
+                            unsigned int tempValue = values[globalI];
+                            values[globalI] = values[ixj];
+                            values[ixj] = tempValue;
+                        }
+                    }
+                }
+            }
+            __syncwarp(mask);
+        }
+    }
+}
+
 __global__ void IntialReductionRules(deviceGraphPointers G, deviceInterPointers P, ui size, ui upperBoundSize, ui lowerBoundDegree, ui pSize) {
 
   // Intial Reduction rule based on core value and distance.
@@ -638,6 +677,8 @@ __global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, 
 
       }
       __syncwarp();
+
+      warpBitonicSortByKey(T.cons, T.doms, startIndex + start, startIndex + start+sharedCounter[threadIdx.x / 32]);
       if (laneId == 0) {
         T.doms[startIndex + end - 1] = sharedCounter[threadIdx.x / 32];
         if( sharedCounter[threadIdx.x / 32]>0){
@@ -788,7 +829,6 @@ __global__ void ExpandDoms(deviceGraphPointers G, deviceTaskPointers T, ui lower
         //printf("inside %u \n", index);
 
         ui status = T.statusList[index];
-        int processed = 1;
 
         ui degR = T.degreeInR[index];
         ui degC = T.degreeInC[index];
@@ -829,7 +869,7 @@ __global__ void ExpandDoms(deviceGraphPointers G, deviceTaskPointers T, ui lower
 
         }
 
-        processed =  __shfl_sync(mask, processed, 0);
+        __syncwarp(mask);
 
       }
 
