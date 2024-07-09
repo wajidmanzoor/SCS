@@ -728,7 +728,7 @@ __global__ void ExpandNew(deviceGraphPointers G, deviceTaskPointers T, ui lowerB
           T.size[(bufferNum - 1) * pSize + totalTasksWrite] = T.size[warpId * pSize + iter];
           T.size[warpId * pSize + iter] += 1;
           if(T.doms[warpId*pSize + end -1 ]!=0){
-          printf("expand new : iter %u wrap %u doms %u index %u \n",iter, warpId,T.doms[warpId*pSize + end -1 ],warpId*pSize + end -1);
+          printf("expand new : iter %u wrap %u doms %u index %u write in wrap % u \n",iter, warpId,T.doms[warpId*pSize + end -1 ],warpId*pSize + end -1,bufferNum-1);
           T.ustar[(bufferNum - 1) * pSize + totalTasksWrite] = -3;
           T.doms[(bufferNum - 1) * pSize + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite ]] = warpId;
           T.doms[(bufferNum - 1) * pSize + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite ] + 1] = iter;
