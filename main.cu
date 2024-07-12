@@ -2,6 +2,8 @@
 #include "./inc/heuristic.h"
 #include "./src/helpers.cc"
 #include "./src/gpuMemoryAllocation.cu"
+#include <sys/stat.h>
+
 
 #define cudaCheckError() { \
     cudaError_t e = cudaGetLastError(); \
