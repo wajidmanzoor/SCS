@@ -25,7 +25,7 @@ __device__ void warpBitonicSortByKey(double* keys, ui* values, ui start, ui end)
     unsigned int mask = 0xffffffff;
     for (unsigned int k = 2; k <= n; k <<= 1) {
         for (unsigned int j = k >> 1; j > 0; j >>= 1) {
-            for (unsigned int i = threadIdx.x; i < n; i += WARP_SIZE) {
+            for (unsigned int i = threadIdx.x; i < n; i += 32) {
                 unsigned int globalI = start + i;
                 unsigned int ixj = globalI ^ j;
                 if (ixj > globalI && ixj <= end) {
@@ -160,7 +160,7 @@ __global__ void CompressTask(deviceGraphPointers G, deviceInterPointers P, devic
 
 }
 
-__global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax) {
+__global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax,ui level) {
   extern __shared__ char shared_memory[];
   ui sizeOffset = 0;
   // Stores new tasks
@@ -224,6 +224,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowe
         ui ind = startIndex + start + i;
         ui vertex = T.taskList[ind];
         ui status = T.statusList[ind];
+
 
 
         ui startNeighbor = G.offset[vertex];
@@ -333,9 +334,11 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowe
         }
 
       }
+      }
       __syncwarp();
 
-      if (laneId == 0) {
+
+      if ((laneId == 0) &&(T.ustar[warpId * pSize + iter] != -2)) {
         currentSize = T.size[startIndex + iter];
 
         if ((lowerBoundSize <= currentSize) && (currentSize <= upperBoundSize)) {
@@ -364,95 +367,13 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowe
         sharedDegree[threadIdx.x / 32] = UINT_MAX;
 
       }
-    }
+    
 
     //__syncwarp();
 
   }
 }
-__global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax, ui jump) {
 
-  extern __shared__ char sharedMemory[];
-  size_t sizeOffset = 0;
-
-  ui * sharedCounter = (ui * )(sharedMemory + sizeOffset);
-  sizeOffset += WARPS_EACH_BLK * sizeof(ui);
-
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int warpId = idx / 32;
-  int laneId = idx % 32;
-
-  ui startIndex = warpId * pSize;
-  ui endIndex = (warpId + 1) * pSize - 1;
-  ui totalTasks = T.taskOffset[endIndex];
-
-  if (laneId == 0) {
-    sharedCounter[threadIdx.x / 32] = 0;
-  }
-  __syncwarp();
-
-  for (ui iter = 0; iter < totalTasks; iter++) {
-    __syncwarp();
-    ui start = T.taskOffset[startIndex + iter];
-    ui end = T.taskOffset[startIndex + iter + 1];
-    ui total = end - start;
-    if ((T.ustar[warpId * pSize + iter] != -2) && (T.ustar[warpId * pSize + iter] != -1)) {
-      for (ui i = laneId; i < total; i += 32) {
-
-        ui ind = startIndex + start + i;
-        ui vertex = T.taskList[ind];
-        ui status = T.statusList[ind];
-
-        if ((T.size[warpId * pSize + iter] < upperBoundSize) && (T.ustar[warpId * pSize + iter] != -1) && (T.ustar[warpId * pSize + iter] != -2)) {
-          ui bufferNum = warpId + jump;
-          if (bufferNum > TOTAL_WARPS) {
-            bufferNum = bufferNum % TOTAL_WARPS;
-          }
-          ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
-          ui writeOffset = ((bufferNum - 1) * pSize) + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite];
-
-          ui ustar = T.taskList[T.ustar[warpId * pSize + iter]];
-          ui degInR;
-          ui degInC;
-          if ((vertex != ustar) && (status != 2)) {
-            ui loc = atomicAdd( & sharedCounter[threadIdx.x / 32], 1);
-            T.taskList[writeOffset + loc] = vertex;
-            T.statusList[writeOffset + loc] = status;
-            degInR = T.degreeInR[ind];
-            degInC = T.degreeInC[ind];
-            T.degreeInR[writeOffset + loc] = (degInR != 4294967295) ? degInR : 0;
-            T.degreeInR[ind] = (degInR != 4294967295) ? degInR : 0;
-            T.degreeInC[writeOffset + loc] = degInC;
-
-          }
-
-        }
-
-      }
-      if (laneId == 0) {
-        if ((T.size[warpId * pSize + iter] < upperBoundSize) && (T.ustar[warpId * pSize + iter] != -1)) {
-          //printf("iter %u wrap id %u ustar %d \n",iter, warpId, T.ustar[warpId * pSize + iter]);
-          *(T.flag) = 0;
-          ui bufferNum = warpId + jump;
-          if (bufferNum > TOTAL_WARPS) {
-            bufferNum = bufferNum % TOTAL_WARPS;
-          }
-          ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
-          T.statusList[T.ustar[warpId * pSize + iter]] = 1;
-
-          T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite + 1] = T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite] + sharedCounter[threadIdx.x / 32];
-          T.taskOffset[bufferNum * pSize - 1]++;
-          T.size[(bufferNum - 1) * pSize + totalTasksWrite] = T.size[warpId * pSize + iter];
-          T.size[warpId * pSize + iter] += 1;
-        }
-
-        sharedCounter[threadIdx.x / 32] = 0;
-      }
-    }
-
-  }
-
-}
 
 __global__ void DegreeUpdate(deviceGraphPointers G, deviceTaskPointers T, ui pSize) {
 
@@ -560,17 +481,17 @@ __global__ void ReductionRules(deviceGraphPointers G, deviceTaskPointers T, ui p
           }
         }
         ui neig;
-        int resInd;
         if ((status == 1) && ((degC + degR) == ( * G.lowerBoundDegree + 1))) {
           for (int j = startNeighbor; j < endNeighbor; j++) {
             resKey = findIndexKernel(T.taskList, startIndex + start, startIndex + end, G.neighbors[j]);
             if (resKey != -1) {
-              if (T.statusList[resKey] == 0) {
+              if (atomicCAS(&T.statusList[resKey], 0, 1) == 0) {
 
-                T.statusList[resKey] = 1;
-                atomicAdd( & T.size[startIndex + iter], 1);
+                atomicAdd(&T.size[startIndex + iter], 1);
+                //printf("iter %u wrap %u laneId %u vertex %u status %u reskey %u neigh %u size %u loc %u \n",iter,warpId,i,vertex,status,resKey, G.neighbors[j],T.size[startIndex + iter],startIndex + iter);
 
-              }
+                }
+
             }
 
           }
@@ -584,8 +505,7 @@ __global__ void ReductionRules(deviceGraphPointers G, deviceTaskPointers T, ui p
 
 }
 
-
-__global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, ui dmax) {
+__global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, ui dmax,ui level) {
   extern __shared__ char sharedMemory[];
   size_t sizeOffset = 0;
 
@@ -610,6 +530,8 @@ __global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, 
     ui start = T.taskOffset[startIndex + iter];
     ui end = T.taskOffset[startIndex + iter + 1];
     ui total = end - start;
+    ui writeOffset = startIndex + start;
+
     if ((T.ustar[warpId * pSize + iter] != -2) && (T.ustar[warpId * pSize + iter] != -1)) {
       ui ustar = T.taskList[T.ustar[warpId * pSize + iter]];
       for (ui i = laneId; i < total; i += 32) {
@@ -623,6 +545,7 @@ __global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, 
         ui endNeighbor = G.offset[vertex + 1];
         bool is_doms = false;
         double score = 0;
+
         if ((status == 0) && (vertex != ustar) && (degC!=0)) {
           is_doms = true;
           ui neighbor;
@@ -653,8 +576,6 @@ __global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, 
                 if (T.degreeInC[resultIndex] != 0) {
                   score += (double) 1 / T.degreeInC[resultIndex];
 
-                } else {
-                  score += 1;
                 }
               }
 
@@ -663,240 +584,218 @@ __global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, 
 
           }
           score += (double) T.degreeInR[ind] / dmax;
+
         }
         //printf("iter %u wrap %u lane %u vertex %u status %u ustar %u doms %u  \n",iter,warpId,i,vertex,status,ustar, is_doms);
 
         if (is_doms) {
-          ui writeOffset = startIndex + start;
+
           ui loc = atomicAdd( &sharedCounter[threadIdx.x / 32], 1);
           T.doms[writeOffset + loc] = vertex;
           T.cons[writeOffset + loc] = score;
-          //printf("iter %u wrap %u lane %u vertex %u status %u loc %u score %f\n",iter,warpId,laneId,vertex,status,loc,T.cons[writeOffset + loc]);
+          //printf("iter %u wrap %u lane %u vertex %u status %u loc %u score %f loc %u \n",iter,warpId,laneId,T.doms[writeOffset + loc],status,loc,T.cons[writeOffset + loc],writeOffset + loc);
 
         }
 
       }
-      __syncwarp();
-
-      warpBitonicSortByKey(T.cons, T.doms, startIndex + start, startIndex + start+sharedCounter[threadIdx.x / 32]);
-      if (laneId == 0) {
-        T.doms[startIndex + end - 1] = sharedCounter[threadIdx.x / 32];
-        if( sharedCounter[threadIdx.x / 32]>0){
-          printf("Iter %u wrap %u total doms %u shard doms %u ind %u \n",iter,warpId,T.doms[startIndex + end - 1],sharedCounter[threadIdx.x / 32],startIndex + end - 1);
-        }
-        sharedCounter[threadIdx.x / 32] = 0;
-
-      }
-
     }
-  }
-
-}
-
-__global__ void ExpandNew(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax, ui jump) {
-
-  extern __shared__ char sharedMemory[];
-  size_t sizeOffset = 0;
-
-  ui * sharedCounter = (ui * )(sharedMemory + sizeOffset);
-  sizeOffset += WARPS_EACH_BLK * sizeof(ui);
-
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int warpId = idx / 32;
-  int laneId = idx % 32;
-
-  ui startIndex = warpId * pSize;
-  ui endIndex = (warpId + 1) * pSize - 1;
-  ui totalTasks = T.taskOffset[endIndex];
-
-  if (laneId == 0) {
-    sharedCounter[threadIdx.x / 32] = 0;
-  }
-  __syncwarp();
-
-  for (ui iter = 0; iter < totalTasks; iter++) {
-    __syncwarp();
-    ui start = T.taskOffset[startIndex + iter];
-    ui end = T.taskOffset[startIndex + iter + 1];
-    ui total = end - start;
-    if ((T.ustar[warpId * pSize + iter] != -2) && (T.ustar[warpId * pSize + iter] != -1)) {
-      for (ui i = laneId; i < total; i += 32) {
-
-        ui ind = startIndex + start + i;
-        ui vertex = T.taskList[ind];
-        ui status = T.statusList[ind];
-
-        if ((T.size[warpId * pSize + iter] < upperBoundSize) && (T.ustar[warpId * pSize + iter] != -1) && (T.ustar[warpId * pSize + iter] != -2)) {
-          ui bufferNum = warpId + jump;
-          if (bufferNum > TOTAL_WARPS) {
-            bufferNum = bufferNum % TOTAL_WARPS;
-          }
-          ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
-          ui writeOffset = ((bufferNum - 1) * pSize) + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite];
-
-          ui ustar = T.taskList[T.ustar[warpId * pSize + iter]];
-          ui degInR;
-          ui degInC;
-          if ((vertex != ustar) && (status != 2)) {
-            ui loc = atomicAdd( & sharedCounter[threadIdx.x / 32], 1);
-            T.taskList[writeOffset + loc] = vertex;
-            T.statusList[writeOffset + loc] = status;
-            degInR = T.degreeInR[ind];
-            degInC = T.degreeInC[ind];
-            T.degreeInR[writeOffset + loc] = (degInR != 4294967295) ? degInR : 0;
-            T.degreeInR[ind] = (degInR != 4294967295) ? degInR : 0;
-            T.degreeInC[writeOffset + loc] = degInC;
-            //printf(" first %u ",degInR);
-
-          }
-
-        }
-
-      }
-      __syncwarp();
-      if (laneId == 0) {
-        if ((T.size[warpId * pSize + iter] < upperBoundSize) && (T.ustar[warpId * pSize + iter] != -1)) {
-          //printf("iter %u wrap id %u ustar %d \n",iter, warpId, T.ustar[warpId * pSize + iter]);
-          *(T.flag) = 0;
-          ui bufferNum = warpId + jump;
-          if (bufferNum > TOTAL_WARPS) {
-            bufferNum = bufferNum % TOTAL_WARPS;
-          }
-          ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
-          T.statusList[T.ustar[warpId * pSize + iter]] = 1;
-          T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite + 1] = T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite] + sharedCounter[threadIdx.x / 32];
-          T.taskOffset[bufferNum * pSize - 1]++;
-          T.size[(bufferNum - 1) * pSize + totalTasksWrite] = T.size[warpId * pSize + iter];
-          T.size[warpId * pSize + iter] += 1;
-          if(T.doms[warpId*pSize + end -1 ]!=0){
-          printf("expand new : iter %u wrap %u doms %u index %u write in wrap % u \n",iter, warpId,T.doms[warpId*pSize + end -1 ],warpId*pSize + end -1,bufferNum-1);
-          T.ustar[(bufferNum - 1) * pSize + totalTasksWrite] = -3;
-          T.doms[(bufferNum - 1) * pSize + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite ]] = warpId;
-          T.doms[(bufferNum - 1) * pSize + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite ] + 1] = iter;
-          //T.doms[(bufferNum - 1) * pSize + totalTasksWrite + 2] = sharedCounter[threadIdx.x / 32] + 1;
-          //printf("ustar %d ", T.ustar[(bufferNum - 1) * pSize + totalTasksWrite]);
-          //printf("Total  %d ", T.taskOffset[bufferNum * pSize - 1]);
-          }
-
-        }
-
-        sharedCounter[threadIdx.x / 32] = 0;
-      }
-
-    }
-
-  }
-
-}
-
-__global__ void ExpandDoms(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax, ui jump) {
-
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int warpId = idx / 32;
-  int laneId = idx % 32;
-
-  ui startIndex = warpId * pSize;
-  ui endIndex = (warpId + 1) * pSize - 1;
-  ui totalTasks = T.taskOffset[endIndex];
-  //printf("totalTasks %u ",totalTasks);
-
-  for (ui iter = 0; iter < totalTasks; iter++) {
-    __syncwarp();
-    ui start = T.taskOffset[startIndex + iter];
-    ui end = T.taskOffset[startIndex + iter + 1];
-    ui total = end - start;
-
-    if (T.ustar[warpId * pSize + iter] == -3) {
-
-      ui prevWrap = T.doms[startIndex + start];
-      ui prevIter = T.doms[startIndex + start + 1];
-      ui domStart = T.taskOffset[prevWrap * pSize + prevIter];
-      ui totalDoms = T.doms[prevWrap * pSize + T.taskOffset[prevWrap * pSize + prevIter + 1] - 1];
-      ui prevUstar = T.taskList[T.ustar[prevWrap * pSize + prevIter]];
-      ui newWriteOffset = startIndex + T.taskOffset[startIndex+totalTasks];
-      ui totalWrite = total + 1;
-      //if(laneId==0)
-      //printf("wrap id %u lane id %u totalTasks %u ustar %d total %u ustar prev %u domsstart %u total doms %u prev iter %u prev wrap %u \n", warpId, laneId, totalTasks, T.ustar[warpId * pSize + iter], total, prevUstar, domStart, totalDoms,prevIter,prevWrap);
-      ui maskGen = total;
-      for (ui i = laneId; i < total; i += 32) {
-        //printf("Inside");
-        ui ind = laneId;
-        ui index = startIndex + start + laneId;
-        //printf("Inside ");
-
-
-        ui vertex = T.taskList[index];
-        //printf("inside %u \n", index);
-
-        ui status = T.statusList[index];
-
-        ui degR = T.degreeInR[index];
-        ui degC = T.degreeInC[index];
-        ui currentDomIndex = 0;
-        ui domVertex;
-        //printf("vertex %u \n",vertex);
-        //printf("iter %u wrap %u lane %u vertex %u status %u ustar %u doms \n", iter, warpId, i, vertex, status, prevUstar);
-
-        while (currentDomIndex < totalDoms) {
-          domVertex = T.doms[domStart + currentDomIndex];
-          T.taskList[newWriteOffset + (totalWrite * currentDomIndex) + ind] = vertex;
-          int key = findIndexKernel(T.doms, domStart, domStart + currentDomIndex, vertex);
-          if (key != -1) {
-            T.statusList[newWriteOffset + (totalWrite * currentDomIndex) + ind] = 2;
-
-          } else {
-            T.statusList[newWriteOffset + (totalWrite * currentDomIndex) + ind] = status;
-          }
-          if (vertex == domVertex) {
-            T.statusList[newWriteOffset + (totalWrite * currentDomIndex) + ind] = 1;
-          }
-          T.degreeInR[newWriteOffset + (totalWrite * currentDomIndex) + ind] = degR;
-          T.degreeInC[newWriteOffset + (totalWrite * currentDomIndex) + ind] = degC;
-          //printf("iter %u wrap %u lane %u vertex %u status %u ustar %u level %u writeLoc %u doms %u vertex %u status %u \n", iter, warpId, i, vertex, status, prevUstar, currentDomIndex,
-            //newWriteOffset + (totalWrite * currentDomIndex) + ind, domVertex, T.taskList[newWriteOffset + (totalWrite * currentDomIndex) + ind], T.statusList[newWriteOffset + (totalWrite * currentDomIndex) + ind]);
-
-          currentDomIndex++;
-
-        }
-
-        unsigned int mask;
-        if (maskGen > 32) {
-          mask = (1u << 31) - 1;
-          maskGen -= 32;
-
-        } else {
-          mask = (1u << maskGen) - 1;
-
-        }
-
-        __syncwarp(mask);
-
-      }
-
       __syncwarp();
       
-      if(laneId ==0){
-        ui current = 1;
-        while(current<=totalDoms){
-          T.taskList[newWriteOffset+ (totalWrite*current)-1] = prevUstar;
-          T.statusList[newWriteOffset+ (totalWrite*current)-1] = 1;
-          T.size[warpId * pSize + totalTasks+current-1] = T.size[warpId * pSize + iter]+2;
-          T.taskOffset[warpId* pSize + totalTasks +current] = T.taskOffset[ warpId* pSize + totalTasks ] +(current*totalWrite);
-          T.taskOffset[(warpId+1) * pSize - 1]++;
-          current++;
+       if((sharedCounter[threadIdx.x / 32]>1)&&(T.ustar[warpId * pSize + iter] != -2) && (T.ustar[warpId * pSize + iter] != -1)){
+        
+        warpBitonicSortByKey(T.cons, T.doms, startIndex + start, startIndex + start+sharedCounter[threadIdx.x / 32]);
+
+      }
+       __syncwarp();
+      if ((laneId == 0) && (T.ustar[warpId * pSize + iter] != -2) && (T.ustar[warpId * pSize + iter] != -1)) {
+        T.doms[startIndex + end - 1] = sharedCounter[threadIdx.x / 32];
+        sharedCounter[threadIdx.x / 32] = 0;
+
+      }
+
+
+  }
+
+}
+
+__global__ void ExpandNew(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax, ui jump, ui level) {
+    extern __shared__ char sharedMemory[];
+    size_t sizeOffset = 0;
+
+    ui * sharedCounter = (ui * )(sharedMemory + sizeOffset);
+    sizeOffset += WARPS_EACH_BLK * sizeof(ui);
+
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int warpId = idx / 32;
+    int laneId = idx % 32;
+
+    ui startIndex = warpId * pSize;
+    ui endIndex = (warpId + 1) * pSize - 1;
+    ui totalTasks = T.taskOffset[endIndex];
+
+    if (laneId == 0) {
+      sharedCounter[threadIdx.x / 32] = 0;
+    }
+    __syncwarp();
+
+    for (ui iter = 0; iter < totalTasks; iter++) {
+      __syncwarp();
+      ui start = T.taskOffset[startIndex + iter];
+      ui end = T.taskOffset[startIndex + iter + 1];
+      ui total = end - start;
+
+      if ((T.ustar[warpId * pSize + iter] != -2) && (T.ustar[warpId * pSize + iter] != -1) && (T.size[warpId * pSize + iter] < upperBoundSize) ) {
+
+        for (ui i = laneId; i < total; i += 32) {
+
+          ui ind = startIndex + start + i;
+          ui vertex = T.taskList[ind];
+          ui status = T.statusList[ind];
+
+            ui bufferNum = warpId + jump;
+            if (bufferNum > TOTAL_WARPS) {
+              bufferNum = bufferNum % TOTAL_WARPS;
+            }
+            ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
+            ui writeOffset = ((bufferNum - 1) * pSize) + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite];
+
+            ui ustar = T.taskList[T.ustar[warpId * pSize + iter]];
+            if ((vertex != ustar) && (status != 2)) {
+
+              ui loc = atomicAdd( & sharedCounter[threadIdx.x / 32], 1);
+              T.taskList[writeOffset + loc] = vertex;
+              T.statusList[writeOffset + loc] = status;
+              //if(warpId==1630)
+              //printf("iter %u wrap id %u laneid %u vertex %u status %u write loc %u new vertex %u new status %u \n",iter,warpId,i,vertex,status,writeOffset + loc,T.taskList[writeOffset + loc], T.statusList[writeOffset + loc]);
+
+
+
+              if(T.doms[startIndex + end - 1]!=0){
+              int key = findIndexKernel(T.doms, startIndex + start, startIndex + start + T.doms[startIndex + end - 1], vertex);
+
+              if (key != -1) {
+                  T.statusList[ind] = 2;
+                  T.statusList[writeOffset + loc] =2;
+              }
+            }
+
+            }
 
 
         }
-        T.ustar[warpId * pSize + iter]=-1;
-
-
       }
-      //__syncwarp();
+        __syncwarp();
+
+        if ((laneId == 0)&&(T.ustar[warpId * pSize + iter] != -2) && (T.ustar[warpId * pSize + iter] != -1) && (T.size[warpId * pSize + iter] < upperBoundSize)) {
+            *T.flag  = 0;
+            ui bufferNum = warpId + jump;
+            if (bufferNum > TOTAL_WARPS) {
+              bufferNum = bufferNum % TOTAL_WARPS;
+            }
+            ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
+            T.statusList[T.ustar[warpId * pSize + iter]] = 1;
+            T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite + 1] = T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite] + sharedCounter[threadIdx.x / 32];
+            T.taskOffset[bufferNum * pSize - 1]++;
+            T.size[(bufferNum - 1) * pSize + totalTasksWrite] = T.size[warpId * pSize + iter];
+            //printf("es: iter %u wrap %u size old %u size new %u index old %u index new %u size new new %u \n",iter,warpId,T.size[warpId * pSize + iter], T.size[(bufferNum - 1) * pSize + totalTasksWrite],
+           //warpId * pSize + iter, (bufferNum - 1) * pSize + totalTasksWrite,T.size[warpId * pSize + iter]);
+
+            T.size[warpId * pSize + iter]++;
+            //T.doms[] = warpId;
+            if(T.doms[startIndex + end - 1]!=0){
+             T.doms[(bufferNum - 1) * pSize + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite]+1] = iter;
+             T.doms[(bufferNum - 1) * pSize + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite]] = warpId;
+             T.ustar[(bufferNum - 1) * pSize + totalTasksWrite]  = pSize*TOTAL_WARPS;
+
+            //printf("iter %u wrap id %u location for new doms %u loc ustar ustar %d \n",iter,warpId,(bufferNum - 1) * pSize + totalTasksWrite,T.ustar[(bufferNum - 1) * pSize + totalTasksWrite]);
+            }
 
 
+
+
+        }
+        /*__syncwarp();
+        if ((laneId == 0)&&(T.ustar[warpId * pSize + iter] != -2) && (T.ustar[warpId * pSize + iter] != -1) && (T.size[warpId * pSize + iter] < upperBoundSize) && (T.doms[startIndex + end - 1] != 0)) {
+            ui bufferNum = warpId + jump;
+            if (bufferNum > TOTAL_WARPS) {
+              bufferNum = bufferNum % TOTAL_WARPS;
+            }
+           //printf("expand new : iter %u wrap %u doms %u index %u write in wrap % u  \n",iter, warpId,T.doms[warpId*pSize + end -1 ],warpId*pSize + end -1,bufferNum-1);
+            
+            ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1]-1;
+            T.doms[(bufferNum - 1) * pSize + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite]+1] = iter;
+        }*/
+        __syncwarp();
+        if(laneId==0){
+          sharedCounter[threadIdx.x / 32] = 0;
+        }
 
 
     }
+}
+__global__ void ExpandDoms(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax, ui jump) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int warpId = idx / 32;
+    int laneId = idx % 32;
 
-  }
+    ui startIndex = warpId * pSize;
+    ui endIndex = (warpId + 1) * pSize - 1;
+    ui totalTasks = T.taskOffset[endIndex];
+
+    for (ui iter = 0; iter < totalTasks; iter++) {
+        __syncwarp();
+        ui start = T.taskOffset[startIndex + iter];
+        ui end = T.taskOffset[startIndex + iter + 1];
+        ui total = end - start;
+
+        if (T.ustar[warpId * pSize + iter] == pSize*TOTAL_WARPS) {
+            ui prevWrap = T.doms[startIndex + start];
+            ui prevIter = T.doms[startIndex + start + 1];
+            ui domStart = prevWrap * pSize+T.taskOffset[prevWrap * pSize + prevIter];
+            ui totalDoms = T.doms[prevWrap * pSize + T.taskOffset[prevWrap * pSize + prevIter + 1] - 1];
+            ui prevUstar = T.taskList[T.ustar[prevWrap * pSize + prevIter]];
+            ui newWriteOffset = startIndex + T.taskOffset[startIndex + totalTasks];
+            ui totalWrite = total + 1;
+
+            for (ui domIndex = 0; domIndex < totalDoms; domIndex++) {
+              __syncwarp();
+                for (ui i = laneId; i < total; i += 32) {
+                    ui srcIndex = startIndex + start + i;
+                    ui dstIndex = newWriteOffset + (totalWrite * domIndex) + i;
+                    //printf("here");
+
+                    //if (dstIndex < T.taskListSize) {
+
+                        T.taskList[dstIndex] = T.taskList[srcIndex];
+                        int key2 = findIndexKernel(T.doms, domStart +domIndex, domStart + totalDoms, T.taskList[srcIndex]);
+
+                        T.statusList[dstIndex] = (key2!=-1)?0:T.statusList[srcIndex];
+
+
+                        ui domVertex = T.doms[domStart + domIndex];
+                        if (T.taskList[srcIndex] == domVertex) {
+                            T.statusList[dstIndex] = 1;
+                        }
+
+                    //}
+                }
+            
+                __syncwarp();
+
+                if (laneId == 0 ) {
+                    T.taskList[newWriteOffset + (totalWrite * domIndex) + total] = prevUstar;
+                    T.statusList[newWriteOffset + (totalWrite * domIndex) + total] = 1;
+
+                    atomicAdd(&T.size[warpId * pSize + totalTasks + domIndex], T.size[warpId * pSize + iter] + 2);
+                    atomicAdd(&T.taskOffset[warpId * pSize + totalTasks + domIndex + 1], T.taskOffset[warpId * pSize + totalTasks] + ((domIndex + 1) * totalWrite));
+                    atomicAdd(&T.taskOffset[(warpId + 1) * pSize - 1], 1);
+                    //printf("iter %u wrap %u domIndex %u size new %u size old %u index new %u index old %u \n",iter,warpId,domIndex,T.size[warpId * pSize + totalTasks + domIndex], T.size[warpId * pSize + iter],
+                   //warpId * pSize + totalTasks + domIndex, warpId * pSize + iter);
+                }
+            }
+        }
+
+
+        
+    }
 }

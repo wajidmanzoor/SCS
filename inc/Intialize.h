@@ -108,7 +108,7 @@ typedef struct  {
      ui *degreeInR;
      ui *degreeInC;
      int *ustar;
-     bool *flag;
+     ui *flag;
      ui *doms;
      double *cons;
 
