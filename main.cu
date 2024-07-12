@@ -33,7 +33,7 @@ int main(int argc, const char * argv[] ) {
     N2 = atoi(argv[3]); //size UB
     QID = atoi(argv[4]); //Query vertex ID
     ui paritionSize = atoi(argv[5]);
-    ui isHeu = atoi(argv[6]);
+    int isHeu = atoi(argv[6]);
 
 
     const char* filepath = argv[1];
@@ -53,7 +53,6 @@ int main(int argc, const char * argv[] ) {
     ubD = N2-1;
     if(isHeu){
     CSSC_heu();
-
 
     }
     // Description: If Klower of H is equal to Kupper. return sol and break
