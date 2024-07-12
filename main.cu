@@ -12,6 +12,7 @@
         exit(EXIT_FAILURE); \
     } \
 }
+
 bool fileExists(const std::string& filename) {
     struct stat buffer;
     return (stat(filename.c_str(), &buffer) == 0);
@@ -34,7 +35,6 @@ int main(int argc, const char * argv[] ) {
     QID = atoi(argv[4]); //Query vertex ID
     ui paritionSize = atoi(argv[5]);
     int isHeu = atoi(argv[6]);
-
 
     const char* filepath = argv[1];
     load_graph(filepath);
