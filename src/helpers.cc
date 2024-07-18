@@ -505,7 +505,7 @@ __global__ void ReductionRules(deviceGraphPointers G, deviceTaskPointers T, ui p
 
 }
 
-__global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, ui dmax,ui level) {
+__global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, ui dmax,ui level, ui limitDoms) {
   extern __shared__ char sharedMemory[];
   size_t sizeOffset = 0;
 
@@ -608,7 +608,7 @@ __global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize, 
       }
        __syncwarp();
       if ((laneId == 0) && (T.ustar[warpId * pSize + iter] != -2) && (T.ustar[warpId * pSize + iter] != -1)) {
-        T.doms[startIndex + end - 1] = sharedCounter[threadIdx.x / 32];
+        T.doms[startIndex + end - 1] = (sharedCounter[threadIdx.x / 32] > limitDoms )? limitDoms : sharedCounter[threadIdx.x / 32];
         sharedCounter[threadIdx.x / 32] = 0;
 
       }
