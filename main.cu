@@ -24,7 +24,7 @@ bool fileExists(const std::string& filename) {
 
 int main(int argc, const char * argv[] ) {
 
-    if(argc!=7){
+    if(argc!=8){
         cout<<"wrong input parameters!"<<endl;exit(1);
         exit(1);
 
@@ -35,6 +35,7 @@ int main(int argc, const char * argv[] ) {
     QID = atoi(argv[4]); //Query vertex ID
     ui paritionSize = atoi(argv[5]);
     int isHeu = atoi(argv[6]);
+    ui limitDoms = atoi(argv[7]);
 
     const char* filepath = argv[1];
     load_graph(filepath);
@@ -166,7 +167,7 @@ int main(int argc, const char * argv[] ) {
 
 
 
-        FindDoms<<<BLK_NUMS, BLK_DIM,sharedMemrySizeDoms>>>(deviceGraph, deviceTask,paritionSize,dMAX,c);
+        FindDoms<<<BLK_NUMS, BLK_DIM,sharedMemrySizeDoms>>>(deviceGraph, deviceTask,paritionSize,dMAX,c,limitDoms);
         cudaDeviceSynchronize();
 
         ExpandNew<<<BLK_NUMS,BLK_DIM,sharedMemrySizeExpand>>>(deviceGraph,deviceTask, N1, N2, paritionSize, dMAX,jump,c);

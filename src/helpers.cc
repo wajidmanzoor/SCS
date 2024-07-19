@@ -2,6 +2,19 @@ __device__ ui minn(ui a, ui b) {
   return (a < b) ? a : b;
 }
 
+__global__ void increment_if_less(int* a, int b) {
+    int old_val, new_val;
+
+    do {
+        old_val = atomicCAS(a, 0, 0);  // Load the current value of a atomically
+        if (old_val >= b) {
+            return;  // If a is not less than b, exit
+        }
+        new_val = old_val + 1;  // Calculate the new value
+    } while (atomicCAS(a, old_val, new_val) != old_val);  // Attempt to update a if it hasn't changed
+}
+
+
 __device__ int findIndexKernel(ui * arr, ui start, ui end, ui target)
 
 {
@@ -260,7 +273,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowe
         unsigned int mask;
         ui cond;
         if (maskGen > 32) {
-          mask = (1u << 31) - 1;
+          mask = (1u << 32) - 1;
           maskGen -= 32;
           cond = 32;
 
@@ -733,14 +746,16 @@ __global__ void ExpandNew(deviceGraphPointers G, deviceTaskPointers T, ui lowerB
 
     }
 }
-__global__ void ExpandDoms(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax, ui jump) {
+__global__ void ExpandDoms(deviceGraphPointers G, deviceTaskPointers T,taskBuffer B, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax, ui jump) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int warpId = idx / 32;
     int laneId = idx % 32;
 
+
     ui startIndex = warpId * pSize;
     ui endIndex = (warpId + 1) * pSize - 1;
     ui totalTasks = T.taskOffset[endIndex];
+    ui overflow, position;
 
     for (ui iter = 0; iter < totalTasks; iter++) {
         __syncwarp();
@@ -756,42 +771,65 @@ __global__ void ExpandDoms(deviceGraphPointers G, deviceTaskPointers T, ui lower
             ui prevUstar = T.taskList[T.ustar[prevWrap * pSize + prevIter]];
             ui newWriteOffset = startIndex + T.taskOffset[startIndex + totalTasks];
             ui totalWrite = total + 1;
+            ui leftSpace;
 
             for (ui domIndex = 0; domIndex < totalDoms; domIndex++) {
               __syncwarp();
+                
+                leftSpace = (warpId+1)*pSize - (newWriteOffset+totalWrite*domIndex)-2;
+                overFlow = (leftSpace > totalWrite) ? 0 : 1;
+                ui mask,currentNum;
+
+                if(i==0){
+                    currentNum = atomicAdd(B.numTasks,1);
+                    position = atomicAdd(B.position,totalWrite);
+                    B.taskOffset[currentNum+1] = position + totalWrite;
+                }
+                __shfl_sync(mask,position,0);
+                __shfl_sync(mask,currentNum,0);
+
                 for (ui i = laneId; i < total; i += 32) {
                     ui srcIndex = startIndex + start + i;
-                    ui dstIndex = newWriteOffset + (totalWrite * domIndex) + i;
-                    //printf("here");
+                    int key2 = findIndexKernel(T.doms, domStart +domIndex, domStart + totalDoms, T.taskList[srcIndex]);
+                    ui domVertex = T.doms[domStart + domIndex];
 
-                    //if (dstIndex < T.taskListSize) {
 
+                    if(!overFlow){
+                        ui dstIndex = newWriteOffset + (totalWrite * domIndex) + i;
                         T.taskList[dstIndex] = T.taskList[srcIndex];
-                        int key2 = findIndexKernel(T.doms, domStart +domIndex, domStart + totalDoms, T.taskList[srcIndex]);
-
                         T.statusList[dstIndex] = (key2!=-1)?0:T.statusList[srcIndex];
-
-
-                        ui domVertex = T.doms[domStart + domIndex];
                         if (T.taskList[srcIndex] == domVertex) {
                             T.statusList[dstIndex] = 1;
                         }
+                  }else{
+                    ui dstIndex = position + i;
+                    B.taskList[dstIndex] = T.taskList[srcIndex];
+                    B.statusList[dstIndex] = (key2!=-1)?0:T.statusList[srcIndex];
+                    if (T.taskList[srcIndex] == domVertex) {
+                        B.statusList[dstIndex] = 1;
 
-                    //}
+                  }
+
                 }
             
                 __syncwarp();
 
                 if (laneId == 0 ) {
+                  if(!overFlow){
                     T.taskList[newWriteOffset + (totalWrite * domIndex) + total] = prevUstar;
                     T.statusList[newWriteOffset + (totalWrite * domIndex) + total] = 1;
 
-                    atomicAdd(&T.size[warpId * pSize + totalTasks + domIndex], T.size[warpId * pSize + iter] + 2);
-                    atomicAdd(&T.taskOffset[warpId * pSize + totalTasks + domIndex + 1], T.taskOffset[warpId * pSize + totalTasks] + ((domIndex + 1) * totalWrite));
-                    atomicAdd(&T.taskOffset[(warpId + 1) * pSize - 1], 1);
+                    T.size[warpId * pSize + totalTasks + domIndex] = T.size[warpId * pSize + iter] + 2;
+                  T.taskOffset[warpId * pSize + totalTasks + domIndex + 1] = T.taskOffset[warpId * pSize + totalTasks] + ((domIndex + 1) * totalWrite);
+                  T.taskOffset[(warpId + 1) * pSize - 1]++;
                     //printf("iter %u wrap %u domIndex %u size new %u size old %u index new %u index old %u \n",iter,warpId,domIndex,T.size[warpId * pSize + totalTasks + domIndex], T.size[warpId * pSize + iter],
                    //warpId * pSize + totalTasks + domIndex, warpId * pSize + iter);
-                }
+                  }else{
+                    B.taskList[position + total ] = prevUstar;
+                    B.statusList[position + total ] = 1; 
+                    T.size[currentNum] = T.size[warpId * pSize + iter] + 2;
+                  }
+
             }
         }
 
