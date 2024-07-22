@@ -339,9 +339,9 @@ void CSSC_heu()
     vector<ui> H2; ui kl2 = 0;
      heu2(H2,kl2);
     vector<ui> H3; ui kl3 = 0;
-    //heu3(H3,kl3);
+    heu3(H3,kl3);
     vector<ui> H4; ui kl4 = 0;
-     //heu4(H4,kl4);
+     heu4(H4,kl4);
     if(kl4 >= kl3 && kl4 >= kl2){
         H = H4;
         kl = kl4;

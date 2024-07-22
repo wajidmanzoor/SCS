@@ -32,8 +32,8 @@ void memoryAllocationGraph(deviceGraphPointers &G){
     chkerr(cudaMemcpy(G.lowerBoundDegree, &kl,sizeof(ui),cudaMemcpyHostToDevice));
 }
 
-void memoryAllocationIntialTask(deviceInterPointers &p, ui numWraps,ui psize){
-    chkerr(cudaMalloc((void**)&(p.intialTaskList), numWraps*psize*sizeof(ui)));
+void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps,ui psize){
+    chkerr(cudaMalloc((void**)&(p.initialTaskList), numWraps*psize*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.globalCounter), sizeof(ui)));
     chkerr(cudaMemset(p.globalCounter,0,sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.entries),numWraps* sizeof(ui)));
@@ -54,11 +54,7 @@ void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize){
     chkerr(cudaMalloc((void**)&(p.size), numWraps*pSize*sizeof(ui)));
     chkerr(cudaMemset(p.size,0,numWraps*pSize*sizeof(ui)));
 
-    chkerr(cudaMalloc((void**)&(p.doms), numWraps*pSize*sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(p.cons), numWraps*pSize*sizeof(double)));
-
-
-    chkerr(cudaMalloc((void**)&(p.flag),sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(p.flag),sizeof(bool)));
 
 
 }
@@ -77,7 +73,7 @@ void freeGraph(deviceGraphPointers &p){
 void freeInterPointer(deviceInterPointers &p){
     chkerr(cudaFree(p.entries));
     chkerr(cudaFree(p.globalCounter));
-    chkerr(cudaFree(p.intialTaskList));
+    chkerr(cudaFree(p.initialTaskList));
 
 }
 
@@ -91,5 +87,4 @@ void freeTaskPointer(deviceTaskPointers &p){
 
 
 }
-
 
