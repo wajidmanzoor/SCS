@@ -16,6 +16,7 @@
         "queue": "cpp",
         "utility": "cpp",
         "iterator": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "random": "cpp"
     }
 }
