@@ -167,7 +167,7 @@ __global__ void CompressTask(deviceGraphPointers G, deviceInterPointers P, devic
 
 }
 
-__global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax, ui *result) {
+__global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax, ui *result) { 
 
   extern __shared__ char shared_memory[];
   ui sizeOffset = 0;
@@ -633,6 +633,8 @@ __global__ void ExpandNew(deviceGraphPointers G, deviceTaskPointers T, ui lowerB
       }
       ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
       ui writeOffset = ((bufferNum - 1) * pSize) + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite];
+      ui ustar = T.taskList[T.ustar[warpId * pSize + iter]];
+
       if ((writeOffset + total) <= (bufferNum * pSize - 1)) {
         for (ui i = laneId; i < total; i += 32) {
 
@@ -643,7 +645,6 @@ __global__ void ExpandNew(deviceGraphPointers G, deviceTaskPointers T, ui lowerB
           ui endNeighbor = G.offset[vertex + 1];
 
           if (T.size[warpId * pSize + iter] < upperBoundSize) {
-            ui ustar = T.taskList[T.ustar[warpId * pSize + iter]];
             ui degInR;
             ui degInC;
 
@@ -716,6 +717,7 @@ __global__ void ExpandNew(deviceGraphPointers G, deviceTaskPointers T, ui lowerB
 
           }
         }
+        __syncwarp();
 
         if (laneId == 0) {
           if ((T.size[warpId * pSize + iter] < upperBoundSize) && (T.ustar[warpId * pSize + iter] != -1)) {
@@ -729,15 +731,17 @@ __global__ void ExpandNew(deviceGraphPointers G, deviceTaskPointers T, ui lowerB
           }
           sharedCounter[threadIdx.x / 32] = 0;
 
-          if (T.doms[startIndex + end - 1] != 0) {
+          /*if (T.doms[startIndex + end - 1] != 0) {
             T.doms[(bufferNum - 1) * pSize + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite] + 1] = iter;
             T.doms[(bufferNum - 1) * pSize + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite]] = warpId;
             T.ustar[(bufferNum - 1) * pSize + totalTasksWrite] = pSize * TOTAL_WARPS;
 
             //printf("iter %u wrap id %u location for new doms %u loc ustar ustar %d \n",iter,warpId,(bufferNum - 1) * pSize + totalTasksWrite,T.ustar[(bufferNum - 1) * pSize + totalTasksWrite]);
-          }
+          }*/
 
         }
+        __syncwarp(); 
+        if()
       } else {
         if (laneId == 0)
           *
