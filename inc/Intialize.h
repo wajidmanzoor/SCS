@@ -97,21 +97,36 @@ typedef struct  {
     ui *core;
     ui *lowerBoundDegree;
 
-    
+
 }deviceGraphPointers;
 
 typedef struct  {
      ui *taskList;
      ui *statusList;
-     ui *taskOffset; 
+     ui *taskOffset;
      ui *size;
      ui *degreeInR;
      ui *degreeInC;
      int *ustar;
+     ui *doms;
+     double *cons;
      bool *flag;
 
 
+
+
 }deviceTaskPointers;
+
+typedef struct {
+
+ui *taskOffset;
+ui *taskList;
+ui *statusList;
+ui *degreeInC;
+ui *degreeInR;
+ui  *size;
+
+}deviceBufferPointers;
 
 typedef struct  {
      ui *initialTaskList;

@@ -54,7 +54,27 @@ void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize){
     chkerr(cudaMalloc((void**)&(p.size), numWraps*pSize*sizeof(ui)));
     chkerr(cudaMemset(p.size,0,numWraps*pSize*sizeof(ui)));
 
+     chkerr(cudaMalloc((void**)&(p.doms), numWraps*pSize*sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(p.cons), numWraps*pSize*sizeof(double)));
+
+
     chkerr(cudaMalloc((void**)&(p.flag),sizeof(bool)));
+
+
+}
+
+void memoryAllocationBuffer(deviceBufferPointers &p,ui numWraps, ui pSize){
+  chkerr(cudaMalloc((void**)&(p.taskList), numWraps*pSize*sizeof(ui)));
+    chkerr(cudaMalloc((void**)&p.statusList, numWraps*pSize*sizeof(ui)));
+
+    chkerr(cudaMalloc((void**)&(p.degreeInR), numWraps*pSize*sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(p.degreeInC), numWraps*pSize*sizeof(ui)));
+
+    chkerr(cudaMalloc((void**)&(p.taskOffset), numWraps*pSize*sizeof(ui)));
+    chkerr(cudaMemset(p.taskOffset,0, numWraps*pSize*sizeof(ui)));
+
+    chkerr(cudaMalloc((void**)&(p.size), numWraps*pSize*sizeof(ui)));
+    chkerr(cudaMemset(p.size,0,numWraps*pSize*sizeof(ui)));
 
 
 }
