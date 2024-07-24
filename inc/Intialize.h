@@ -125,6 +125,9 @@ ui *statusList;
 ui *degreeInC;
 ui *degreeInR;
 ui  *size;
+ui *numTask;
+ui *temp;
+ui *numReadTasks;
 
 }deviceBufferPointers;
 

@@ -77,6 +77,11 @@ void memoryAllocationBuffer(deviceBufferPointers &p,ui numWraps, ui pSize){
     chkerr(cudaMemset(p.size,0,numWraps*pSize*sizeof(ui)));
 
 
+    chkerr(cudaMalloc((void**)&(p.temp), sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(p.numTask), sizeof(ui)));
+
+    chkerr(cudaMemset(p.temp,0,sizeof(ui)));
+    chkerr(cudaMemset(p.numTask,0,sizeof(ui)));
 }
 
 void freeGraph(deviceGraphPointers &p){

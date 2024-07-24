@@ -474,7 +474,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowe
   }
 }
 
-__global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax, ui jump, bool *outOfMemoryFlag) {
+__global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, deviceBufferPointers B, ui lowerBoundSize, ui upperBoundSize, ui pSize, ui dmax, ui jump, bool *outOfMemoryFlag) {
 
   extern __shared__ char sharedMemory[];
   size_t sizeOffset = 0;
@@ -619,7 +619,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoun
             ui leftSpace;
             ui overFlow, position;
 
-            for (ui domIndex = 0; domIndex < totalDoms; domIndex++) {
+          for (ui domIndex = 0; domIndex < totalDoms; domIndex++) {
               __syncwarp();
               leftSpace = (bufferNum * pSize) - (domsWriteOffset + totalWrite * domIndex) - 2;
               overFlow = (leftSpace > totalWrite) ? 0 : 1;
@@ -650,6 +650,25 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoun
                   if (T.taskList[srcIndex] == domVertex) {
                     T.statusList[dstIndex] = 1;
                   }
+                }else{
+                  ui numWritten ;
+                  ui numTaskBuffer;
+                  if(laneId==0){
+                    numWritten = B.temp;
+                    numTaskBuffer = atomicAdd(B.temp);
+                    while(1){
+                    if(numWritten==numTaskBuffer){
+                      B.taskOffset[numTaskBuffer+1] = B.taskOffset[numTaskBuffer]+totalWrite;
+                      numWritten++;
+                      break
+
+                    }
+                  }
+                  }
+                  __shfl_sync(0xffffffff,numTaskBuffer,0);
+                  ui dstIndex = B.taskOffset[numTaskBuffer] + i;
+                  // Add data to buffer
+
                 }
               }
 
@@ -669,6 +688,9 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoun
                   T.taskOffset[bufferNum * pSize - 1]++;
                   //printf("iter %u wrap %u domIndex %u size new %u size old %u index new %u index old %u \n",iter,warpId,domIndex,T.size[warpId * pSize + totalTasks + domIndex], T.size[warpId * pSize + iter],
                   //warpId * pSize + totalTasks + domIndex, warpId * pSize + iter);
+                }else{
+                  atomicAdd(B.numTask);
+
                 }
                 sharedCounter[threadIdx.x / warpSize] = 0;
                 T.doms[startIndex + end - 1] = 0;
@@ -678,6 +700,20 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, ui lowerBoun
 
 
           }
+          }else{
+            ui numRead = atomicAdd(B.numReadTasks);
+            ui readStart = B.taskOffset[numRead];
+            ui readEnd = B.taskOffset[numRead+1];
+            ui totalRead = readEnd-readStart;
+            for(ui i = laneId; i < totalRead; i+=warpSize){
+              ui ind = readStart + i;
+              ui vertex = B.taskList[ind];
+              ui status = B.statusList[ind];
+              ui degC = B.degreeInC[ind];
+              ui degR = B.degreeInR[ind];
+              ui size = B.size[ind];
+            }
+
           }
     }else{
       if(laneId==0)
