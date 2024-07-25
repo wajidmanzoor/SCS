@@ -628,8 +628,30 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, deviceBuffer
                 ui srcIndex = writeOffset + i;
                 int key2 = findIndexKernel(T.doms, startIndex + start + domIndex, startIndex + start + totalDoms, T.taskList[srcIndex]);
                 ui domVertex = T.doms[startIndex + start + domIndex];
+                ui dstIndex;
                 if (!overFlow) {
-                  ui dstIndex = domsWriteOffset + (totalWrite * domIndex) + i;
+                 dstIndex = domsWriteOffset + (totalWrite * domIndex) + i;
+                }else{
+                  ui numWritten ;
+                  ui numTaskBuffer;
+                  if(laneId==0){
+                    numWritten = B.temp;
+                    numTaskBuffer = atomicAdd(B.temp);
+                    while(1){
+                    if(numWritten==numTaskBuffer){
+                      B.taskOffset[numTaskBuffer+1] = B.taskOffset[numTaskBuffer]+totalWrite;
+                      numWritten++;
+                      break
+
+                    }
+                  }
+                  }
+                  __shfl_sync(0xffffffff,numTaskBuffer,0);
+                  dstIndex = B.taskOffset[numTaskBuffer] + i;
+                  // Add data to buffer
+
+                }
+
                   ui vertex = T.taskList[srcIndex];
                   T.taskList[dstIndex] = vertex;
                   T.statusList[dstIndex] = (key2 != -1) ? 0 : T.statusList[srcIndex];
@@ -650,26 +672,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, deviceBuffer
                   if (T.taskList[srcIndex] == domVertex) {
                     T.statusList[dstIndex] = 1;
                   }
-                }else{
-                  ui numWritten ;
-                  ui numTaskBuffer;
-                  if(laneId==0){
-                    numWritten = B.temp;
-                    numTaskBuffer = atomicAdd(B.temp);
-                    while(1){
-                    if(numWritten==numTaskBuffer){
-                      B.taskOffset[numTaskBuffer+1] = B.taskOffset[numTaskBuffer]+totalWrite;
-                      numWritten++;
-                      break
 
-                    }
-                  }
-                  }
-                  __shfl_sync(0xffffffff,numTaskBuffer,0);
-                  ui dstIndex = B.taskOffset[numTaskBuffer] + i;
-                  // Add data to buffer
-
-                }
               }
 
               //TODO: Update degree as removed doms are added back 
@@ -689,7 +692,8 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, deviceBuffer
                   //printf("iter %u wrap %u domIndex %u size new %u size old %u index new %u index old %u \n",iter,warpId,domIndex,T.size[warpId * pSize + totalTasks + domIndex], T.size[warpId * pSize + iter],
                   //warpId * pSize + totalTasks + domIndex, warpId * pSize + iter);
                 }else{
-                  atomicAdd(B.numTask);
+                  ui old = atomicAdd(B.numTask,1);
+                  B.size[old] = T.size[warpId * pSize + iter] + 1;
 
                 }
                 sharedCounter[threadIdx.x / warpSize] = 0;
@@ -701,18 +705,36 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T, deviceBuffer
 
           }
           }else{
-            ui numRead = atomicAdd(B.numReadTasks);
-            ui readStart = B.taskOffset[numRead];
-            ui readEnd = B.taskOffset[numRead+1];
-            ui totalRead = readEnd-readStart;
-            for(ui i = laneId; i < totalRead; i+=warpSize){
-              ui ind = readStart + i;
-              ui vertex = B.taskList[ind];
-              ui status = B.statusList[ind];
-              ui degC = B.degreeInC[ind];
-              ui degR = B.degreeInR[ind];
-              ui size = B.size[ind];
+            ui numRead;
+            if(laneId==0){
+              numRead = atomicAdd(B.numReadTasks,1);
             }
+             __shfl_sync(0xffffffff, numRead, 0);
+            
+            ui numTasks = B.numTask;
+            if(numRead<=numTasks){
+              ui readStart = B.taskOffset[numRead];
+              ui readEnd = B.taskOffset[numRead+1];
+              ui totalRead = readEnd-readStart;
+              if((writeOffset + totalRead) <= (bufferNum*pSize -1)){
+                for(ui i = laneId; i < totalRead; i+=warpSize){ 
+                  ui ind = readStart + i;
+                  T.taskList[writeOffset+i] = B.taskList[ind];
+                  T.statusList[writeOffset+i] = B.statusList[ind];
+
+                  // Remove the below three and calculate using the status. 
+                  T.degreeInC[writeOffset+i] = B.degreeInC[ind];
+                  T.degreeInR[writeOffset+i] = B.degreeInR[ind];
+              }
+
+              if(laneId==0){
+                T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite + 1 ] =   T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite]+ totalRead;
+                T.size[(bufferNum - 1) * pSize + totalTasksWrite] = B.size[ind];
+                T.taskOffset[bufferNum * pSize - 1]++;
+
+              }
+            }
+          }
 
           }
     }else{
