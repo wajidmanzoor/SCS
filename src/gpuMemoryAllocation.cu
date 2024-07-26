@@ -1,6 +1,5 @@
 #include "../inc/ListLinearHeap.h"
 
-
 inline void chkerr(cudaError_t code)
 {
     if (code != cudaSuccess)
@@ -64,24 +63,31 @@ void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize){
 }
 
 void memoryAllocationBuffer(deviceBufferPointers &p,ui numWraps, ui pSize){
-  chkerr(cudaMalloc((void**)&(p.taskList), numWraps*pSize*sizeof(ui)));
+
+    chkerr(cudaMalloc((void**)&(p.taskOffset), numWraps*pSize*sizeof(ui)));
+    chkerr(cudaMemset(p.taskOffset,0, numWraps*pSize*sizeof(ui)));
+
+    chkerr(cudaMalloc((void**)&(p.taskList), numWraps*pSize*sizeof(ui)));
     chkerr(cudaMalloc((void**)&p.statusList, numWraps*pSize*sizeof(ui)));
 
     chkerr(cudaMalloc((void**)&(p.degreeInR), numWraps*pSize*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.degreeInC), numWraps*pSize*sizeof(ui)));
 
-    chkerr(cudaMalloc((void**)&(p.taskOffset), numWraps*pSize*sizeof(ui)));
-    chkerr(cudaMemset(p.taskOffset,0, numWraps*pSize*sizeof(ui)));
+
 
     chkerr(cudaMalloc((void**)&(p.size), numWraps*pSize*sizeof(ui)));
     chkerr(cudaMemset(p.size,0,numWraps*pSize*sizeof(ui)));
 
+    chkerr(cudaMalloc((void**)&(p.numTask), sizeof(ui)));
+    chkerr(cudaMemset(p.numTask,0,sizeof(ui)));
 
     chkerr(cudaMalloc((void**)&(p.temp), sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(p.numTask), sizeof(ui)));
-
     chkerr(cudaMemset(p.temp,0,sizeof(ui)));
-    chkerr(cudaMemset(p.numTask,0,sizeof(ui)));
+
+    chkerr(cudaMalloc((void**)&(p.numReadTasks), sizeof(ui)));
+    chkerr(cudaMemset(p.numReadTasks,0,sizeof(ui)));
+
+
 }
 
 void freeGraph(deviceGraphPointers &p){

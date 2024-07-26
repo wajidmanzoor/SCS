@@ -4,7 +4,6 @@
 #include "./src/gpuMemoryAllocation.cu"
 #include <sys/stat.h>
 
-
 std::string getCurrentDateTime() {
     // Get current time
     std::time_t now = std::time(nullptr);
@@ -116,6 +115,10 @@ int main(int argc,
   deviceTaskPointers deviceTask;
   memoryAllocationTask(deviceTask, TOTAL_WARPS, partitionSize);
 
+  deviceBufferPointers deviceBuffer;
+
+  memoryAllocationBuffer(deviceBuffer,TOTAL_WARPS, partitionSize);
+
   chkerr(cudaMemcpy(deviceTask.taskOffset, taskOffset, partitionSize * sizeof(ui), cudaMemcpyHostToDevice));
 
   CompressTask <<< BLK_NUM2, BLK_DIM2 >>> (deviceGraph, initialTask, deviceTask, initialPartitionSize, QID);
@@ -149,10 +152,13 @@ int main(int argc,
     }
     FindDoms<<<BLK_NUMS, BLK_DIM,sharedMemrySizeDoms>>>(deviceGraph, deviceTask,partitionSize,dMAX,c,limitDoms);
     cudaDeviceSynchronize();
-    Expand <<< BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (deviceGraph, deviceTask, N1, N2, partitionSize, dMAX, jump,outOfMemoryFlag);
+    Expand <<< BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (deviceGraph, deviceTask,deviceBuffer, N1, N2, partitionSize, dMAX, jump,outOfMemoryFlag);
     cudaDeviceSynchronize();
 
     cudaMemcpy(&outMemFlag,outOfMemoryFlag,sizeof(bool),cudaMemcpyDeviceToHost );
+
+
+    LeftShift <<<BLK_NUMS, BLK_DIM>>>(deviceBuffer);
     if(outMemFlag){
       cout <<"partition out of memory "<<endl;
       cout<<"Level "<<c<<" jump "<<jump<<endl;
@@ -177,8 +183,8 @@ int main(int argc,
     }
 
     c++;
-    if(c==1)
-      break;
+    if(c==2)
+    break;
     cout<<"Level "<<c<<" jump "<<jump<<endl;
 
   }
@@ -206,6 +212,30 @@ cudaMemcpy(sizeHost,deviceTask.size,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMem
 cudaMemcpy(domsHost,deviceTask.doms,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
 cudaMemcpy(consHost,deviceTask.cons,TOTAL_WARPS*partitionSize*sizeof(double),cudaMemcpyDeviceToHost);
 
+ui *bufferHost, *statusBHost, *offsetBHost, *sizeBHost ;
+
+ui tempHost, numReadHost, numTaskHost;
+cudaMemcpy(&tempHost,deviceBuffer.temp,sizeof(ui),cudaMemcpyDeviceToHost);
+cudaMemcpy(&numReadHost,deviceBuffer.numReadTasks,sizeof(ui),cudaMemcpyDeviceToHost);
+cudaMemcpy(&numTaskHost,deviceBuffer.numTask,sizeof(ui),cudaMemcpyDeviceToHost);
+
+cout<< "Temp "<< tempHost << " Read "<<numReadHost<<" tasks "<<numTaskHost;
+
+
+
+
+bufferHost = new ui[TOTAL_WARPS*partitionSize];
+statusBHost = new ui[TOTAL_WARPS*partitionSize];
+offsetBHost =  new ui[TOTAL_WARPS*partitionSize];
+sizeBHost = new ui[TOTAL_WARPS*partitionSize];
+cudaMemcpy(bufferHost,deviceBuffer.taskList,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+cudaMemcpy(statusBHost,deviceBuffer.statusList,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+
+cudaMemcpy(offsetBHost,deviceBuffer.taskOffset,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+cudaMemcpy(sizeBHost,deviceBuffer.size,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+
+
+
 
 ui *hresult;
 hresult = new ui[2];
@@ -221,9 +251,9 @@ for(ui i=0;i<TOTAL_WARPS;i++){
 currentEntry = offsetHost[(i+1)*partitionSize-1];
 outFile <<"tasks num "<<currentEntry<<" end " <<offsetHost[i*partitionSize+currentEntry]<<endl;
 
-if(currentEntry != 0 ){
-  start = i*partitionSize;
-  end = (i+1)*partitionSize;
+if(currentEntry!= 0 ){
+  start = i*partitionSize ;
+  end = (i+1)*partitionSize ;
   cout <<" partition "<<i<<" start "<<start<<" end "<<end<<endl;
 
    cout<<"off ";
@@ -255,27 +285,44 @@ if(currentEntry != 0 ){
   }
   cout<<endl;
   cout<<"size ";
-
   for(ui j = start;j<end;j++){
     cout<< sizeHost[j]<< " ";
   }
   cout<<endl;
-  cout<<"Doms ";
-  for(ui j = start;j<end;j++){
-    cout<< domsHost[j]<< " ";
-  }
-  cout<<endl;
-  cout<<"Cons ";
-  for(ui j = start;j<end;j++){
-    cout<< consHost[j]<< " ";
-  }
-  cout<<endl;
+
 }
 
 
 //cout << endl;
 }
 cudaDeviceSynchronize();
+
+cout<<"Buffer ";
+for(ui i = 0; i < 6; i++ ){
+  cout<<bufferHost[i]<< "  ";
+
+}
+cout<<endl;
+cout<<"status ";
+for(ui i = 0; i < 6; i++ ){
+  cout<<statusBHost[i]<< "  ";
+
+}
+
+cout<<endl;
+cout<<"offset ";
+for(ui i = 0; i < 6; i++ ){
+  cout<<offsetBHost[i]<< "  ";
+
+}
+
+cout<<endl;
+cout<<"size   ";
+for(ui i = 0; i < 6; i++ ){
+  cout<<sizeBHost[i]<< "  ";
+
+}
+
 
 
 
