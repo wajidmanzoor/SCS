@@ -835,9 +835,35 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,deviceBufferP
         ui totalRead = readEnd-readStart;
         if((writeOffset + totalRead) <= (bufferNum*pSize -1)){
           for(ui i = laneId; i < totalRead; i+=warpSize){
+
             ui ind = readStart + i;
-            T.taskList[writeOffset+i] = B.taskList[ind];
-            T.statusList[writeOffset+i] = B.statusList[ind];
+            ui vertex = B.taskList[ind];
+            ui status = B.statusList[ind];
+            T.taskList[writeOffset+i] = vertex;
+            T.statusList[writeOffset+i] = status;
+            int keyTask;
+            ui degC =0;
+            ui degR = 0;
+
+            for(ui k = G.offset[vertex]; k < G.offset[vertex+1];k++){
+              keyTask = findIndexKernel(B.taskList,readStart,readEnd,G.neighbor[k]);
+
+              if(keyTask!=-1){
+                if(B.statusList[k]==1){
+                  degC++;
+
+                }else if (B.statusList[k]==0){
+                  degR++;
+
+                }
+
+              }
+              
+            }
+
+            T.degreeInC[writeOffset+i] = degC;
+            T.degreeInR[writeOffset+i] = degR;
+            
 
           }
         __syncwarp();
