@@ -1020,6 +1020,8 @@ __global__ void LeftShift(deviceBufferPointers B){
     ui totalOffset = numTask - numRead + 1;
     ui totalSize = numTask - numRead;
 
+    //memory cpy from aray,
+
     for(ui i = idx; idx < totalVerticies; idx += TOTAL_THREAD){
       ui vertex = B.taskList[startOffset+idx];
       ui status = B.statusList[startOffset+idx];
