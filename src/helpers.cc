@@ -492,7 +492,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowe
 
   }
 
- /* __syncwarp();
+  __syncwarp();
  for (int iter = totalTasks - 1; iter >= 0; --iter) {
     bool shouldDecrement = T.ustar[warpId * pSize + iter] == INT_MAX;
     shouldDecrement = __all_sync(0xFFFFFFFF, shouldDecrement);
@@ -506,7 +506,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T, ui lowe
   printf("iter %d warp id % u ustar % u \n",iter,warpId,T.ustar[warpId * pSize + iter]);
 
     }
-}*/
+}
 
 }
 
