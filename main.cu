@@ -7,7 +7,22 @@
 #include <sstream>
 #include <thrust/device_ptr.h>
 #include <thrust/copy.h>
+#include <thrust/transform.h>
+#include <thrust/functional.h>
 
+
+struct subtract_functor
+{
+    const ui x;
+    
+    subtract_functor(ui _x) : x(_x) {}
+    
+    __host__ __device__
+    ui operator()(const ui& y) const
+    {
+        return y - x;
+    }
+};
 
 
 std::string getCurrentDateTime() {
@@ -76,7 +91,7 @@ int main(int argc,
   ui BLK_NUM2 = 32;
   ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
   ui initialPartitionSize = (n / INTOTAL_WARPS) + 1;
-  cout << "here " << INTOTAL_WARPS << initialPartitionSize << endl;
+  cout << " Intial R  " << INTOTAL_WARPS << initialPartitionSize << endl;
 
   deviceInterPointers initialTask;
   memoryAllocationinitialTask(initialTask, INTOTAL_WARPS, initialPartitionSize);
@@ -190,7 +205,7 @@ int main(int argc,
 
     cout<< "Temp "<< tempHost << " Read "<<numReadHost<<" tasks "<<numTaskHost<<" host offset "<<numOffsetHost<<endl;
 
-     if ((stopFlag) && ( numReadHost == 0 )) {
+     if ((stopFlag) && ( numReadHost == 0 ) && (numTaskHost == 0)) {
       cudaMemcpy( & kl, deviceGraph.lowerBoundDegree, sizeof(ui), cudaMemcpyDeviceToHost);
       cout << "Max min degree " << kl << endl;
       cout << "time = " << integer_to_string(timer.elapsed()).c_str() << endl;
@@ -200,7 +215,6 @@ int main(int argc,
     }
 
     if(numTaskHost == numReadHost){
-      cout<<endl<<" num read inside equal "<<endl;
 
       cudaMemset(deviceBuffer.numTask,0,sizeof(ui));
       cudaMemset(deviceBuffer.numReadTasks,0,sizeof(ui));
@@ -214,18 +228,18 @@ int main(int argc,
 
 
     if((numReadHost<numTaskHost)&&(numReadHost>0)){
-      cout<<" num read inside "<<endl;
-      cout<<"thrust cpy"<<endl;
 
         cudaMemcpy(&startOffset,deviceBuffer.taskOffset+numReadHost,sizeof(ui),cudaMemcpyDeviceToHost);
         cudaMemcpy(&endOffset,deviceBuffer.taskOffset + numTaskHost,sizeof(ui),cudaMemcpyDeviceToHost);
 
 
-      thrust::copy(
-        thrust::device_ptr<ui>(deviceBuffer.taskOffset + numReadHost),
-        thrust::device_ptr<ui>(deviceBuffer.taskOffset + numTaskHost+1),
-        thrust::device_ptr<ui>(deviceBuffer.taskOffset)
-      );
+    
+     thrust::transform(
+      thrust::device_ptr<ui>(deviceBuffer.taskOffset + numReadHost),
+      thrust::device_ptr<ui>(deviceBuffer.taskOffset + numTaskHost + 1),
+      thrust::device_ptr<ui>(deviceBuffer.taskOffset),
+      subtract_functor(startOffset)
+     );
 
       thrust::copy(
         thrust::device_ptr<ui>(deviceBuffer.size + numReadHost),
@@ -256,19 +270,31 @@ int main(int argc,
         thrust::device_ptr<ui>(deviceBuffer.degreeInR)
       );
 
-      cudaMemset(deviceBuffer.numTask,numTaskHost-numReadHost,sizeof(ui));
+      int justCheck = (int) (numTaskHost-numReadHost);
+
+
+      cudaMemcpy(deviceBuffer.numTask, &justCheck,sizeof(ui),cudaMemcpyHostToDevice);
+      cudaMemcpy(deviceBuffer.temp, &justCheck,sizeof(ui),cudaMemcpyHostToDevice);
+      cudaMemcpy(deviceBuffer.numOffset, &justCheck,sizeof(ui),cudaMemcpyHostToDevice);
+
+
       cudaMemset(deviceBuffer.numReadTasks,0,sizeof(ui));
-      cudaMemset(deviceBuffer.temp,numTaskHost-numReadHost,sizeof(ui));
-      cudaMemset(deviceBuffer.numOffset,numTaskHost-numReadHost,sizeof(ui));
+
 
 
 
 
     }
 
+        cudaMemcpy(&stopFlag, deviceTask.flag, sizeof(bool), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&tempHost,deviceBuffer.temp,sizeof(ui),cudaMemcpyDeviceToHost);
+    cudaMemcpy(&numReadHost,deviceBuffer.numReadTasks,sizeof(ui),cudaMemcpyDeviceToHost);
+    cudaMemcpy(&numTaskHost,deviceBuffer.numTask,sizeof(ui),cudaMemcpyDeviceToHost);
+    cudaMemcpy(&numOffsetHost,deviceBuffer.numOffset,sizeof(ui),cudaMemcpyDeviceToHost);
+
+
+
     c++;
-    if(c==4)
-    break;
     cout<<"Level "<<c<<" jump "<<jump<<endl;
 
   }
