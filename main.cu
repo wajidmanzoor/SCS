@@ -3,6 +3,12 @@
 #include "./src/helpers.cc"
 #include "./src/gpuMemoryAllocation.cu"
 #include <sys/stat.h>
+#include <iomanip>
+#include <sstream>
+#include <thrust/device_ptr.h>
+#include <thrust/copy.h>
+
+
 
 std::string getCurrentDateTime() {
     // Get current time
@@ -20,7 +26,7 @@ std::string getCurrentDateTime() {
 int main(int argc,
   const char * argv[]) {
 
-  if (argc != 8) {
+  if (argc != 9) {
     cout << "wrong input parameters!" << endl;
     exit(1);
     exit(1);
@@ -33,6 +39,7 @@ int main(int argc,
   ui partitionSize = atoi(argv[5]);
   ui isHeu = atoi(argv[6]);
   ui limitDoms = atoi(argv[7]);
+  ui bufferSize = atoi(argv[8]);
 
 
   const char * filepath = argv[1];
@@ -117,7 +124,7 @@ int main(int argc,
 
   deviceBufferPointers deviceBuffer;
 
-  memoryAllocationBuffer(deviceBuffer,TOTAL_WARPS, partitionSize);
+  memoryAllocationBuffer(deviceBuffer,bufferSize);
 
   chkerr(cudaMemcpy(deviceTask.taskOffset, taskOffset, partitionSize * sizeof(ui), cudaMemcpyHostToDevice));
 
@@ -139,6 +146,9 @@ int main(int argc,
  cudaMalloc((void**)&result,2*sizeof(ui));
   size_t sharedMemrySizeDoms = WARPS_EACH_BLK * sizeof(ui);
 
+ ui tempHost, numReadHost, numTaskHost, startOffset, endOffset,numOffsetHost;
+
+
 
   while (1) {
 
@@ -158,7 +168,7 @@ int main(int argc,
     cudaMemcpy(&outMemFlag,outOfMemoryFlag,sizeof(bool),cudaMemcpyDeviceToHost );
 
 
-    LeftShift <<<BLK_NUMS, BLK_DIM>>>(deviceBuffer);
+    //LeftShift <<<BLK_NUMS, BLK_DIM>>>(deviceBuffer);
     if(outMemFlag){
       cout <<"partition out of memory "<<endl;
       cout<<"Level "<<c<<" jump "<<jump<<endl;
@@ -171,9 +181,16 @@ int main(int argc,
     }
 
 
-    cudaMemcpy( &stopFlag, deviceTask.flag, sizeof(bool), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&stopFlag, deviceTask.flag, sizeof(bool), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&tempHost,deviceBuffer.temp,sizeof(ui),cudaMemcpyDeviceToHost);
+    cudaMemcpy(&numReadHost,deviceBuffer.numReadTasks,sizeof(ui),cudaMemcpyDeviceToHost);
+    cudaMemcpy(&numTaskHost,deviceBuffer.numTask,sizeof(ui),cudaMemcpyDeviceToHost);
+    cudaMemcpy(&numOffsetHost,deviceBuffer.numOffset,sizeof(ui),cudaMemcpyDeviceToHost);
 
-    if (stopFlag) {
+
+    cout<< "Temp "<< tempHost << " Read "<<numReadHost<<" tasks "<<numTaskHost<<" host offset "<<numOffsetHost<<endl;
+
+     if ((stopFlag) && ( numReadHost == 0 )) {
       cudaMemcpy( & kl, deviceGraph.lowerBoundDegree, sizeof(ui), cudaMemcpyDeviceToHost);
       cout << "Max min degree " << kl << endl;
       cout << "time = " << integer_to_string(timer.elapsed()).c_str() << endl;
@@ -182,8 +199,75 @@ int main(int argc,
       break;
     }
 
+    if(numTaskHost == numReadHost){
+      cout<<endl<<" num read inside equal "<<endl;
+
+      cudaMemset(deviceBuffer.numTask,0,sizeof(ui));
+      cudaMemset(deviceBuffer.numReadTasks,0,sizeof(ui));
+      cudaMemset(deviceBuffer.temp,0,sizeof(ui));
+      cudaMemset(deviceBuffer.numOffset,0,sizeof(ui));
+
+
+
+
+    }
+
+
+    if((numReadHost<numTaskHost)&&(numReadHost>0)){
+      cout<<" num read inside "<<endl;
+      cout<<"thrust cpy"<<endl;
+
+        cudaMemcpy(&startOffset,deviceBuffer.taskOffset+numReadHost,sizeof(ui),cudaMemcpyDeviceToHost);
+        cudaMemcpy(&endOffset,deviceBuffer.taskOffset + numTaskHost,sizeof(ui),cudaMemcpyDeviceToHost);
+
+
+      thrust::copy(
+        thrust::device_ptr<ui>(deviceBuffer.taskOffset + numReadHost),
+        thrust::device_ptr<ui>(deviceBuffer.taskOffset + numTaskHost+1),
+        thrust::device_ptr<ui>(deviceBuffer.taskOffset)
+      );
+
+      thrust::copy(
+        thrust::device_ptr<ui>(deviceBuffer.size + numReadHost),
+        thrust::device_ptr<ui>(deviceBuffer.size + numTaskHost),
+        thrust::device_ptr<ui>(deviceBuffer.size)
+      );
+
+      thrust::copy(
+        thrust::device_ptr<ui>(deviceBuffer.taskList + startOffset),
+        thrust::device_ptr<ui>(deviceBuffer.taskList + endOffset + 1),
+        thrust::device_ptr<ui>(deviceBuffer.taskList)
+      );
+
+      thrust::copy(
+        thrust::device_ptr<ui>(deviceBuffer.statusList + startOffset),
+        thrust::device_ptr<ui>(deviceBuffer.statusList + endOffset + 1),
+        thrust::device_ptr<ui>(deviceBuffer.statusList)
+      );
+
+      thrust::copy(
+        thrust::device_ptr<ui>(deviceBuffer.degreeInC + startOffset),
+        thrust::device_ptr<ui>(deviceBuffer.degreeInC + endOffset + 1),
+        thrust::device_ptr<ui>(deviceBuffer.degreeInC)
+      );
+    thrust::copy(
+        thrust::device_ptr<ui>(deviceBuffer.degreeInR + startOffset),
+        thrust::device_ptr<ui>(deviceBuffer.degreeInR + endOffset + 1),
+        thrust::device_ptr<ui>(deviceBuffer.degreeInR)
+      );
+
+      cudaMemset(deviceBuffer.numTask,numTaskHost-numReadHost,sizeof(ui));
+      cudaMemset(deviceBuffer.numReadTasks,0,sizeof(ui));
+      cudaMemset(deviceBuffer.temp,numTaskHost-numReadHost,sizeof(ui));
+      cudaMemset(deviceBuffer.numOffset,numTaskHost-numReadHost,sizeof(ui));
+
+
+
+
+    }
+
     c++;
-    if(c==2)
+    if(c==4)
     break;
     cout<<"Level "<<c<<" jump "<<jump<<endl;
 
@@ -191,6 +275,7 @@ int main(int argc,
 
 
 ui *offsetHost, *taskHost, *statusHost,*degCHost,*degRHost, *sizeHost, *domsHost;
+int *ustarHost;
 double *consHost;
 offsetHost = new ui[TOTAL_WARPS*partitionSize];
 taskHost = new ui[TOTAL_WARPS*partitionSize];
@@ -200,6 +285,7 @@ degRHost = new ui[TOTAL_WARPS*partitionSize];
 sizeHost = new ui[TOTAL_WARPS*partitionSize];
 domsHost = new ui[TOTAL_WARPS*partitionSize];
 consHost = new double[TOTAL_WARPS*partitionSize];
+ustarHost = new int[TOTAL_WARPS*partitionSize];
 
 cudaMemcpy(offsetHost,deviceTask.taskOffset,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
 cudaMemcpy(taskHost,deviceTask.taskList,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
@@ -212,27 +298,24 @@ cudaMemcpy(sizeHost,deviceTask.size,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMem
 cudaMemcpy(domsHost,deviceTask.doms,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
 cudaMemcpy(consHost,deviceTask.cons,TOTAL_WARPS*partitionSize*sizeof(double),cudaMemcpyDeviceToHost);
 
+cudaMemcpy(ustarHost,deviceTask.ustar,TOTAL_WARPS*partitionSize*sizeof(int),cudaMemcpyDeviceToHost);
+
+
 ui *bufferHost, *statusBHost, *offsetBHost, *sizeBHost ;
 
-ui tempHost, numReadHost, numTaskHost;
-cudaMemcpy(&tempHost,deviceBuffer.temp,sizeof(ui),cudaMemcpyDeviceToHost);
-cudaMemcpy(&numReadHost,deviceBuffer.numReadTasks,sizeof(ui),cudaMemcpyDeviceToHost);
-cudaMemcpy(&numTaskHost,deviceBuffer.numTask,sizeof(ui),cudaMemcpyDeviceToHost);
-
-cout<< "Temp "<< tempHost << " Read "<<numReadHost<<" tasks "<<numTaskHost;
 
 
 
 
-bufferHost = new ui[TOTAL_WARPS*partitionSize];
-statusBHost = new ui[TOTAL_WARPS*partitionSize];
-offsetBHost =  new ui[TOTAL_WARPS*partitionSize];
-sizeBHost = new ui[TOTAL_WARPS*partitionSize];
-cudaMemcpy(bufferHost,deviceBuffer.taskList,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-cudaMemcpy(statusBHost,deviceBuffer.statusList,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+bufferHost = new ui[bufferSize];
+statusBHost = new ui[bufferSize];
+offsetBHost =  new ui[bufferSize];
+sizeBHost = new ui[bufferSize];
+cudaMemcpy(bufferHost,deviceBuffer.taskList,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
+cudaMemcpy(statusBHost,deviceBuffer.statusList,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
 
-cudaMemcpy(offsetBHost,deviceBuffer.taskOffset,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-cudaMemcpy(sizeBHost,deviceBuffer.size,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+cudaMemcpy(offsetBHost,deviceBuffer.taskOffset,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
+cudaMemcpy(sizeBHost,deviceBuffer.size,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
 
 
 
@@ -252,6 +335,7 @@ currentEntry = offsetHost[(i+1)*partitionSize-1];
 outFile <<"tasks num "<<currentEntry<<" end " <<offsetHost[i*partitionSize+currentEntry]<<endl;
 
 if(currentEntry!= 0 ){
+  cout<<"Current entry "<<currentEntry<<endl;
   start = i*partitionSize ;
   end = (i+1)*partitionSize ;
   cout <<" partition "<<i<<" start "<<start<<" end "<<end<<endl;
@@ -290,6 +374,15 @@ if(currentEntry!= 0 ){
   }
   cout<<endl;
 
+  cout<<"ustar   ";
+for(ui i = 0; i < bufferSize; i++ ){
+  cout<<ustarHost[i]<< "  ";
+
+}
+cout<<endl;
+
+
+
 }
 
 
@@ -298,34 +391,30 @@ if(currentEntry!= 0 ){
 cudaDeviceSynchronize();
 
 cout<<"Buffer ";
-for(ui i = 0; i < 6; i++ ){
+for(ui i = 0; i < bufferSize; i++ ){
   cout<<bufferHost[i]<< "  ";
 
 }
 cout<<endl;
 cout<<"status ";
-for(ui i = 0; i < 6; i++ ){
+for(ui i = 0; i < bufferSize; i++ ){
   cout<<statusBHost[i]<< "  ";
 
 }
 
 cout<<endl;
 cout<<"offset ";
-for(ui i = 0; i < 6; i++ ){
+for(ui i = 0; i < bufferSize; i++ ){
   cout<<offsetBHost[i]<< "  ";
 
 }
 
 cout<<endl;
 cout<<"size   ";
-for(ui i = 0; i < 6; i++ ){
+for(ui i = 0; i < bufferSize; i++ ){
   cout<<sizeBHost[i]<< "  ";
 
 }
-
-
-
-
 
   freeInterPointer(initialTask);
   freeGraph(deviceGraph);
