@@ -550,7 +550,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,deviceBufferP
       ui ustar = T.taskList[T.ustar[warpId * pSize + iter]];
       ui totalWrite;
 
-      if((writeOffset + total) <= (bufferNum*pSize -16)){
+      if((writeOffset + total) <= (bufferNum*pSize -1)){
       for (ui i = laneId; i < total; i += warpSize) {
 
         ui ind = startIndex + start + i;
