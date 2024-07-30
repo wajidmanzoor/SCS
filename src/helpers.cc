@@ -900,6 +900,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,deviceBufferP
 
         }
       }
+      sharedCounter[threadIdx.x / warpSize] =0;
 
 
       }
