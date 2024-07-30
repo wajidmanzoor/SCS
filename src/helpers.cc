@@ -550,7 +550,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,deviceBufferP
       ui ustar = T.taskList[T.ustar[warpId * pSize + iter]];
       ui totalWrite;
 
-      if((writeOffset + total) <= (bufferNum*pSize -1)){
+      if((writeOffset + total) <= (bufferNum*pSize -16)){
       for (ui i = laneId; i < total; i += warpSize) {
 
         ui ind = startIndex + start + i;
@@ -825,11 +825,139 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,deviceBufferP
 
           }
           __syncwarp();
+          }else{
+            ui bufferNum = warpId + jump;
+            if (bufferNum > TOTAL_WARPS) {
+              bufferNum = bufferNum % TOTAL_WARPS;
+            }
+            ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
+            ui writeOffset = ((bufferNum - 1) * pSize) + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite];
+            ui numRead;
+            if ((laneId==0) ){
+              numRead = atomicIncrementIfLessThan(B.numReadTasks, *B.numTask);
+            }
+            numRead =  __shfl_sync(0xffffffff, numRead, 0);
+            ui numTasks = *B.numTask;
+            if( (numRead<numTasks) && (numTasks > 0)){
+              //printf("here ");
+              ui readStart = B.taskOffset[numRead];
+              ui readEnd = B.taskOffset[numRead+1];
+              ui totalRead = readEnd-readStart;
+              if((writeOffset + totalRead) <= (bufferNum*pSize -1)){
+                for(ui i = laneId; i < totalRead; i+=warpSize){
+                  ui ind = readStart + i;
+                  ui vertex = B.taskList[ind];
+                  ui status = B.statusList[ind];
+                  T.taskList[writeOffset+i] = vertex;
+                  T.statusList[writeOffset+i] = status;
+                  int keyTask;
+                  ui degC =0;
+                  ui degR = 0;
+
+                  for(ui k = G.offset[vertex]; k < G.offset[vertex+1];k++){
+                    keyTask = findIndexKernel(B.taskList,readStart,readEnd,G.neighbors[k]);
+
+                    if(keyTask!=-1){
+                      if(B.statusList[k]==1){
+                        degC++;
+
+                      }else if (B.statusList[k]==0){
+                        degR++;
+
+                      }
+
+                    }
+
+                  }
+
+                  T.degreeInC[writeOffset+i] = degC;
+                  T.degreeInR[writeOffset+i] = degR;
+                }
+              __syncwarp();
+
+              if(laneId==0){
+                T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite + 1 ] =   T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite]+ totalRead;
+                T.size[(bufferNum - 1) * pSize + totalTasksWrite] = B.size[numRead];
+                T.taskOffset[bufferNum * pSize - 1]++;
+
+              }
+
+            }
+            }
+            __syncwarp();
           }
     }else{
-      if(laneId==0)
-      *outOfMemoryFlag = 0;
-      return;
+
+      ui numTaskBuffer;
+      if(laneId==0){
+        numTaskBuffer = atomicAdd(B.temp,1);
+        while(1){
+        if(*B.numOffset==numTaskBuffer){
+          // B.taskOffset[numTaskBuffer+1] = B.taskOffset[numTaskBuffer]+totalWrite;
+          // add when full write is done  atomicAdd(B.numOffset,1);
+
+          break;
+
+        }
+      }
+
+
+      }
+      numTaskBuffer = __shfl_sync(0xFFFFFFFF, numTaskBuffer, 0);
+      ui bufferWriteOffset = B.taskOffset[numTaskBuffer];
+       for (ui i = laneId; i < total; i += warpSize) {
+        ui ind = startIndex + start + i;
+        ui vertex = T.taskList[ind];
+        ui status = T.statusList[ind];
+
+          ui degInR;
+          ui degInC;
+          if ((vertex != ustar) && (status != 2)) {
+            ui loc = atomicAdd(& sharedCounter[threadIdx.x / warpSize], 1);
+            B.taskList[bufferWriteOffset + loc] = vertex;
+            B.statusList[bufferWriteOffset + loc] = status;
+            degInR = T.degreeInR[ind];
+            degInC = T.degreeInC[ind];
+
+
+            for (ui k = G.offset[vertex]; k < G.offset[vertex + 1]; k++) {
+              if (G.neighbors[k] == ustar) {
+
+                T.degreeInC[ind]++;
+
+                if (degInR != 0) {
+                  degInR--;
+                }
+
+              }
+            }
+
+            //T.degreeInR[bufferWriteOffset + loc] = degInR;
+            //T.degreeInC[bufferWriteOffset + loc] = degInC;
+            T.degreeInR[ind] = degInR;
+
+       }
+       }
+
+       __syncwarp();
+       if(laneId==0){
+        
+        B.taskOffset[numTaskBuffer+1] = B.taskOffset[numTaskBuffer]+sharedCounter[threadIdx.x / warpSize];
+        B.size[numTaskBuffer] = T.size[warpId * pSize + iter];
+        T.size[warpId * pSize + iter] ++;
+        T.statusList[T.ustar[warpId * pSize + iter]] = 1;
+        atomicAdd(B.numOffset,1);
+        atomicAdd(B.numTask,1);
+        *(T.flag) = 0;
+
+        sharedCounter[threadIdx.x / warpSize] =0;
+
+
+       }
+
+
+
+
     }
     }else{
       //printf("here");
