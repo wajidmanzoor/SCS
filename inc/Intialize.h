@@ -128,6 +128,7 @@ ui  *size;
 ui *numTask;
 ui *temp;
 ui *numReadTasks;
+ui *readMutex
 
 }deviceBufferPointers;
 

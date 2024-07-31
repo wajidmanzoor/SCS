@@ -87,6 +87,10 @@ void memoryAllocationBuffer(deviceBufferPointers &p,ui numWraps, ui pSize){
     chkerr(cudaMalloc((void**)&(p.numReadTasks), sizeof(ui)));
     chkerr(cudaMemset(p.numReadTasks,0,sizeof(ui)));
 
+    chkerr(cudaMalloc((void**)&(p.readMutex), sizeof(ui)));
+    chkerr(cudaMemset(p.readMutex,0,sizeof(ui)));
+
+
 
 }
 

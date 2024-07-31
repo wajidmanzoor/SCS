@@ -11,6 +11,8 @@ __device__ unsigned int atomicIncrementIfLessThan(unsigned int* address, unsigne
         if (assumed >= compare)
             break;
         old = atomicCAS(address, assumed, assumed + 1);
+        //check again  if old < compare, atomic sub 
+        // Issue is that it will increament until adress == compare
     } while (assumed != old);
     return old;
 }
@@ -832,13 +834,26 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,deviceBufferP
             }
             ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
             ui writeOffset = ((bufferNum - 1) * pSize) + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite];
-            ui numRead;
+            ui numRead = UINT_MAX;
             if ((laneId==0) ){
-              numRead = atomicIncrementIfLessThan(B.numReadTasks, *B.numTask);
+
+
+               while (true) {
+                  if (atomicCAS(B.readMutex, 0, 1) == 0) {
+                      if (*B.numReadTasks < *B.numTask) {
+                          numRead = atomicAdd(B.numReadTasks, 1);
+
+
+                      }
+                      
+                      atomicExch(B.readMutex, 0);
+                      break;
+                  }
+              }
             }
             numRead =  __shfl_sync(0xffffffff, numRead, 0);
             ui numTasks = *B.numTask;
-            if( (numRead<numTasks) && (numTasks > 0)){
+            if( (numRead<numTasks) && (numTasks > 0) && (numRead!=UNIT_MAX) ){
               //printf("here ");
               ui readStart = B.taskOffset[numRead];
               ui readEnd = B.taskOffset[numRead+1];
@@ -970,12 +985,26 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,deviceBufferP
       ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
       ui writeOffset = ((bufferNum - 1) * pSize) + T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite];
       ui numRead;
-      if ((laneId==0) ){
-        numRead = atomicIncrementIfLessThan(B.numReadTasks, *B.numTask);
-      }
+       ui numRead = UINT_MAX;
+            if ((laneId==0) ){
+
+
+               while (true) {
+                  if (atomicCAS(B.readMutex, 0, 1) == 0) {
+                      if (*B.numReadTasks < *B.numTask) {
+                          numRead = atomicAdd(B.numReadTasks, 1);
+
+
+                      }
+                      
+                      atomicExch(B.readMutex, 0);
+                      break;
+                  }
+              }
+            }
       numRead =  __shfl_sync(0xffffffff, numRead, 0);
       ui numTasks = *B.numTask;
-      if( (numRead<numTasks) && (numTasks > 0)){
+      if( (numRead<numTasks) && (numTasks > 0) && (numRead!=UINT_MAX)){
         //printf("here ");
         ui readStart = B.taskOffset[numRead];
         ui readEnd = B.taskOffset[numRead+1];
