@@ -11,12 +11,27 @@
 #include <thrust/functional.h>
 
 
+%%writefile main.cu
+#include <stdio.h>
+#include "heuristic.h"
+#include "helpers.cc"
+#include "gpuMemoryAllocation.cu"
+#include <map>
+#include <iomanip>
+#include <sstream>
+#include <thrust/device_ptr.h>
+#include <thrust/copy.h>
+
+#include <thrust/transform.h>
+#include <thrust/functional.h>
+
+
 struct subtract_functor
 {
     const ui x;
-    
+
     subtract_functor(ui _x) : x(_x) {}
-    
+
     __host__ __device__
     ui operator()(const ui& y) const
     {
@@ -41,7 +56,7 @@ std::string getCurrentDateTime() {
 int main(int argc,
   const char * argv[]) {
 
-  if (argc != 9) {
+  if (argc != 10) {
     cout << "wrong input parameters!" << endl;
     exit(1);
     exit(1);
@@ -55,6 +70,10 @@ int main(int argc,
   ui isHeu = atoi(argv[6]);
   ui limitDoms = atoi(argv[7]);
   ui bufferSize = atoi(argv[8]);
+  double copyLimit = stod(argv[9]);
+
+
+  cout<<" Copy Limit "<<copyLimit<<endl;
 
 
   const char * filepath = argv[1];
@@ -91,7 +110,7 @@ int main(int argc,
   ui BLK_NUM2 = 32;
   ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
   ui initialPartitionSize = (n / INTOTAL_WARPS) + 1;
-  cout << " Intial R  " << INTOTAL_WARPS << initialPartitionSize << endl;
+  cout << "here " << INTOTAL_WARPS << initialPartitionSize << endl;
 
   deviceInterPointers initialTask;
   memoryAllocationinitialTask(initialTask, INTOTAL_WARPS, initialPartitionSize);
@@ -162,7 +181,18 @@ int main(int argc,
   size_t sharedMemrySizeDoms = WARPS_EACH_BLK * sizeof(ui);
 
  ui tempHost, numReadHost, numTaskHost, startOffset, endOffset,numOffsetHost;
-
+ui *offsetHost, *taskHost, *statusHost,*degCHost,*degRHost, *sizeHost, *domsHost;
+int *ustarHost;
+double *consHost;
+offsetHost = new ui[TOTAL_WARPS*partitionSize];
+taskHost = new ui[TOTAL_WARPS*partitionSize];
+statusHost = new ui[TOTAL_WARPS*partitionSize];
+degCHost = new ui[TOTAL_WARPS*partitionSize];
+degRHost = new ui[TOTAL_WARPS*partitionSize];
+sizeHost = new ui[TOTAL_WARPS*partitionSize];
+domsHost = new ui[TOTAL_WARPS*partitionSize];
+consHost = new double[TOTAL_WARPS*partitionSize];
+ustarHost = new int[TOTAL_WARPS*partitionSize];
 
 
   while (1) {
@@ -177,7 +207,8 @@ int main(int argc,
     }
     FindDoms<<<BLK_NUMS, BLK_DIM,sharedMemrySizeDoms>>>(deviceGraph, deviceTask,partitionSize,dMAX,c,limitDoms);
     cudaDeviceSynchronize();
-    Expand <<< BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (deviceGraph, deviceTask,deviceBuffer, N1, N2, partitionSize, dMAX, jump,outOfMemoryFlag);
+   
+    Expand <<< BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (deviceGraph, deviceTask,deviceBuffer, N1, N2, partitionSize, dMAX, jump,outOfMemoryFlag, copyLimit );
     cudaDeviceSynchronize();
 
     cudaMemcpy(&outMemFlag,outOfMemoryFlag,sizeof(bool),cudaMemcpyDeviceToHost );
@@ -200,11 +231,12 @@ int main(int argc,
     cudaMemcpy(&tempHost,deviceBuffer.temp,sizeof(ui),cudaMemcpyDeviceToHost);
     cudaMemcpy(&numReadHost,deviceBuffer.numReadTasks,sizeof(ui),cudaMemcpyDeviceToHost);
     cudaMemcpy(&numTaskHost,deviceBuffer.numTask,sizeof(ui),cudaMemcpyDeviceToHost);
-    cudaMemcpy(&numOffsetHost,deviceBuffer.numOffset,sizeof(ui),cudaMemcpyDeviceToHost);
+
+    if(tempHost>0)
+    cout<<endl <<"Temp "<< tempHost << " Read "<<numReadHost<<" Total Tasks "<<numTaskHost<<endl;
 
 
-    cout<< "Temp "<< tempHost << " Read "<<numReadHost<<" tasks "<<numTaskHost<<" host offset "<<numOffsetHost<<endl;
-
+    cudaMemcpy(&stopFlag, deviceTask.flag, sizeof(bool), cudaMemcpyDeviceToHost);
      if ((stopFlag) && ( numReadHost == 0 ) && (numTaskHost == 0)) {
       cudaMemcpy( & kl, deviceGraph.lowerBoundDegree, sizeof(ui), cudaMemcpyDeviceToHost);
       cout << "Max min degree " << kl << endl;
@@ -214,12 +246,15 @@ int main(int argc,
       break;
     }
 
+
+
     if(numTaskHost == numReadHost){
 
       cudaMemset(deviceBuffer.numTask,0,sizeof(ui));
       cudaMemset(deviceBuffer.numReadTasks,0,sizeof(ui));
       cudaMemset(deviceBuffer.temp,0,sizeof(ui));
-      cudaMemset(deviceBuffer.numOffset,0,sizeof(ui));
+      cudaMemset(deviceBuffer.writeMutex,0,sizeof(ui));
+      cudaMemset(deviceBuffer.readMutex,0,sizeof(ui));
 
 
 
@@ -228,12 +263,15 @@ int main(int argc,
 
 
     if((numReadHost<numTaskHost)&&(numReadHost>0)){
+      cout<<"thrust cpy start "<<endl;
 
-        cudaMemcpy(&startOffset,deviceBuffer.taskOffset+numReadHost,sizeof(ui),cudaMemcpyDeviceToHost);
-        cudaMemcpy(&endOffset,deviceBuffer.taskOffset + numTaskHost,sizeof(ui),cudaMemcpyDeviceToHost);
+      cudaMemcpy(&startOffset,deviceBuffer.taskOffset+numReadHost,sizeof(ui),cudaMemcpyDeviceToHost);
+      cudaMemcpy(&endOffset,deviceBuffer.taskOffset + numTaskHost,sizeof(ui),cudaMemcpyDeviceToHost);
+
+      cout<<" Start Offset "<<startOffset<<endl;
 
 
-    
+
      thrust::transform(
       thrust::device_ptr<ui>(deviceBuffer.taskOffset + numReadHost),
       thrust::device_ptr<ui>(deviceBuffer.taskOffset + numTaskHost + 1),
@@ -259,7 +297,7 @@ int main(int argc,
         thrust::device_ptr<ui>(deviceBuffer.statusList)
       );
 
-      thrust::copy(
+     /* thrust::copy(
         thrust::device_ptr<ui>(deviceBuffer.degreeInC + startOffset),
         thrust::device_ptr<ui>(deviceBuffer.degreeInC + endOffset + 1),
         thrust::device_ptr<ui>(deviceBuffer.degreeInC)
@@ -268,183 +306,192 @@ int main(int argc,
         thrust::device_ptr<ui>(deviceBuffer.degreeInR + startOffset),
         thrust::device_ptr<ui>(deviceBuffer.degreeInR + endOffset + 1),
         thrust::device_ptr<ui>(deviceBuffer.degreeInR)
-      );
+      );*/
 
       int justCheck = (int) (numTaskHost-numReadHost);
+      //cout <<"just check " << justCheck << endl;
 
 
       cudaMemcpy(deviceBuffer.numTask, &justCheck,sizeof(ui),cudaMemcpyHostToDevice);
       cudaMemcpy(deviceBuffer.temp, &justCheck,sizeof(ui),cudaMemcpyHostToDevice);
-      cudaMemcpy(deviceBuffer.numOffset, &justCheck,sizeof(ui),cudaMemcpyHostToDevice);
-
-
+      cudaMemset(deviceBuffer.writeMutex,0,sizeof(ui));
       cudaMemset(deviceBuffer.numReadTasks,0,sizeof(ui));
 
-
-
-
+      cudaMemset(deviceBuffer.readMutex,0,sizeof(ui));
+      cout<<"thrust cpy done "<<endl;
 
     }
 
-        cudaMemcpy(&stopFlag, deviceTask.flag, sizeof(bool), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&stopFlag, deviceTask.flag, sizeof(bool), cudaMemcpyDeviceToHost);
     cudaMemcpy(&tempHost,deviceBuffer.temp,sizeof(ui),cudaMemcpyDeviceToHost);
     cudaMemcpy(&numReadHost,deviceBuffer.numReadTasks,sizeof(ui),cudaMemcpyDeviceToHost);
     cudaMemcpy(&numTaskHost,deviceBuffer.numTask,sizeof(ui),cudaMemcpyDeviceToHost);
-    cudaMemcpy(&numOffsetHost,deviceBuffer.numOffset,sizeof(ui),cudaMemcpyDeviceToHost);
+
+    if(tempHost>0)
+    cout<<" After Temp "<< tempHost << " Read "<<numReadHost<<" raed offset "<<numTaskHost<<endl;
+
+
+
+
 
 
 
     c++;
+
     cout<<"Level "<<c<<" jump "<<jump<<endl;
+    if(c==28)
+    break;
 
   }
 
+      cudaMemcpy(offsetHost,deviceTask.taskOffset,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+      cudaMemcpy(taskHost,deviceTask.taskList,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+      cudaMemcpy(statusHost,deviceTask.statusList,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
 
-ui *offsetHost, *taskHost, *statusHost,*degCHost,*degRHost, *sizeHost, *domsHost;
-int *ustarHost;
-double *consHost;
-offsetHost = new ui[TOTAL_WARPS*partitionSize];
-taskHost = new ui[TOTAL_WARPS*partitionSize];
-statusHost = new ui[TOTAL_WARPS*partitionSize];
-degCHost = new ui[TOTAL_WARPS*partitionSize];
-degRHost = new ui[TOTAL_WARPS*partitionSize];
-sizeHost = new ui[TOTAL_WARPS*partitionSize];
-domsHost = new ui[TOTAL_WARPS*partitionSize];
-consHost = new double[TOTAL_WARPS*partitionSize];
-ustarHost = new int[TOTAL_WARPS*partitionSize];
+      cudaMemcpy(degCHost,deviceTask.degreeInC,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+      cudaMemcpy(degRHost,deviceTask.degreeInR,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+      cudaMemcpy(sizeHost,deviceTask.size,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
 
-cudaMemcpy(offsetHost,deviceTask.taskOffset,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-cudaMemcpy(taskHost,deviceTask.taskList,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-cudaMemcpy(statusHost,deviceTask.statusList,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+      cudaMemcpy(domsHost,deviceTask.doms,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+      cudaMemcpy(consHost,deviceTask.cons,TOTAL_WARPS*partitionSize*sizeof(double),cudaMemcpyDeviceToHost);
 
-cudaMemcpy(degCHost,deviceTask.degreeInC,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-cudaMemcpy(degRHost,deviceTask.degreeInR,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-cudaMemcpy(sizeHost,deviceTask.size,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-
-cudaMemcpy(domsHost,deviceTask.doms,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
-cudaMemcpy(consHost,deviceTask.cons,TOTAL_WARPS*partitionSize*sizeof(double),cudaMemcpyDeviceToHost);
-
-cudaMemcpy(ustarHost,deviceTask.ustar,TOTAL_WARPS*partitionSize*sizeof(int),cudaMemcpyDeviceToHost);
-
-
-ui *bufferHost, *statusBHost, *offsetBHost, *sizeBHost ;
+      cudaMemcpy(ustarHost,deviceTask.ustar,TOTAL_WARPS*partitionSize*sizeof(int),cudaMemcpyDeviceToHost);
+      ui *bufferHost, *statusBHost, *offsetBHost, *sizeBHost ;
 
 
 
 
 
-bufferHost = new ui[bufferSize];
-statusBHost = new ui[bufferSize];
-offsetBHost =  new ui[bufferSize];
-sizeBHost = new ui[bufferSize];
-cudaMemcpy(bufferHost,deviceBuffer.taskList,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
-cudaMemcpy(statusBHost,deviceBuffer.statusList,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
+          bufferHost = new ui[bufferSize];
+          statusBHost = new ui[bufferSize];
+          offsetBHost =  new ui[bufferSize];
+          sizeBHost = new ui[bufferSize];
+          cudaMemcpy(bufferHost,deviceBuffer.taskList,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
+          cudaMemcpy(statusBHost,deviceBuffer.statusList,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
 
-cudaMemcpy(offsetBHost,deviceBuffer.taskOffset,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
-cudaMemcpy(sizeBHost,deviceBuffer.size,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
-
-
-
-
-ui *hresult;
-hresult = new ui[2];
-
-cudaMemcpy(hresult,result,2*sizeof(ui),cudaMemcpyDeviceToHost);
-
-ui currentEntry,start,end;
-ofstream outFile;
-outFile.open(getCurrentDateTime()+".txt");
-outFile << filepath << " "<<N1<<" "<<N2<<" "<<QID<<endl;
-outFile << "Time "<<totalTime<<" Min Max Degree "<<kl<<endl;
-for(ui i=0;i<TOTAL_WARPS;i++){
-currentEntry = offsetHost[(i+1)*partitionSize-1];
-outFile <<"tasks num "<<currentEntry<<" end " <<offsetHost[i*partitionSize+currentEntry]<<endl;
-
-if(currentEntry!= 0 ){
-  cout<<"Current entry "<<currentEntry<<endl;
-  start = i*partitionSize ;
-  end = (i+1)*partitionSize ;
-  cout <<" partition "<<i<<" start "<<start<<" end "<<end<<endl;
-
-   cout<<"off ";
-  for(ui j = start;j<end;j++){
-    cout<< offsetHost[j]<< " ";
-  }
-  cout<<endl;
-
-  cout<<"Vert ";
-  for(ui j = start;j<end;j++){
-    cout<< taskHost[j]<< " ";
-  }
-  cout<<endl;
-  cout <<"Stat ";
-
-  for(ui j = start;j<end;j++){
-    cout<< statusHost[j]<< " ";
-  }
-  cout<<endl;
-  cout <<"degC ";
-
-  for(ui j = start;j<end;j++){
-    cout<< degCHost[j]<< " ";
-  }
-  cout<<endl;
-  cout <<"degR ";
-  for(ui j = start;j<end;j++){
-    cout<< degRHost[j]<< " ";
-  }
-  cout<<endl;
-  cout<<"size ";
-  for(ui j = start;j<end;j++){
-    cout<< sizeHost[j]<< " ";
-  }
-  cout<<endl;
-
-  cout<<"ustar   ";
-for(ui i = 0; i < bufferSize; i++ ){
-  cout<<ustarHost[i]<< "  ";
-
-}
-cout<<endl;
+          cudaMemcpy(offsetBHost,deviceBuffer.taskOffset,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
+          cudaMemcpy(sizeBHost,deviceBuffer.size,bufferSize*sizeof(ui),cudaMemcpyDeviceToHost);
+          cudaDeviceSynchronize();
 
 
 
-}
+
+          ui *hresult;
+          hresult = new ui[2];
+
+          cudaMemcpy(hresult,result,2*sizeof(ui),cudaMemcpyDeviceToHost);
+
+          ui currentEntry,start,end;
+          ofstream outFile;
+          outFile.open(getCurrentDateTime()+".txt");
+          outFile << filepath << " "<<N1<<" "<<N2<<" "<<QID<<endl;
+          outFile << "Time "<<totalTime<<" Min Max Degree "<<kl<<endl;
+
+          for(ui i=0;i<TOTAL_WARPS;i++){
+          currentEntry = offsetHost[(i+1)*partitionSize-1];
+          outFile <<"tasks num "<<currentEntry<<" end " <<offsetHost[i*partitionSize+currentEntry]<<endl;
+          //cout<<" before loop "<<endl;
 
 
-//cout << endl;
-}
-cudaDeviceSynchronize();
+          /*start = i*partitionSize ;
+          end = (i+1)*partitionSize ;
+          cout <<" partition "<<i<<" start "<<start<<" end "<<end<<endl;
 
-cout<<"Buffer ";
-for(ui i = 0; i < bufferSize; i++ ){
-  cout<<bufferHost[i]<< "  ";
+          cout<<"off ";
+          for(ui j = start;j<end;j++){
+            cout<< offsetHost[j]<< " ";
+          }
+          cout<<endl;
 
-}
-cout<<endl;
-cout<<"status ";
-for(ui i = 0; i < bufferSize; i++ ){
-  cout<<statusBHost[i]<< "  ";
+          if(currentEntry!= 0 ){
+            cout<<"Current entry "<<currentEntry<<endl;
+            start = i*partitionSize ;
+            end = (i)*partitionSize + offsetHost[i*partitionSize+currentEntry];
+            cout <<" partition "<<i<<" start "<<start<<" end "<<end<<endl;
 
-}
+            cout<<"off ";
+            for(ui j = start;j<start+currentEntry+5;j++){
+              cout<< offsetHost[j]<< " ";
+            }
+            cout<<endl;
 
-cout<<endl;
-cout<<"offset ";
-for(ui i = 0; i < bufferSize; i++ ){
-  cout<<offsetBHost[i]<< "  ";
+            cout<<"Vert ";
+            for(ui j = start;j<end;j++){
+              cout<< taskHost[j]<< " ";
+            }
+            cout<<endl;
+            cout <<"Stat ";
 
-}
+            for(ui j = start;j<end;j++){
+              cout<< statusHost[j]<< " ";
+            }
+            cout<<endl;
+            cout <<"degC ";
 
-cout<<endl;
-cout<<"size   ";
-for(ui i = 0; i < bufferSize; i++ ){
-  cout<<sizeBHost[i]<< "  ";
+            for(ui j = start;j<end;j++){
+              cout<< degCHost[j]<< " ";
+            }
+            cout<<endl;
+            cout <<"degR ";
+            for(ui j = start;j<end;j++){
+              cout<< degRHost[j]<< " ";
+            }
+            cout<<endl;
+            cout<<"size ";
+            for(ui j = start;j<end;j++){
+              cout<< sizeHost[j]<< " ";
+            }
+            cout<<endl;
 
-}
+            cout<<"ustar   ";
+          for(ui i = start; i < end; i++ ){
+            cout<<ustarHost[i]<< "  ";
 
-  freeInterPointer(initialTask);
-  freeGraph(deviceGraph);
-  freeTaskPointer(deviceTask);
+          }
+          cout<<endl;
+
+
+
+          }*/
+
+
+          //cout << endl;
+          }
+          cout<<"after loop"<<endl;
+
+          endOffset = 200;
+
+
+          cout<<" end off "<<endOffset<<endl;
+          cout<<"Buffer ";
+          for(ui i = 0; i < endOffset; i++ ){
+            cout<<bufferHost[i]<< "  ";
+
+          }
+          cout<<endl;
+          cout<<"status ";
+          for(ui i = 0; i < endOffset; i++ ){
+            cout<<statusBHost[i]<< "  ";
+
+          }
+
+          cout<<endl;
+          cout<<"offset ";
+          for(ui i = 0; i < endOffset; i++ ){
+            cout<<offsetBHost[i]<< "  ";
+
+          }
+
+          cout<<endl;
+          cout<<"size   ";
+          for(ui i = 0; i < endOffset; i++ ){
+            cout<<sizeBHost[i]<< "  ";
+
+          }
+
+  //freeInterPointer(initialTask);
+  //freeGraph(deviceGraph);
+  //freeTaskPointer(deviceTask);
 
   return 0;
 
