@@ -17,6 +17,7 @@
         "utility": "cpp",
         "iterator": "cpp",
         "xlocale": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "iostream": "cpp"
     }
 }
