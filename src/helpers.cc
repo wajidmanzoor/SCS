@@ -913,14 +913,14 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
             ui status = T.statusList[ind];
 
             ui degInR;
-            ui degInC;
+            //ui degInC;
 
             B.taskList[bufferWriteOffset + i] = vertex;
             B.statusList[bufferWriteOffset + i] =
                 (vertex != ustar) ? status : 2;
 
             degInR = T.degreeInR[ind];
-            degInC = T.degreeInC[ind];
+            //degInC = T.degreeInC[ind];
 
             for (ui k = G.offset[vertex]; k < G.offset[vertex + 1]; k++) {
               if (G.neighbors[k] == ustar) {
@@ -966,7 +966,6 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
     ui readFlag = 0;
 
     if ((laneId == 0)) {
-      int readTasks;
       while (true) {
         if (atomicCAS(B.readMutex, 0, 1) == 0) {
           if (*B.numReadTasks < lastWritten) {
