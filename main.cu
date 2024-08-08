@@ -34,7 +34,7 @@ std::string getCurrentDateTime() {
 }
 
 int main(int argc, const char* argv[]) {
-  if (argc != 10) {
+  if (argc != 11) {
     cout << "wrong input parameters!" << endl;
     exit(1);
     exit(1);
@@ -48,8 +48,9 @@ int main(int argc, const char* argv[]) {
   ui limitDoms = atoi(argv[7]);
   ui bufferSize = atoi(argv[8]);
   double copyLimit = stod(argv[9]);
+  ui readLimit = atoi(argv[10]);
 
-  // cout<<" Copy Limit "<<copyLimit<<endl;
+ cout<<"Details"<<endl;
 
   const char* filepath = argv[1];
   load_graph(filepath);
@@ -165,7 +166,10 @@ int main(int argc, const char* argv[]) {
   deviceBufferPointers deviceBuffer;
   memoryAllocationBuffer(deviceBuffer, bufferSize);
 
+ui *taskOffsetHost;
 
+    taskOffsetHost = new ui[TOTAL_WARPS*partitionSize];
+    int zeroP;
   while (1) {
     cudaMemset(deviceTask.flag, 1, sizeof(bool));
 
@@ -182,23 +186,11 @@ int main(int argc, const char* argv[]) {
 
     Expand<<<BLK_NUMS, BLK_DIM, sharedMemorySizeExpand>>>(
         deviceGraph, deviceTask, deviceBuffer, N1, N2, partitionSize, dMAX,
-        jump, outOfMemoryFlag, copyLimit, bufferSize, numTaskHost);
+        jump, outOfMemoryFlag, copyLimit, bufferSize, numTaskHost,readLimit);
     cudaDeviceSynchronize();
 
     cudaMemcpy(&outMemFlag, outOfMemoryFlag, sizeof(bool),
                cudaMemcpyDeviceToHost);
-
-    if (outMemFlag) {
-      cout << "partition out of memory " << endl;
-      cout << "Level " << c << " jump " << jump << endl;
-      cudaMemcpy(&kl, deviceGraph.lowerBoundDegree, sizeof(ui),
-                 cudaMemcpyDeviceToHost);
-      cout << "Max min degree " << kl << endl;
-      cout << "time = " << integer_to_string(timer.elapsed()).c_str() << endl;
-      totalTime = integer_to_string(timer.elapsed()).c_str();
-      break;
-    }
-
     cudaMemcpy(&stopFlag, deviceTask.flag, sizeof(bool),
                cudaMemcpyDeviceToHost);
     cudaMemcpy(&tempHost, deviceBuffer.temp, sizeof(ui),
@@ -208,20 +200,30 @@ int main(int argc, const char* argv[]) {
     cudaMemcpy(&numTaskHost, deviceBuffer.numTask, sizeof(ui),
                cudaMemcpyDeviceToHost);
 
+    if (outMemFlag) {
+      cout << "Buffer out of memory " << endl;
+      cout << "Level " << c << " jump " << jump << endl;
+      cudaMemcpy(&kl, deviceGraph.lowerBoundDegree, sizeof(ui),
+                 cudaMemcpyDeviceToHost);
+      cout << "Max min degree " << kl << endl;
+      cout << "time = " << integer_to_string(timer.elapsed()).c_str() << endl;
+      totalTime = integer_to_string(timer.elapsed()).c_str();
+      break;
+    }
+
+
+
     if (tempHost > 0)
       cout << endl
            << "Temp " << tempHost << " Read " << numReadHost << " Total Tasks "
            << numTaskHost << endl;
 
-    cudaMemcpy(&stopFlag, deviceTask.flag, sizeof(bool),
-               cudaMemcpyDeviceToHost);
     if ((stopFlag) && (numReadHost == 0) && (numTaskHost == 0)) {
       cudaMemcpy(&kl, deviceGraph.lowerBoundDegree, sizeof(ui),
                  cudaMemcpyDeviceToHost);
       cout << "Max min degree " << kl << endl;
       cout << "time = " << integer_to_string(timer.elapsed()).c_str() << endl;
       totalTime = integer_to_string(timer.elapsed()).c_str();
-
       break;
     }
 
@@ -255,12 +257,12 @@ int main(int argc, const char* argv[]) {
 
       thrust::copy(
           thrust::device_ptr<ui>(deviceBuffer.taskList + startOffset),
-          thrust::device_ptr<ui>(deviceBuffer.taskList + endOffset + 1),
+          thrust::device_ptr<ui>(deviceBuffer.taskList + endOffset),
           thrust::device_ptr<ui>(deviceBuffer.taskList));
 
       thrust::copy(
           thrust::device_ptr<ui>(deviceBuffer.statusList + startOffset),
-          thrust::device_ptr<ui>(deviceBuffer.statusList + endOffset + 1),
+          thrust::device_ptr<ui>(deviceBuffer.statusList + endOffset),
           thrust::device_ptr<ui>(deviceBuffer.statusList));
 
       int justCheck = (int)(numTaskHost - numReadHost);
@@ -285,9 +287,20 @@ int main(int argc, const char* argv[]) {
     if (tempHost > 0)
       cout << " After Temp " << tempHost << " Read " << numReadHost
            << " raed offset " << numTaskHost << endl;
+
     c++;
 
-    cout << "Level " << c << " jump " << jump << endl;
+    cudaMemcpy(taskOffsetHost,deviceTask.taskOffset,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+    cudaMemcpy(&kl, deviceGraph.lowerBoundDegree, sizeof(ui),
+                 cudaMemcpyDeviceToHost);
+
+    zeroP =0;
+    for(ui i=0;i<TOTAL_WARPS;i++){
+      if(taskOffsetHost[(i+1)*partitionSize-1]==0)
+        zeroP ++;
+    }
+
+   cout << "Level " << c <<" kl " <<kl<<" Empty Partition " << zeroP << endl;
   }
     cudaDeviceSynchronize();
     freeGraph(deviceGraph);
@@ -298,3 +311,6 @@ int main(int argc, const char* argv[]) {
 
   return 0;
 }
+
+
+
