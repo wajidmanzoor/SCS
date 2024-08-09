@@ -299,6 +299,8 @@ ui *taskOffsetHost;
       if(taskOffsetHost[(i+1)*partitionSize-1]==0)
         zeroP ++;
     }
+    if(c==100)
+    break;
 
    cout << "Level " << c <<" kl " <<kl<<" Empty Partition " << zeroP << endl;
   }

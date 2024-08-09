@@ -423,8 +423,8 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
             if (old < sharedDegree[threadIdx.x / warpSize]) {
               result[0] = iter;
               result[1] = warpId;
-              printf("kl %u iter %u warp %u new kl %u \n", old, iter, warpId,
-                     sharedDegree[threadIdx.x / warpSize]);
+              //printf("kl %u iter %u warp %u new kl %u \n", old, iter, warpId,
+                   //  sharedDegree[threadIdx.x / warpSize]);
             }
           }
         }
@@ -469,7 +469,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
 __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
                        deviceBufferPointers B, ui lowerBoundSize,
                        ui upperBoundSize, ui pSize, ui dmax, ui jump,
-                       bool* outOfMemoryFlag, double partitionLimit,
+                       bool* outOfMemoryFlag, double copyLimit,
                        ui bufferSize, ui lastWritten,ui readLimit) {
   extern __shared__ char sharedMemory[];
   size_t sizeOffset = 0;
@@ -747,7 +747,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
 
                   }
 
-                  
+
 
                 }
               }
@@ -784,14 +784,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
             }
           }
 
-        } /*else {
-
-          if (laneId == 0) {
-            sharedCounter[threadIdx.x / warpSize] = 0;
-          }
-
-          __syncwarp();
-
+        } else {
           if (( * B.numTask > 0)) {
 
             ui bufferNum = warpId + jump;
@@ -799,20 +792,16 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
               bufferNum = bufferNum % TOTAL_WARPS;
             }
             ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
-            ui writeOffset = ((bufferNum - 1) * pSize) + T.taskOffset[(bufferNum
-        - 1) * pSize + totalTasksWrite]; ui numRead = UINT_MAX; ui readFlag = 0;
+            ui writeOffset = ((bufferNum - 1) * pSize) + T.taskOffset[(bufferNum- 1) * pSize + totalTasksWrite]; 
+            if(T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite] < (ui)(pSize*copyLimit)){
+           ui numRead1 = UINT_MAX; ui readFlag1 = 0;
             __syncwarp();
             if (laneId == 0) {
-              // printf(" DR before warpId %u iter %u laneid %u ustar Reading
-        readmutex %u num read  %u flag %u
-        \n",warpId,iter,laneId,*B.readMutex,numRead,readFlag);
 
               while (true) {
                 if (atomicCAS(B.readMutex, 0, 1) == 0) {
-                  if (( * B.numReadTasks < * B.numTask) &&
-        (T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite] <= (ui)(pSize *
-        partitionLimit))) { numRead = atomicAdd(B.numReadTasks, 1); readFlag =
-        1;
+                  if ( * B.numReadTasks < * B.numTask) { 
+                      numRead1 = atomicAdd(B.numReadTasks, 1); readFlag1 = 1;
 
                   }
 
@@ -821,18 +810,14 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
                 }
               }
             }
-            // if(laneId==0)
-            //printf(" DR after warpId %u iter %u laneid %u ustar Reading
-        readmutex %u num read  %u flag %u
-        \n",warpId,iter,laneId,*B.readMutex,numRead,readFlag);
+            __syncwarp();
+            numRead1 = __shfl_sync(0xffffffff, numRead1, 0);
+            readFlag1 = __shfl_sync(0xffffffff, readFlag1, 0);
 
-            numRead = __shfl_sync(0xffffffff, numRead, 0);
-            readFlag = __shfl_sync(0xffffffff, readFlag, 0);
-
-            if (readFlag == 1) {
+            if (readFlag1 == 1) {
               //printf("here ");
-              ui readStart = B.taskOffset[numRead];
-              ui readEnd = B.taskOffset[numRead + 1];
+              ui readStart = B.taskOffset[numRead1];
+              ui readEnd = B.taskOffset[numRead1 + 1];
               ui totalRead = readEnd - readStart;
               for (ui i = laneId; i < totalRead; i += warpSize) {
                 ui ind = readStart + i;
@@ -845,8 +830,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
                 ui degR = 0;
 
                 for (ui k = G.offset[vertex]; k < G.offset[vertex + 1]; k++) {
-                  keyTask = findIndexKernel(B.taskList, readStart, readEnd,
-        G.neighbors[k]);
+                  keyTask = findIndexKernel(B.taskList, readStart, readEnd,G.neighbors[k]);
 
                   if (keyTask != -1) {
                     if (B.statusList[keyTask] == 1) {
@@ -867,17 +851,16 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
               __syncwarp();
 
               if (laneId == 0) {
-                T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite + 1] =
-        T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite] + totalRead;
-                T.size[(bufferNum - 1) * pSize + totalTasksWrite] =
-        B.size[numRead]; T.taskOffset[bufferNum * pSize - 1]++;
+                T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite + 1] = T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite] + totalRead;
+                T.size[(bufferNum - 1) * pSize + totalTasksWrite] =B.size[numRead1]; 
+                T.taskOffset[bufferNum * pSize - 1]++;
 
               }
 
             }
-            __syncwarp();
           }
-        }*/
+          }
+        }
       } else {
         ui numTaskBuffer;
 
@@ -918,7 +901,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
         numTaskBuffer = __shfl_sync(0xFFFFFFFF, numTaskBuffer, 0);
             writeFlag1 = __shfl_sync(0xFFFFFFFF,writeFlag1 , 0);
 
-       
+
         if (writeFlag1) {
           ui bufferWriteOffset = B.taskOffset[numTaskBuffer];
 
@@ -928,14 +911,14 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
             ui status = T.statusList[ind];
 
             ui degInR;
-            //ui degInC;
+            ui degInC;
 
             B.taskList[bufferWriteOffset + i] = vertex;
             B.statusList[bufferWriteOffset + i] =
                 (vertex != ustar) ? status : 2;
 
             degInR = T.degreeInR[ind];
-            //degInC = T.degreeInC[ind];
+            degInC = T.degreeInC[ind];
 
             for (ui k = G.offset[vertex]; k < G.offset[vertex + 1]; k++) {
               if (G.neighbors[k] == ustar) {
@@ -967,9 +950,10 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
   }
 
   __syncwarp();
+  if (T.taskOffset[endIndex] == 0) {
   for(ui iterRead = 0; iterRead < readLimit; iterRead ++){
   __syncwarp();
-  if (T.taskOffset[endIndex] == 0) {
+  
     ui bufferNum = warpId + jump;
     if (bufferNum > TOTAL_WARPS) {
       bufferNum = bufferNum % TOTAL_WARPS;
@@ -977,13 +961,12 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
     ui totalTasksWrite = T.taskOffset[bufferNum * pSize - 1];
     ui writeOffset = ((bufferNum - 1) * pSize) +
                      T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite];
-
-    // ui numRead;
+    if(T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite]< (ui) (pSize*copyLimit)){
     ui numRead = UINT_MAX;
     ui readFlag = 0;
-
+    __syncwarp();
     if ((laneId == 0)) {
-      //int readTasks;
+      int readTasks;
       while (true) {
         if (atomicCAS(B.readMutex, 0, 1) == 0) {
           if (*B.numReadTasks < *B.numTask) {
@@ -1006,7 +989,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
       ui readEnd = B.taskOffset[numRead + 1];
       ui totalRead = readEnd - readStart;
 
-      
+
       for (ui i = laneId; i < totalRead; i += warpSize) {
         ui ind = readStart + i;
         ui vertex = B.taskList[ind];
@@ -1046,6 +1029,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
     }
   }
    }
+  }
 }
 
 __global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize,
