@@ -84,6 +84,41 @@ __device__ void warpBubbleSort(ui* arr, ui start, ui end, ui laneID, ui reverse 
     }
 }
 
+__device__ void selectionSort(ui* values, ui start, ui end, ui laneId) {
+  int n = end - start + 1;
+
+  for (int i = 0; i < n - 1; i++) {
+    int max_idx = i;
+    ui max_val = values[start + i];
+
+    for (int j = laneId + i + 1; j < n; j += 32) {
+      if (values[start + j] > max_val) {
+        max_val = values[start + j];
+        max_idx = j;
+      }
+    }
+
+    // Reduce to find global max within the warp
+    for (int offset = 16; offset > 0; offset /= 2) {
+      ui other_val = __shfl_down_sync(0xffffffff, max_val, offset);
+      int other_idx = __shfl_down_sync(0xffffffff, max_idx, offset);
+      if (other_val > max_val) {
+        max_val = other_val;
+        max_idx = other_idx;
+      }
+    }
+
+    // Lane 0 performs the swap
+    if (laneId == 0 && max_idx != i) {
+      ui temp_value = values[start + i];
+      values[start + i] = values[start + max_idx];
+      values[start + max_idx] = temp_value;
+    }
+
+    __syncwarp();
+  }
+}
+
 
 __device__ void warpSelectionSort(double* keys, ui* values, ui start, ui end,
                                   ui laneId) {
@@ -505,9 +540,10 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
       }
 
       __syncwarp();
-       
-          warpBubbleSort(T.doms,startIndex + start , startIndex + start + sharedCounterR[threadIdx.x / warpSize], laneId,1);
-        
+         
+
+          selectionSort(T.doms,startIndex + start , startIndex + start + sharedCounterR[threadIdx.x / warpSize], laneId);
+
           warpBubbleSort(sharedC_, (threadIdx.x / warpSize)*upperBoundSize, (threadIdx.x / warpSize)*upperBoundSize +sharedCounterC[threadIdx.x / warpSize] , laneId,0);
         currentSize = T.size[startIndex + iter];
 
@@ -526,7 +562,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
        __syncwarp();
 
       if (laneId == 0) {
-        //printf(" new ubd  %u old ubd %u \n",sharedC_[(threadIdx.x / warpSize)*upperBoundSize],sharedUBDegree[threadIdx.x / warpSize]);
+       // printf(" new ubd  %u old ubd %u \n",sharedC_[(threadIdx.x / warpSize)*upperBoundSize],sharedUBDegree[threadIdx.x / warpSize]);
 
         ui upperBoundDegreeLimit = minn(sharedC_[(threadIdx.x / warpSize)*upperBoundSize],sharedUBDegree[threadIdx.x / warpSize]);
         currentSize = T.size[startIndex + iter];
@@ -796,7 +832,7 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
               T.doms[startIndex + end - 1] = 0;
             }
           }
-         
+
           __syncwarp();
           for (ui domIndex = 0; domIndex < overFlow; domIndex++){
             __syncwarp();
