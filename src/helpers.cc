@@ -85,7 +85,7 @@ __device__ void warpBubbleSort(ui* arr, ui start, ui end, ui laneID, ui reverse 
 }
 
 __device__ void selectionSort(ui* values, ui start, ui end, ui laneId) {
-  int n = end - start + 1;
+  int n = end - start +1;
 
   for (int i = 0; i < n - 1; i++) {
     int max_idx = i;
@@ -422,7 +422,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
         ui startNeighbor = G.offset[vertex];
         ui endNeighbor = G.offset[vertex + 1];
 
-        ui hSize = T.size[startIndex + iter];
+        //ui hSize = T.size[startIndex + iter];
 
         score = 0;
         currentMinDegree = UINT_MAX;
@@ -540,10 +540,12 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
       }
 
       __syncwarp();
-         
+
 
           selectionSort(T.doms,startIndex + start , startIndex + start + sharedCounterR[threadIdx.x / warpSize], laneId);
 
+
+          __syncwarp();
           warpBubbleSort(sharedC_, (threadIdx.x / warpSize)*upperBoundSize, (threadIdx.x / warpSize)*upperBoundSize +sharedCounterC[threadIdx.x / warpSize] , laneId,0);
         currentSize = T.size[startIndex + iter];
 
@@ -562,7 +564,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
        __syncwarp();
 
       if (laneId == 0) {
-       // printf(" new ubd  %u old ubd %u \n",sharedC_[(threadIdx.x / warpSize)*upperBoundSize],sharedUBDegree[threadIdx.x / warpSize]);
+        //printf(" new ubd  %u old ubd %u \n",sharedC_[(threadIdx.x / warpSize)*upperBoundSize],sharedUBDegree[threadIdx.x / warpSize]);
 
         ui upperBoundDegreeLimit = minn(sharedC_[(threadIdx.x / warpSize)*upperBoundSize],sharedUBDegree[threadIdx.x / warpSize]);
         currentSize = T.size[startIndex + iter];
@@ -1066,14 +1068,14 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
             ui status = T.statusList[ind];
 
             ui degInR;
-            ui degInC;
+            //ui degInC;
 
             B.taskList[bufferWriteOffset + i] = vertex;
             B.statusList[bufferWriteOffset + i] =
                 (vertex != ustar) ? status : 2;
 
             degInR = T.degreeInR[ind];
-            degInC = T.degreeInC[ind];
+            //degInC = T.degreeInC[ind];
 
             for (ui k = G.offset[vertex]; k < G.offset[vertex + 1]; k++) {
               if (G.neighbors[k] == ustar) {
@@ -1121,7 +1123,6 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
     ui readFlag = 0;
     __syncwarp();
     if ((laneId == 0)) {
-      int readTasks;
       while (true) {
         if (atomicCAS(B.readMutex, 0, 1) == 0) {
           if (*B.numReadTasks < *B.numTask) {

@@ -53,6 +53,8 @@ int main(int argc, const char* argv[]) {
  cout<<"Details"<<endl;
 
   const char* filepath = argv[1];
+  cout<<"File Path = "<<filepath<<endl;
+  cout<<"QID = "<<QID<<endl;
   load_graph(filepath);
 
   Timer timer;
@@ -85,7 +87,6 @@ int main(int argc, const char* argv[]) {
   ui BLK_NUM2 = 32;
   ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
   ui initialPartitionSize = (n / INTOTAL_WARPS) + 1;
-  cout << "here " << INTOTAL_WARPS << initialPartitionSize << endl;
 
   deviceInterPointers initialTask;
   memoryAllocationinitialTask(initialTask, INTOTAL_WARPS, initialPartitionSize);
@@ -143,7 +144,7 @@ int main(int argc, const char* argv[]) {
 
   size_t sharedMemorySizeTask = 3 * WARPS_EACH_BLK * sizeof(ui) +
                                 WARPS_EACH_BLK * sizeof(int) +
-                                WARPS_EACH_BLK * sizeof(double);
+                                WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + N2*WARPS_EACH_BLK * sizeof(ui);
   size_t sharedMemorySizeExpand = WARPS_EACH_BLK * sizeof(ui);
   bool stopFlag;
   int c = 0;
@@ -166,16 +167,18 @@ int main(int argc, const char* argv[]) {
   deviceBufferPointers deviceBuffer;
   memoryAllocationBuffer(deviceBuffer, bufferSize);
 
-ui *taskOffsetHost;
 
-    taskOffsetHost = new ui[TOTAL_WARPS*partitionSize];
-    int zeroP;
   while (1) {
-    cudaMemset(deviceTask.flag, 1, sizeof(bool));
 
     ProcessTask<<<BLK_NUMS, BLK_DIM, sharedMemorySizeTask>>>(
         deviceGraph, deviceTask, N1, N2, partitionSize, dMAX, result);
     cudaDeviceSynchronize();
+
+
+
+
+
+
     jump = jump >> 1;
     if (jump == 1) {
       jump = TOTAL_WARPS >> 1;
@@ -202,7 +205,7 @@ ui *taskOffsetHost;
 
     if (outMemFlag) {
       cout << "Buffer out of memory " << endl;
-      cout << "Level " << c << " jump " << jump << endl;
+      cout << "Level " << c <<endl;
       cudaMemcpy(&kl, deviceGraph.lowerBoundDegree, sizeof(ui),
                  cudaMemcpyDeviceToHost);
       cout << "Max min degree " << kl << endl;
@@ -212,15 +215,10 @@ ui *taskOffsetHost;
     }
 
 
-
-    if (tempHost > 0)
-      cout << endl
-           << "Temp " << tempHost << " Read " << numReadHost << " Total Tasks "
-           << numTaskHost << endl;
-
     if ((stopFlag) && (numReadHost == 0) && (numTaskHost == 0)) {
       cudaMemcpy(&kl, deviceGraph.lowerBoundDegree, sizeof(ui),
                  cudaMemcpyDeviceToHost);
+      cout << "Level " << c << endl;
       cout << "Max min degree " << kl << endl;
       cout << "time = " << integer_to_string(timer.elapsed()).c_str() << endl;
       totalTime = integer_to_string(timer.elapsed()).c_str();
@@ -276,34 +274,23 @@ ui *taskOffsetHost;
 
       cudaMemset(deviceBuffer.readMutex, 0, sizeof(ui));
     }
-
-    cudaMemcpy(&tempHost, deviceBuffer.temp, sizeof(ui),
-               cudaMemcpyDeviceToHost);
-    cudaMemcpy(&numReadHost, deviceBuffer.numReadTasks, sizeof(ui),
-               cudaMemcpyDeviceToHost);
-    cudaMemcpy(&numTaskHost, deviceBuffer.numTask, sizeof(ui),
-               cudaMemcpyDeviceToHost);
-
-    if (tempHost > 0)
-      cout << " After Temp " << tempHost << " Read " << numReadHost
-           << " raed offset " << numTaskHost << endl;
-
-    c++;
-
-    cudaMemcpy(taskOffsetHost,deviceTask.taskOffset,TOTAL_WARPS*partitionSize*sizeof(ui),cudaMemcpyDeviceToHost);
+   
     cudaMemcpy(&kl, deviceGraph.lowerBoundDegree, sizeof(ui),
                  cudaMemcpyDeviceToHost);
 
-    zeroP =0;
-    for(ui i=0;i<TOTAL_WARPS;i++){
-      if(taskOffsetHost[(i+1)*partitionSize-1]==0)
-        zeroP ++;
-    }
+
+    cudaMemset(deviceTask.flag, 1, sizeof(bool));
+    cudaMemset(deviceTask.doms,0,TOTAL_WARPS*partitionSize*sizeof(ui));
+
+
+    c++;
+    
     if(c==100)
     break;
 
-   cout << "Level " << c <<" kl " <<kl<<" Empty Partition " << zeroP << endl;
+   cout << "Level " << c <<" kl " <<kl<<endl;
   }
+
     cudaDeviceSynchronize();
     freeGraph(deviceGraph);
     freeTaskPointer(deviceTask);
@@ -313,6 +300,4 @@ ui *taskOffsetHost;
 
   return 0;
 }
-
-
 

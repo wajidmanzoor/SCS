@@ -3,7 +3,7 @@
 #include <limits.h>
 #include <cuda_runtime.h>
 
-#define BLK_NUMS 128
+#define BLK_NUMS 64
 #define BLK_DIM 1024
 #define TOTAL_THREAD (BLK_NUMS*BLK_DIM)
 #define WARPSIZE 32
@@ -41,44 +41,47 @@ ui srch_ord;
 double total_Heu_time;
 bool over_time_flag;
 
-ui n;   // vertices
-ui m;   // edges
-ui N1;  // size LB
-ui N2;  // size UB
+ui n; //vertices
+ui m; //edges
+ui N1; //size LB
+ui N2; //size UB
 int QID;
 ui dMAX;
-ui kl;  // min deg
-ui ku;  // max min deg
+ui kl; //min deg
+ui ku; //max min deg
 vector<ui> H;
 ui ubD = INF;
 
-ui *pstart;  // neighbors offset
-ui *edges;   // neighbors
-ui *peel_sequence;
-ui *degree;
-ui *core;
-ui *q_dist;
+ui * pstart; //neighbors offset
+ui * edges; //neighbors
+ui * peel_sequence;
+ui * degree;
+ui * core;
+ui * q_dist;
 
 vector<ui> G0;
-ui *G0_edges;
-ui *G0_x;
-ui *G0_deg;
+ui * G0_edges;
+ui * G0_x;
+ui * G0_deg;
 
 vector<ui> VI;
 vector<ui> VIVR;
-bool *inVI;
-bool *inVR;
-ui *degVI;
-ui *degVIVR;
+bool * inVI;
+bool * inVR;
+ui * degVI;
+ui * degVIVR;
 
 vector<ui> NEI;
-ui *inNEI;
-double *NEI_score;
+ui * inNEI;
+double * NEI_score;
 vector<vector<ui>> combs;
 
 ui verbose;
 
-bool cmp_of_domS(const ui x, const ui y) { return degVIVR[x] > degVIVR[y]; }
+bool cmp_of_domS(const ui x, const ui y)
+{
+    return degVIVR[x]>degVIVR[y];
+}
 
 double time_new2VI;
 double time_del_from_VR;
@@ -86,48 +89,53 @@ double time_find_NEI;
 double time_find_usatr;
 double time_comp_ub;
 
-typedef struct {
-  ui *offset;
-  ui *neighbors;
-  ui *degree;
-  ui *distance;
-  ui *core;
-  ui *lowerBoundDegree;
+typedef struct  {
+    ui *offset;
+    ui *neighbors;
+    ui *degree;
+    ui *distance;
+    ui *core;
+    ui *lowerBoundDegree;
 
-} deviceGraphPointers;
 
-typedef struct {
-  ui *taskList;
-  ui *statusList;
-  ui *taskOffset;
-  ui *size;
-  ui *degreeInR;
-  ui *degreeInC;
-  int *ustar;
-  ui *doms;
-  double *cons;
-  bool *flag;
+}deviceGraphPointers;
 
-} deviceTaskPointers;
+typedef struct  {
+     ui *taskList;
+     ui *statusList;
+     ui *taskOffset;
+     ui *size;
+     ui *degreeInR;
+     ui *degreeInC;
+     int *ustar;
+     ui *doms;
+     double *cons;
+     bool *flag;
 
-typedef struct {
-  ui *taskOffset;
-  ui *taskList;
-  ui *statusList;
-  ui *degreeInC;
-  ui *degreeInR;
-  ui *size;
-  ui *numTask;
-  ui *temp;
-  ui *numReadTasks;
-  ui *writeMutex;
-  ui *readMutex;
 
-} deviceBufferPointers;
+
+
+}deviceTaskPointers;
 
 typedef struct {
-  ui *initialTaskList;
-  ui *globalCounter;
-  ui *entries;
 
-} deviceInterPointers;
+ui *taskOffset;
+ui *taskList;
+ui *statusList;
+ui *degreeInC;
+ui *degreeInR;
+ui  *size;
+ui *numTask;
+ui *temp;
+ui *numReadTasks;
+ui *writeMutex;
+ui *readMutex;
+
+}deviceBufferPointers;
+
+typedef struct  {
+     ui *initialTaskList;
+     ui *globalCounter;
+     ui *entries;
+
+}deviceInterPointers;
