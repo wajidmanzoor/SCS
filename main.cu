@@ -142,6 +142,16 @@ int main(int argc, const char* argv[]) {
                                        initialPartitionSize, QID);
   cudaDeviceSynchronize();
 
+  thrust::inclusive_scan(thrust::device_ptr<ui>(deviceGraph.newOffset),
+                       thrust::device_ptr<ui>(deviceGraph.newOffset + n+1),
+                       thrust::device_ptr<ui>(deviceGraph.newOffset));
+
+  cudaDeviceSynchronize();
+  size_t sharedMemoryUpdateNeigh = WARPS_EACH_BLK * sizeof(ui);
+
+  NeighborUpdate<<<BLK_NUM2, BLK_DIM2,sharedMemoryUpdateNeigh>>>(deviceGraph,n,INTOTAL_WARPS);
+  cudaDeviceSynchronize();
+
   size_t sharedMemorySizeTask = 3 * WARPS_EACH_BLK * sizeof(ui) +
                                 WARPS_EACH_BLK * sizeof(int) +
                                 WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + N2*WARPS_EACH_BLK * sizeof(ui);
@@ -274,7 +284,7 @@ int main(int argc, const char* argv[]) {
 
       cudaMemset(deviceBuffer.readMutex, 0, sizeof(ui));
     }
-   
+
     cudaMemcpy(&kl, deviceGraph.lowerBoundDegree, sizeof(ui),
                  cudaMemcpyDeviceToHost);
 
@@ -284,7 +294,7 @@ int main(int argc, const char* argv[]) {
 
 
     c++;
-    
+
     if(c==100)
     break;
 
@@ -300,4 +310,3 @@ int main(int argc, const char* argv[]) {
 
   return 0;
 }
-

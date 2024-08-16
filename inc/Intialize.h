@@ -96,6 +96,8 @@ typedef struct  {
     ui *distance;
     ui *core;
     ui *lowerBoundDegree;
+    ui *newNeighbors;
+  ui *newOffset;
 
 
 }deviceGraphPointers;

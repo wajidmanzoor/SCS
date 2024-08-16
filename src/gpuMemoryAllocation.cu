@@ -1,6 +1,5 @@
 #include "../inc/ListLinearHeap.h"
 
-
 inline void chkerr(cudaError_t code)
 {
     if (code != cudaSuccess)
@@ -30,6 +29,12 @@ void memoryAllocationGraph(deviceGraphPointers &G){
 
     chkerr(cudaMalloc((void**)&(G.lowerBoundDegree), sizeof(ui)));
     chkerr(cudaMemcpy(G.lowerBoundDegree, &kl,sizeof(ui),cudaMemcpyHostToDevice));
+     chkerr(cudaMalloc((void **)&(G.newNeighbors), (2 * m) * sizeof(ui)));
+
+    chkerr(cudaMalloc((void **)&(G.newOffset), (n + 1) * sizeof(ui)));
+    chkerr(cudaMemset(G.newOffset,0, (n + 1) * sizeof(ui)));
+
+
 }
 
 void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps,ui psize){
@@ -107,6 +112,8 @@ void freeGraph(deviceGraphPointers &p){
     chkerr(cudaFree(p.distance));
     chkerr(cudaFree(p.core));
     chkerr(cudaFree(p.lowerBoundDegree));
+    chkerr(cudaFree(p.newOffset));
+    chkerr(cudaFree(p.newNeighbors));
 
 }
 

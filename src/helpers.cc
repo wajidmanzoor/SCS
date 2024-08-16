@@ -207,7 +207,7 @@ __global__ void initialReductionRules(deviceGraphPointers G,
 }
 
 __global__ void CompressTask(deviceGraphPointers G, deviceInterPointers P,
-                             deviceTaskPointers T, ui pSize, ui queryVertex) {
+  deviceTaskPointers T, ui pSize, ui queryVertex) {
   ui idx = blockIdx.x * blockDim.x + threadIdx.x;
   int warpId = idx / warpSize;
   int laneId = idx % warpSize;
@@ -228,6 +228,8 @@ __global__ void CompressTask(deviceGraphPointers G, deviceInterPointers P,
     int vertex = P.initialTaskList[start + i];
     T.taskList[writeOffset + i] = vertex;
     T.statusList[writeOffset + i] = (vertex == queryVertex) ? 1 : 0;
+
+    ui totalNeigh = 0;
     ui nStart = G.offset[vertex];
     ui nEnd = G.offset[vertex + 1];
     ui degInR = 0;
@@ -239,10 +241,61 @@ __global__ void CompressTask(deviceGraphPointers G, deviceInterPointers P,
       if (G.neighbors[k] == queryVertex) {
         degInc++;
       }
+      if (G.degree[G.neighbors[k]] != 0) {
+        totalNeigh++;
+      }
     }
+    G.newOffset[vertex + 1] = totalNeigh;
+    //printf("vertex %u offset %u \n",vertex, G.newOffset[vertex+1]);
 
     T.degreeInR[writeOffset + i] = degInR;
     T.degreeInC[writeOffset + i] = degInc;
+  }
+}
+
+__global__ void NeighborUpdate(deviceGraphPointers G, ui n, ui INTOTAL_WARPS) {
+
+  extern __shared__ ui sharedMem[];
+  ui * localCounter = sharedMem;
+
+  ui idx = blockIdx.x * blockDim.x + threadIdx.x;
+  int warpId = idx / warpSize;
+  int laneId = idx % warpSize;
+
+  for (ui i = warpId; i < n; i += INTOTAL_WARPS) {
+    if (laneId == 0) {
+      localCounter[threadIdx.x / warpSize] = 0;
+    }
+    __syncwarp();
+    ui degree = G.degree[i];
+
+    if (degree > 0) {
+      ui writeOffset = G.newOffset[i];
+
+      ui start = G.offset[i];
+      ui end = G.offset[i + 1];
+      ui total = end - start;
+      ui neighbor;
+      ui neighborDegree;
+      for (ui j = laneId; j < total; j += warpSize) {
+        neighbor = G.neighbors[start + j];
+        neighborDegree = G.degree[neighbor];
+        if (neighborDegree > 0) {
+          ui loc = atomicAdd( & localCounter[threadIdx.x / warpSize], 1);
+          G.newNeighbors[writeOffset + loc] = neighbor;
+
+          //printf("wrap %d laneId %d vertex %u degree %u offset %u  n %u neighbor %u loc %u  new neighbor %u \n",i,laneId,vertex,degree,writeOffset,n,neighbor,writeOffset+loc,G.newNeighbors[writeOffset+loc]);
+
+        }
+
+      }
+      __syncwarp();
+      if (laneId == 0) {
+        localCounter[threadIdx.x / warpSize] = 0;
+      }
+
+    }
+    __syncwarp();
   }
 }
 
@@ -325,8 +378,8 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
         ui degR = T.degreeInR[ind];
         ui degC = T.degreeInC[ind];
         ui hSize = T.size[startIndex + iter];
-        ui startNeighbor = G.offset[vertex];
-        ui endNeighbor = G.offset[vertex + 1];
+        ui startNeighbor = G.newOffset[vertex];
+        ui endNeighbor = G.newOffset[vertex + 1];
         ui ubD = upperBoundSize - 1;
         ui kl = *G.lowerBoundDegree;
 
@@ -366,7 +419,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
             T.degreeInC[ind] = 0;
             for (int j = startNeighbor; j < endNeighbor; j++) {
               resultIndex = findIndexKernel(T.taskList, startIndex + start,
-                                            startIndex + end, G.neighbors[j]);
+                                            startIndex + end, G.newNeighbors[j]);
               if (resultIndex != -1) {
                 if (T.degreeInR[resultIndex] != 0) {
                   atomicSub(&T.degreeInR[resultIndex], 1);
@@ -386,16 +439,16 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
 
           for (int j = startNeighbor; j < endNeighbor; j++) {
             resultIndex = findIndexKernel(T.taskList, startIndex + start,
-                                          startIndex + end, G.neighbors[j]);
+                                          startIndex + end, G.newNeighbors[j]);
             if (resultIndex != -1) {
               if ((atomicCAS(&T.statusList[resultIndex], 0, 1) == 0) &&
                   (atomicAdd(&T.size[startIndex + iter], 0) < upperBoundSize)) {
                 atomicAdd(&T.size[startIndex + iter], 1);
                 neig = T.taskList[resultIndex];
 
-                for (int k = G.offset[neig]; k < G.offset[neig + 1]; k++) {
+                for (int k = G.newOffset[neig]; k < G.newOffset[neig + 1]; k++) {
                   resInd = findIndexKernel(T.taskList, startIndex + start,
-                                           startIndex + end, G.neighbors[k]);
+                                           startIndex + end, G.newNeighbors[k]);
                   if (resInd != -1) {
                     atomicAdd(&T.degreeInC[resInd], 1);
                     if (T.degreeInR[resInd] != 0) {
@@ -419,8 +472,8 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
         ui vertex = T.taskList[ind];
         ui status = T.statusList[ind];
 
-        ui startNeighbor = G.offset[vertex];
-        ui endNeighbor = G.offset[vertex + 1];
+        ui startNeighbor = G.newOffset[vertex];
+        ui endNeighbor = G.newOffset[vertex + 1];
 
         //ui hSize = T.size[startIndex + iter];
 
@@ -433,7 +486,7 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
         if (status == 0) {
           for (int j = startNeighbor; j < endNeighbor; j++) {
             resultIndex = findIndexKernel(T.taskList, startIndex + start,
-                                          startIndex + end, G.neighbors[j]);
+                                          startIndex + end, G.newNeighbors[j]);
             if (resultIndex != -1) {
               if (T.statusList[resultIndex] == 1) {
                 if (T.degreeInC[resultIndex] != 0) {
@@ -681,8 +734,8 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
             degInR = T.degreeInR[ind];
             degInC = T.degreeInC[ind];
 
-            for (ui k = G.offset[vertex]; k < G.offset[vertex + 1]; k++) {
-              if (G.neighbors[k] == ustar) {
+            for (ui k = G.newOffset[vertex]; k < G.newOffset[vertex + 1]; k++) {
+              if (G.newNeighbors[k] == ustar) {
                 T.degreeInC[ind]++;
 
                 if (degInR != 0) {
@@ -706,10 +759,10 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
                 T.degreeInR[ind] = 0;
                 T.degreeInC[writeOffset + loc] = 0;
                 T.degreeInR[writeOffset + loc] = 0;
-                for (int j = G.offset[vertex]; j < G.offset[vertex + 1]; j++) {
+                for (int j = G.newOffset[vertex]; j < G.newOffset[vertex + 1]; j++) {
                   resultIndex =
                       findIndexKernel(T.taskList, startIndex + start,
-                                      startIndex + end, G.neighbors[j]);
+                                      startIndex + end, G.newNeighbors[j]);
                   if (resultIndex != -1) {
                     if (T.degreeInR[resultIndex] != 0) {
                       atomicSub(&T.degreeInR[resultIndex], 1);
@@ -730,11 +783,11 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
                i += warpSize) {
             ui ind = writeOffset + i;
             ui vertex = T.taskList[ind];
-            for (int j = G.offset[vertex]; j < G.offset[vertex + 1]; j++) {
+            for (int j = G.newOffset[vertex]; j < G.newOffset[vertex + 1]; j++) {
               resultIndex = findIndexKernel(
                   T.doms, startIndex + start,
                   startIndex + start + T.doms[startIndex + end - 1],
-                  G.neighbors[j]);
+                  G.newNeighbors[j]);
               if (resultIndex != -1) {
                 if (T.degreeInR[ind] != 0) {
                   T.degreeInR[ind]--;
@@ -802,11 +855,11 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
               T.degreeInC[dstIndex] = T.degreeInC[srcIndex];
               T.degreeInR[dstIndex] = T.degreeInR[srcIndex];
               if (T.statusList[dstIndex] != 2) {
-                for (ui k = G.offset[vertex]; k < G.offset[vertex + 1]; k++) {
-                  if (G.neighbors[k] == ustar) {
+                for (ui k = G.newOffset[vertex]; k < G.newOffset[vertex + 1]; k++) {
+                  if (G.newNeighbors[k] == ustar) {
                     T.degreeInC[dstIndex]++;
                   }
-                  if (G.neighbors[k] == domVertex) {
+                  if (G.newNeighbors[k] == domVertex) {
                     T.degreeInC[dstIndex]++;
                   }
                 }
@@ -851,11 +904,11 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
                 ui dC = 0;
                 ui dR = 0;
                 int neighKey;
-                for (ui k = G.offset[vertex]; k < G.offset[vertex + 1]; k++) {
+                for (ui k = G.newOffset[vertex]; k < G.newOffset[vertex + 1]; k++) {
                   neighKey = findIndexKernel(
                       T.taskList, domsWriteOffset + (totalWrite * domIndex),
                       domsWriteOffset + (totalWrite * (domIndex + 1)),
-                      G.neighbors[k]);
+                      G.newNeighbors[k]);
                   if (neighKey != -1) {
                     if (T.statusList[neighKey] == 0) {
                       dR++;
@@ -986,8 +1039,8 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
                 ui degC = 0;
                 ui degR = 0;
 
-                for (ui k = G.offset[vertex]; k < G.offset[vertex + 1]; k++) {
-                  keyTask = findIndexKernel(B.taskList, readStart, readEnd,G.neighbors[k]);
+                for (ui k = G.newOffset[vertex]; k < G.newOffset[vertex + 1]; k++) {
+                  keyTask = findIndexKernel(B.taskList, readStart, readEnd,G.newNeighbors[k]);
 
                   if (keyTask != -1) {
                     if (B.statusList[keyTask] == 1) {
@@ -1077,8 +1130,8 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
             degInR = T.degreeInR[ind];
             //degInC = T.degreeInC[ind];
 
-            for (ui k = G.offset[vertex]; k < G.offset[vertex + 1]; k++) {
-              if (G.neighbors[k] == ustar) {
+            for (ui k = G.newOffset[vertex]; k < G.newOffset[vertex + 1]; k++) {
+              if (G.newNeighbors[k] == ustar) {
                 T.degreeInC[ind]++;
 
                 if (degInR != 0) {
@@ -1157,9 +1210,9 @@ __global__ void Expand(deviceGraphPointers G, deviceTaskPointers T,
         ui degC = 0;
         ui degR = 0;
 
-        for (ui k = G.offset[vertex]; k < G.offset[vertex + 1]; k++) {
+        for (ui k = G.newOffset[vertex]; k < G.newOffset[vertex + 1]; k++) {
           keyTask =
-              findIndexKernel(B.taskList, readStart, readEnd, G.neighbors[k]);
+              findIndexKernel(B.taskList, readStart, readEnd, G.newNeighbors[k]);
 
           if (keyTask != -1) {
             if (B.statusList[keyTask] == 1) {
@@ -1225,8 +1278,8 @@ __global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize,
         ui status = T.statusList[ind];
         ui degC = T.degreeInC[ind];
 
-        ui startNeighbor = G.offset[vertex];
-        ui endNeighbor = G.offset[vertex + 1];
+        ui startNeighbor = G.newOffset[vertex];
+        ui endNeighbor = G.newOffset[vertex + 1];
         bool is_doms = false;
         double score = 0;
 
@@ -1234,12 +1287,12 @@ __global__ void FindDoms(deviceGraphPointers G, deviceTaskPointers T, ui pSize,
           is_doms = true;
           ui neighbor;
           for (int j = startNeighbor; j < endNeighbor; j++) {
-            neighbor = G.neighbors[j];
+            neighbor = G.newNeighbors[j];
 
             bool found = false;
             if (neighbor != ustar) {
-              for (ui k = G.offset[ustar]; k < G.offset[ustar + 1]; k++) {
-                if (neighbor == G.neighbors[k]) {
+              for (ui k = G.newOffset[ustar]; k < G.newOffset[ustar + 1]; k++) {
+                if (neighbor == G.newNeighbors[k]) {
                   found = true;
                   break;
                 }
