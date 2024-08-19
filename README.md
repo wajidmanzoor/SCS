@@ -46,7 +46,7 @@ Find subgraph $H$ of $G$ that satisfies the bellow conditions
     - One warp accesses the buffer offset to obtain locations for reading, releasing the lock after obtaining the locations.
 
    - **Overall Optimization**: Throughout the process, the algorithm optimizes task handling by removing tasks without relevant `ustar` and enabling warps with no tasks to process to read from the buffer. This approach ensures that the algorithm efficiently distributes tasks and reduces the overall number of levels in the search process, leading to faster and more accurate community detection.
-**2. branchPrunNeigRem:**
+**2. branchPrun:**
     Same as the (1) except removing the verticies from neighbor list
 **3. New Version Implementation**
    - **Reduction Rules**: Implemented all reduction rules.
