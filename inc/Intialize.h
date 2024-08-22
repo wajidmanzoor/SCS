@@ -18,7 +18,7 @@ int MaxTime = 1800;
 ui domBr;
 ui binBr;
 
-double StartTime = 0.0;
+
 
 bool EXE_heu2;
 bool EXE_heu3;
@@ -43,14 +43,10 @@ bool over_time_flag;
 
 ui n; //vertices
 ui m; //edges
-ui N1; //size LB
-ui N2; //size UB
-int QID;
-ui dMAX;
-ui kl; //min deg
-ui ku; //max min deg
+
+ui totalQuerry;
 vector<ui> H;
-ui ubD = INF;
+
 
 ui * pstart; //neighbors offset
 ui * edges; //neighbors
@@ -76,6 +72,11 @@ ui * inNEI;
 double * NEI_score;
 vector<vector<ui>> combs;
 
+vector<queryInfo> message_queue;
+mutex message_queue_mutex;
+
+vector<queryData> queries;
+
 ui verbose;
 
 bool cmp_of_domS(const ui x, const ui y)
@@ -92,15 +93,18 @@ double time_comp_ub;
 typedef struct  {
     ui *offset;
     ui *neighbors;
+    ui *core;
+    ui *degree;
+
+}deviceGraphGenPointers;
+
+typedef struct {
     ui *degree;
     ui *distance;
-    ui *core;
     ui *lowerBoundDegree;
     ui *newNeighbors;
-  ui *newOffset;
-
-
-}deviceGraphPointers;
+    ui *newOffset;
+}deviceGraphPointer;
 
 typedef struct  {
      ui *taskList;
@@ -113,6 +117,7 @@ typedef struct  {
      ui *doms;
      double *cons;
      bool *flag;
+     ui *queryIndicator;
 
 
 
@@ -132,6 +137,9 @@ ui *temp;
 ui *numReadTasks;
 ui *writeMutex;
 ui *readMutex;
+ui *queryIndicator
+
+
 
 }deviceBufferPointers;
 
@@ -141,3 +149,34 @@ typedef struct  {
      ui *entries;
 
 }deviceInterPointers;
+
+struct queryData
+{
+	ui N1; //size LB
+     ui N2; //size UB
+     int QID;
+     ui kl; //min deg
+     ui ku; //max min deg
+     ui ubD;
+     double StartTime = 0.0;
+     Timer timer;
+     ui isHeu;
+     ui limitDoms;
+	queryData(){
+
+     }
+	queryData(ui N1, ui N2, int QID,ui isHeu,ui limitDoms){
+          this->N1 = N1;
+          this->N2 = N2;
+          this->QID = QID;
+          this->isHeu = isHeu;
+          this->limitDoms = limitDoms;
+          this->kl = 0;
+          this->ku = miv(core[QID], N2 - 1);
+          this->ubD = 0;
+
+
+     }
+
+
+}

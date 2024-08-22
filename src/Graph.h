@@ -107,9 +107,8 @@ void core_decomposition_linear_list() {
   delete linear_heap;
 }
 
-void cal_query_dist() {
+void cal_query_dist(ui QID) {
   // Description : Intialize querry distance array with INF
-  q_dist = new ui[n];
   for (ui i = 0; i < n; i++) q_dist[i] = INF;
 
   // Description: Queue that stores vertices

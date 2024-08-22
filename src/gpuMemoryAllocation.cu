@@ -10,7 +10,7 @@ inline void chkerr(cudaError_t code)
 }
 
 
-void memoryAllocationGraph(deviceGraphPointers &G){
+void memoryAllocationGenGraph(deviceGraphGenPointers &G){
     chkerr(cudaMalloc((void**)&(G.core), n * sizeof(ui)));
     chkerr(cudaMemcpy(G.core, core, n * sizeof(ui), cudaMemcpyHostToDevice));
 
@@ -24,27 +24,24 @@ void memoryAllocationGraph(deviceGraphPointers &G){
     chkerr(cudaMalloc((void**)&(G.neighbors), (2*m) * sizeof(ui)));
     chkerr(cudaMemcpy(G.neighbors, edges, (2*m) * sizeof(ui), cudaMemcpyHostToDevice));
 
-    chkerr(cudaMalloc((void**)&(G.distance), n * sizeof(ui)));
-    chkerr(cudaMemcpy(G.distance, q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
+}
 
-    chkerr(cudaMalloc((void**)&(G.lowerBoundDegree), sizeof(ui)));
-    chkerr(cudaMemcpy(G.lowerBoundDegree, &kl,sizeof(ui),cudaMemcpyHostToDevice));
-     chkerr(cudaMalloc((void **)&(G.newNeighbors), (2 * m) * sizeof(ui)));
-
-    chkerr(cudaMalloc((void **)&(G.newOffset), (n + 1) * sizeof(ui)));
-    chkerr(cudaMemset(G.newOffset,0, (n + 1) * sizeof(ui)));
-
-
+void memeoryAllocationGraph(deviceGraphPointer &G, ui totalQueries){
+    chkerr(cudaMalloc((void**)&(G.degree),totalQueries* n * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.distance),totalQueries* n * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.lowerBoundDegree), totalQueries*sizeof(ui)));
+    chkerr(cudaMalloc((void **)&(G.newNeighbors), totalQueries*(2 * m) * sizeof(ui)));
+    chkerr(cudaMalloc((void **)&(G.newOffset), totalQueries*(n + 1) * sizeof(ui)));
+    chkerr(cudaMemset(G.newOffset,0, totalQueries*(n + 1) * sizeof(ui)));
 }
 
 void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps,ui psize){
     chkerr(cudaMalloc((void**)&(p.initialTaskList), numWraps*psize*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.globalCounter), sizeof(ui)));
-    chkerr(cudaMemset(p.globalCounter,0,sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.entries),numWraps* sizeof(ui)));
 }
 
-void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize){
+void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui totalQueries){
     chkerr(cudaMalloc((void**)&(p.taskList), numWraps*pSize*sizeof(ui)));
     chkerr(cudaMalloc((void**)&p.statusList, numWraps*pSize*sizeof(ui)));
 
@@ -62,8 +59,9 @@ void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize){
      chkerr(cudaMalloc((void**)&(p.doms), numWraps*pSize*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.cons), numWraps*pSize*sizeof(double)));
 
+    chkerr(cudaMalloc((void**)&(p.queryIndicator), numWraps*pSize*sizeof(ui)));
 
-    chkerr(cudaMalloc((void**)&(p.flag),sizeof(bool)));
+    chkerr(cudaMalloc((void**)&(p.flag),totalQueries*sizeof(bool)));
 
 
 }
@@ -98,6 +96,7 @@ void memoryAllocationBuffer(deviceBufferPointers &p,ui bufferSize){
 
     chkerr(cudaMalloc((void**)&(p.readMutex), sizeof(ui)));
     chkerr(cudaMemset(p.readMutex,0,sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(p.queryIndicator), numWraps*pSize*sizeof(ui)));
 
 
 
@@ -105,15 +104,12 @@ void memoryAllocationBuffer(deviceBufferPointers &p,ui bufferSize){
 
 }
 
-void freeGraph(deviceGraphPointers &p){
+void freeGraph(deviceGraphGenPointers &p){
     chkerr(cudaFree(p.offset));
     chkerr(cudaFree(p.neighbors));
     chkerr(cudaFree(p.degree));
-    chkerr(cudaFree(p.distance));
     chkerr(cudaFree(p.core));
-    chkerr(cudaFree(p.lowerBoundDegree));
-    chkerr(cudaFree(p.newOffset));
-    chkerr(cudaFree(p.newNeighbors));
+    
 
 }
 

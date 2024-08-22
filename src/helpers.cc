@@ -195,10 +195,10 @@ __device__ void warpSelectionSort(double* keys, ui* values, ui start, ui end,
   }
 }
 
-__global__ void initialReductionRules(deviceGraphPointers G,
+__global__ void initialReductionRules(deviceGraphGenPointers G,deviceGraphPointers G_,
                                       deviceInterPointers P, ui size,
                                       ui upperBoundDistance,
-                                      ui lowerBoundDegree, ui pSize) {
+                                      ui lowerBoundDegree, ui pSize, ui queryId) {
 
   /**
    * Applies initial reduction rules based on core value and distance from Query vertex to filter vertices.
@@ -248,12 +248,12 @@ __global__ void initialReductionRules(deviceGraphPointers G,
   for (ui i = laneId; i < total; i += warpSize) {
     ui vertex = start + i;
     if ((G.core[vertex] > lowerBoundDegree) &&
-        (G.distance[vertex] <= upperBoundDistance)) {
+        (G_.distance[(queryId*size)+vertex] <= upperBoundDistance)) {
       ui loc = atomicAdd(&local_counter[threadIdx.x / warpSize], 1);
       P.initialTaskList[loc + writeOffset] = vertex;
 
     } else {
-      G.degree[vertex] = 0;
+      G_.degree[(queryId*size) + vertex] = 0;
     }
   }
 
@@ -265,8 +265,8 @@ __global__ void initialReductionRules(deviceGraphPointers G,
   }
 }
 
-__global__ void CompressTask(deviceGraphPointers G, deviceInterPointers P,
-  deviceTaskPointers T, ui pSize, ui queryVertex) {
+__global__ void CompressTask(deviceGraphPointers G, deviceGraphPointers G_, deviceInterPointers P,
+  deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size ) {
 
   /**
    * Compresses verticies of a task. Updates the status of each vertex (whether it is in R (0) or C (1)), 
@@ -299,6 +299,7 @@ __global__ void CompressTask(deviceGraphPointers G, deviceInterPointers P,
   ui start = warpId * pSize;
   int temp = warpId - 1;
   ui total = P.entries[warpId];
+  // add some of mechanism 
   ui writeOffset = 0;
   if (idx == 0) {
     T.size[0] = 1;
@@ -319,17 +320,17 @@ __global__ void CompressTask(deviceGraphPointers G, deviceInterPointers P,
     ui degInR = 0;
     ui degInc = 0;
     for (ui k = nStart; k < nEnd; k++) {
-      if ((G.neighbors[k] != queryVertex) && (G.degree[G.neighbors[k]] != 0)) {
+      if ((G.neighbors[k] != queryVertex) && (G_.degree[(queryId*size)+G.neighbors[k]] != 0)) {
         degInR++;
       }
       if (G.neighbors[k] == queryVertex) {
         degInc++;
       }
-      if (G.degree[G.neighbors[k]] != 0) {
+      if (G_.degree[(queryId*size)+G.neighbors[k]] != 0) {
         totalNeigh++;
       }
     }
-    G.newOffset[vertex + 1] = totalNeigh;
+    G_.newOffset[(queryId*(size+1))+ vertex + 1] = totalNeigh;
     //printf("vertex %u offset %u \n",vertex, G.newOffset[vertex+1]);
 
     T.degreeInR[writeOffset + i] = degInR;
@@ -337,7 +338,7 @@ __global__ void CompressTask(deviceGraphPointers G, deviceInterPointers P,
   }
 }
 
-__global__ void NeighborUpdate(deviceGraphPointers G, ui n, ui INTOTAL_WARPS) {
+__global__ void NeighborUpdate(deviceGraphPointers G, deviceGraphPointers G_, ui INTOTAL_WARPS,ui queryId, ui size, ui totalEdges ) {
   /**
    * Generate a the neighbor list for each vertex in the graph after the after vertex elimination..
    *
@@ -365,15 +366,15 @@ __global__ void NeighborUpdate(deviceGraphPointers G, ui n, ui INTOTAL_WARPS) {
   int warpId = idx / warpSize;
   int laneId = idx % warpSize;
 
-  for (ui i = warpId; i < n; i += INTOTAL_WARPS) {
+  for (ui i = warpId; i < size; i += INTOTAL_WARPS) {
     if (laneId == 0) {
       localCounter[threadIdx.x / warpSize] = 0;
     }
     __syncwarp();
-    ui degree = G.degree[i];
+    ui degree = G_.degree[(queryId*size) + i];
 
     if (degree > 0) {
-      ui writeOffset = G.newOffset[i];
+      ui writeOffset = G_.newOffset[(queryId*(size+1)) + i];
 
       ui start = G.offset[i];
       ui end = G.offset[i + 1];
@@ -382,10 +383,10 @@ __global__ void NeighborUpdate(deviceGraphPointers G, ui n, ui INTOTAL_WARPS) {
       ui neighborDegree;
       for (ui j = laneId; j < total; j += warpSize) {
         neighbor = G.neighbors[start + j];
-        neighborDegree = G.degree[neighbor];
+        neighborDegree = G_.degree[(queryId*size) + neighbor];
         if (neighborDegree > 0) {
           ui loc = atomicAdd( & localCounter[threadIdx.x / warpSize], 1);
-          G.newNeighbors[writeOffset + loc] = neighbor;
+          G_.newNeighbors[(2*totalEdges*queryId) + writeOffset + loc] = neighbor;
 
           //printf("wrap %d laneId %d vertex %u degree %u offset %u  n %u neighbor %u loc %u  new neighbor %u \n",i,laneId,vertex,degree,writeOffset,n,neighbor,writeOffset+loc,G.newNeighbors[writeOffset+loc]);
 
@@ -404,7 +405,7 @@ __global__ void NeighborUpdate(deviceGraphPointers G, ui n, ui INTOTAL_WARPS) {
 
 __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
                             ui lowerBoundSize, ui upperBoundSize, ui pSize,
-                            ui dmax, ui* result) {
+                            ui dmax) {
   /**
    * Applies all three reduction rules and updates the degree of each vertex in a task.
    * computes the minimum degree or all tasks and updates the global maximum minimum degree.
@@ -758,12 +759,6 @@ __global__ void ProcessTask(deviceGraphPointers G, deviceTaskPointers T,
             ui old = atomicMax(G.lowerBoundDegree,
                                sharedDegree[threadIdx.x / warpSize]);
 
-            if (old < sharedDegree[threadIdx.x / warpSize]) {
-              result[0] = iter;
-              result[1] = warpId;
-              //printf("kl %u iter %u warp %u new kl %u \n", old, iter, warpId,
-                   //  sharedDegree[threadIdx.x / warpSize]);
-            }
           }
         }
         int writeOffset = warpId * pSize;

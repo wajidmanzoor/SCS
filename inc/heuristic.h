@@ -4,7 +4,7 @@
 // Start from query vertex as H
 // It greadily add the vertex from neighbors of H, that will have the higest
 // degree if added to H. and so on
-void heu2(vector<ui>& H2, ui& kl2) {
+void heu2(vector<ui>& H2, ui& kl2,ui N1,ui N2, ui QID) {
   // Description: Final result H and max min degree
   H2.clear();
   kl2 = 0;
@@ -121,7 +121,7 @@ void heu2(vector<ui>& H2, ui& kl2) {
 // Description : Greedy Algorithm to get the intial fesible solution H
 // Same as heuristic algorithm, except the vertex with higest connection score
 // is added.
-void heu3(vector<ui>& H3, ui& kl3) {
+void heu3(vector<ui>& H3, ui& kl3,ui N1,ui N2, ui QID) {
   // Description: Final result H and max min degree
   H3.clear();
   kl3 = 0;
@@ -238,7 +238,7 @@ void heu3(vector<ui>& H3, ui& kl3) {
 }
 
 // Confusion : Didn't understand the logic
-void heu4(vector<ui>& H4, ui& kl4) {
+void heu4(vector<ui>& H4, ui& kl4,ui N1,ui N2, ui QID) {
   H4.clear();
   kl4 = 0;
 
@@ -317,19 +317,21 @@ void heu4(vector<ui>& H4, ui& kl4) {
 
 // Description: Calls multiple heusteric algorithms and choses the one what
 // returns max min degree
-void CSSC_heu() {
+ui CSSC_heu(ui queryId) {
   H.clear();
-  kl = 0;
-
+  ui kl = queries[queryId].kl;
+  ui N1 = queries[queryId].N1;
+  ui N2 = queries[queryId].N2;
+  ui QID = queries[queryId].QID;
   vector<ui> H2;
   ui kl2 = 0;
-  heu2(H2, kl2);
+  heu2(H2, kl2,N1,N2,  QID);
   vector<ui> H3;
   ui kl3 = 0;
-  heu3(H3, kl3);
+  heu3(H3, kl3,N1,N2,  QID);
   vector<ui> H4;
   ui kl4 = 0;
-  heu4(H4, kl4);
+  heu4(H4, kl4,N1,N2,  QID);
   if (kl4 >= kl3 && kl4 >= kl2) {
     H = H4;
     kl = kl4;
@@ -342,4 +344,5 @@ void CSSC_heu() {
       kl = kl2;
     }
   }
+  queries[queryId].kl = kl;
 }

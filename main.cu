@@ -2,6 +2,8 @@
 #include <sys/stat.h>
 #include <iomanip>
 #include <sstream>
+#include <thread>
+#include <mutex>
 
 #include <thrust/copy.h>
 #include <thrust/device_ptr.h>
@@ -11,6 +13,123 @@
 #include "./inc/heuristic.h"
 #include "./src/gpuMemoryAllocation.cu"
 #include "./src/helpers.cc"
+#include "./ipc/buffer.h"
+#include "./ipc/msgtool.h"
+
+
+
+
+
+oid listen_for_messages() {
+
+    msg_queue_server server('g'); 
+    long type = 1;
+    while (true) {
+        if (server.recv_msg(type)) {
+            char* msg = server.get_msg();
+            auto recieveTime = chrono::high_resolution_clock::now();
+            queryInfo query(totalQuerry,msg,recieveTime);
+            totalQuerry++;
+            message_queue_mutex.lock();
+            message_queue.push_back(query);
+            message_queue_mutex.unlock();
+        }
+    }
+}
+
+void process_messages() {
+    while (true) {
+        message_queue_mutex.lock();
+        while (!message_queue.empty()) {
+            vector<queryInfo> messages = message_queue;
+            message_queue.clear();
+            message_queue_mutex.unlock();
+
+            for (const auto& message : messages) {
+                auto processTime = chrono::high_resolution_clock::now()
+                message.queryProcessedTime = processTime;
+
+                ui queryId = message.queryId;
+                string queryText = message.queryString;
+
+                istringstream iss(queryText);
+                vector<ui> argValues;
+                ui number;
+
+                // Split the string and store each value in the vector
+                while (iss >> number) {
+                    argValues.push_back(number);
+                }
+                queryData query(argValues[0],argValues[1],argValues[2],argValues[3],argValues[4]);
+                queries.push_back(query);
+                if (isHeu) 
+                kl = CSSC_heu(queryId);
+                cout<< "Processing QID : "<<queryId<<" Query Message: "<<queryText<<endl;
+                cout << "Heuristic Kl " <<  queries[queryId].kl << " Ku " << queries[queryId].ku << endl;
+                if (queries[queryId].kl == queries[queryId].ku) {
+                  cout<< "Found Solution for  QID : "<<queryId<<" Query Message: "<<queryText<<endl;
+                  cout << "heuristic find the OPT!" << endl;
+                  cout << "mindeg = " << queries[queryId].kl << endl;
+                  cout << "H.size = " << H.size() << endl;
+                  cout << "time = " << integer_to_string(queries[queryId].timer.elapsed()).c_str() << endl;
+                  continue;
+                }
+                  // Calculate the distance of all verticies from Query vertex. 
+                cal_query_dist(queries[queryId].QID);
+                chkerr(cudaMemcpy(deviceGraph.degree+(queryId*n), degree, n * sizeof(ui), cudaMemcpyHostToDevice));
+                chkerr(cudaMemcpy(deviceGraph.distance+(queryId*n), q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
+                chkerr(cudaMemcpy(deviceGraph.lowerBoundDegree+(queryId*n), queries[queryId].kl,sizeof(ui),cudaMemcpyHostToDevice));
+
+                chkerr(cudaMemset(initialTask.globalCounter,0,sizeof(ui)));
+                chkerr(cudaMemset(initialTask.entries,0,INTOTAL_WARPS*sizeof(ui)));
+                // Calculate the upper bound for distance from Querry Vertex
+                if (queries[queryId].kl <= 1)
+                  queries[queryId].ubD = queries[queryId].N2 - 1;
+                else {
+                  for (ui d = 1; d <= queries[queryId].N2; d++) {
+                    if (d == 1 || d == 2) {
+                      if (queries[queryId].kl + d > queries[queryId].N2) {
+                        queries[queryId].ubD = d - 1;
+                        break;
+                      }
+                    } else {
+                      ui min_n = queries[queryId].kl + d + 1 + floor(d / 3) * (queries[queryId].kl - 2);
+                      if (queries[queryId].N2 < min_n) {
+                        queries[queryId].ubD = d - 1;
+                        break;
+                      }
+                    }
+                  }
+                }
+
+                initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[queryId].ubD, queries[queryId].kl, initialPartitionSize,queryId);
+                cudaDeviceSynchronize();
+                ui globalCounter;
+                cudaMemcpy( & globalCounter, initialTask.globalCounter, sizeof(ui),cudaMemcpyDeviceToHost);
+                cout << " Total " << globalCounter << endl;
+
+                CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask,initialPartitionSize, queries[queryId].QID,queryId,n);
+                cudaDeviceSynchronize();
+
+                thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n+1)*queryId) ),thrust::device_ptr < ui > (deviceGraph.newOffset + ((n+1)*(queryId+1))),thrust::device_ptr < ui > (deviceGraph.newOffset+((n+1)*queryId)));
+                cudaDeviceSynchronize();
+
+                NeighborUpdate << < BLK_NUM2, BLK_DIM2, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, INTOTAL_WARPS,queryId,n,m);
+                cudaDeviceSynchronize();
+
+
+
+            }
+            //this_thread::sleep_for(chrono::milliseconds(100));
+
+            message_queue_mutex.lock();
+        }
+        message_queue_mutex.unlock();
+
+        
+    }
+}
+
 
 struct subtract_functor {
   /**
@@ -25,85 +144,38 @@ struct subtract_functor {
   }
 };
 
-std::string getCurrentDateTime() {
-  /**
-   * Generates a string representing the local time.
-   */
-  std::time_t now = std::time(nullptr);
-  std::tm * local_time = std::localtime( & now);
-
-  std::stringstream ss;
-  ss << std::put_time(local_time, "%Y-%m-%d_%H-%M-%S");
-
-  return ss.str();
-}
 
 int main(int argc,
   const char * argv[]) {
-  if (argc != 11) {
+  if (argc != 6) {
     cout << "wrong input parameters!" << endl;
     exit(1);
     exit(1);
   }
-  // ./SCS ./graph.txt 6 9 2 100000
-  N1 = atoi(argv[2]); // Size lower bound
-  N2 = atoi(argv[3]); // Size upper bound 
-  QID = atoi(argv[4]); // Query vertex ID
-  ui partitionSize = atoi(argv[5]); // Defines the partition size, in number of elements, that a single warp will read from and write to.
-  ui isHeu = atoi(argv[6]); // Indicates whether to run the Huetrictic before the SCS: 1 to run, 0 to skip.
-  ui limitDoms = atoi(argv[7]); // Specifies the maximum number of DOMs the algorithm will use for task expansion.
-  ui bufferSize = atoi(argv[8]); // Specifies the size, in number of elements, where warps will write in case the partition overflows.
-  double copyLimit = stod(argv[9]); // Specifies that only warps with at most this percentage of their partition space filled will read from the buffer and write to their partition.
-  ui readLimit = atoi(argv[10]); // Maximum number of tasks a warp with an empty partition can read from the buffer.
 
   cout << "Details" << endl;
 
   const char * filepath = argv[1]; // Path to the graph file. The graph should be represented as an edge list with tab (\t) separators
+  ui partitionSize = atoi(argv[2]); // Defines the partition size, in number of elements, that a single warp will read from and write to.
+  ui bufferSize = atoi(argv[3]); // Specifies the size, in number of elements, where warps will write in case the partition overflows.
+  double copyLimit = stod(argv[4]); // Specifies that only warps with at most this percentage of their partition space filled will read from the buffer and write to their partition.
+  ui readLimit = atoi(argv[5]); // Maximum number of tasks a warp with an empty partition can read from the buffer.
   cout << "File Path = " << filepath << endl;
   cout << "QID = " << QID << endl;
 
   // Read the graph to CPU
   load_graph(filepath);
-
-  Timer timer;
-  StartTime = (double) clock() / CLOCKS_PER_SEC;
-
-  // Indicates the partition offset each warp will use to write new tasks.
-  ui jump = TOTAL_WARPS;
-
   // Calculate Core Values 
   core_decomposition_linear_list();
 
-  // Initialize the upper bound for the maximum minimum degree.
-  ku = miv(core[QID], N2 - 1);
-
-  // Initialize the lower bound for the maximum minimum degree.
-  kl = 0;
-
-  // Initialize the upper bound for distance from Querry vertex.
-  ubD = N2 - 1;
-
-  // Run all three heuristic algorithms and to get the lower bound for the maximum minimum degree.
-  if (isHeu) CSSC_heu();
-  cout << "Heuristic Kl " << kl << " Ku " << ku << endl;
-
-  // If the lower bound and upper bound of the maximum minimum degree are the same, exit and return the result.
-  if (kl == ku) {
-    cout << "heuristic find the OPT!" << endl;
-    cout << "mindeg = " << kl << endl;
-    cout << "H.size = " << H.size() << endl;
-    cout << "time = " << integer_to_string(timer.elapsed()).c_str() << endl;
-    return;
-  }
-
-  // Calculate the distance of all verticies from Query vertex. 
-  cal_query_dist();
-
-  // Stores graph-related data on the device.
-  deviceGraphPointers deviceGraph;
+  deviceGraphGenPointers deviceGenGraph;
+  memoryAllocationGenGraph(deviceGenGraph);
+  totalQuerry = 0;
+  q_dist = new ui[n];
+  deviceGraphPointer deviceGraph;
 
   // Allocates memory for the graph data on the device.
-  memoryAllocationGraph(deviceGraph);
+  memeoryAllocationGraph(deviceGraph,100);
 
   // Block dimension for the initial reduction rules kernel.
   ui BLK_DIM2 = 1024;
@@ -119,93 +191,38 @@ int main(int argc,
   // Allocated memory for intermediate results
   memoryAllocationinitialTask(initialTask, INTOTAL_WARPS, initialPartitionSize);
 
-  // Calculate the upper bound for distance from Querry Vertex
-  ubD = 0;
-  if (kl <= 1)
-    ubD = N2 - 1;
-  else {
-    for (ui d = 1; d <= N2; d++) {
-      if (d == 1 || d == 2) {
-        if (kl + d > N2) {
-          ubD = d - 1;
-          break;
-        }
-      } else {
-        ui min_n = kl + d + 1 + floor(d / 3) * (kl - 2);
-        if (N2 < min_n) {
-          ubD = d - 1;
-          break;
-        }
-      }
-    }
-  }
-
-  // Intialize shared memory for intial reduction rules kernel 
-  size_t sharedMemorySizeinitial = 32 * sizeof(ui);
-
-  // Applies intial reduction rules. (vertices with core value less than the lower bound of maximum minimum degree and distance greater than the upper bound from the query vertex are removed).
-  initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (
-    deviceGraph, initialTask, n, ubD, kl, initialPartitionSize);
-  cudaDeviceSynchronize();
-
-  // Stores the total number of vertex left after applying intial reduction rules. 
-  ui globalCounter;
-  cudaMemcpy( & globalCounter, initialTask.globalCounter, sizeof(ui),
-    cudaMemcpyDeviceToHost);
-  cout << " Total " << globalCounter << endl;
-
   // Store task related data for each wrap 
   deviceTaskPointers deviceTask;
   // Allocated memory for task data
-  memoryAllocationTask(deviceTask, TOTAL_WARPS, partitionSize);
+  memoryAllocationTask(deviceTask, TOTAL_WARPS, partitionSize, 100);
 
-  // Initialize the task offset for the initial task (C = query vertex, R = remaining vertices after applying reduction rules).
-  ui * taskOffset;
-  taskOffset = new ui[partitionSize];
-  memset(taskOffset, 0, partitionSize * sizeof(ui));
-  taskOffset[1] = globalCounter;
-  taskOffset[partitionSize - 1] = 1;
-
-  // Copy the task offset data to the device.
-  chkerr(cudaMemcpy(deviceTask.taskOffset, taskOffset,
-    partitionSize * sizeof(ui), cudaMemcpyHostToDevice));
-
-  // Copies data from the intermediate array to the task array, updates status, degree, and recalculates the total number of neighbor for each vertex after vertex removal.
-  CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGraph, initialTask, deviceTask,
-    initialPartitionSize, QID);
-  cudaDeviceSynchronize();
-
-  // Calculate the inclusive sum of the total neighbor array to determine the neighbor offset.
-  thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset),
-    thrust::device_ptr < ui > (deviceGraph.newOffset + n + 1),
-    thrust::device_ptr < ui > (deviceGraph.newOffset));
-
-  cudaDeviceSynchronize();
-
-  // Shared Memory for Neighbor Update kernel 
+  // Intialize shared memory for intial reduction rules kernel 
+  size_t sharedMemorySizeinitial = INTOTAL_WARPS * sizeof(ui);
   size_t sharedMemoryUpdateNeigh = WARPS_EACH_BLK * sizeof(ui);
 
-  // Removes vertices from the neighbor list that were eliminated from the graph after applying reduction rules.
-  NeighborUpdate << < BLK_NUM2, BLK_DIM2, sharedMemoryUpdateNeigh >>> (deviceGraph, n, INTOTAL_WARPS);
-  cudaDeviceSynchronize();
+  // Stores task data in buffer. 
+  deviceBufferPointers deviceBuffer;
 
-  // Shared memory size for Process Task kernel.
+  // Allocate memory for buffer. 
+  memoryAllocationBuffer(deviceBuffer, bufferSize);
+
   size_t sharedMemorySizeTask = 3 * WARPS_EACH_BLK * sizeof(ui) +
     WARPS_EACH_BLK * sizeof(int) +
     WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + N2 * WARPS_EACH_BLK * sizeof(ui);
 
   // Shared memory size for expand Task kernel. 
   size_t sharedMemorySizeExpand = WARPS_EACH_BLK * sizeof(ui);
-
+  
   // Flag indicating whether tasks are remaining in the task array: 1 if no tasks are left, 0 if at least one task is left.
-  bool stopFlag;
+  bool *stopFlag;
+  stopFlag = new bool[100];
+
+  memset(stopFlag,true,100*sizeof(bool));
 
   int c = 0;
 
   // Intialize ustar array to -1. 
   cudaMemset(deviceTask.ustar, -1, TOTAL_WARPS * partitionSize * sizeof(int));
-
-  std::string totalTime;
 
   // Flag indicating if the buffer is full.
   bool * outOfMemoryFlag, outMemFlag;
@@ -214,15 +231,9 @@ int main(int argc,
   cudaMalloc((void ** ) & outOfMemoryFlag, sizeof(bool));
   cudaMemset(outOfMemoryFlag, 0, sizeof(bool));
 
-  // 
-  ui * result;
-  cudaMalloc((void ** ) & result, 2 * sizeof(ui));
-
   // Shared memory size for Find dominated set kernel 
   size_t sharedMemrySizeDoms = WARPS_EACH_BLK * sizeof(ui);
 
-  // Stores the total number of tasks written to the buffer, total number read from the buffer, 
-  // and the start and end offsets of tasks that were written but not yet read. All values pertain to the current level.
   ui tempHost, numReadHost, numTaskHost, startOffset, endOffset;
   numTaskHost = 0;
   numReadHost = 0;
@@ -230,16 +241,21 @@ int main(int argc,
   startOffset = 0;
   endOffset = 0;
 
-  // Free the memory that stores the intermediate results. 
-  freeInterPointer(initialTask);
+  thread listener(listen_for_messages);
+  thread processor(process_messages);
 
-  // Stores task data in buffer. 
-  deviceBufferPointers deviceBuffer;
+  StartTime = (double) clock() / CLOCKS_PER_SEC;
 
-  // Allocate memory for buffer. 
-  memoryAllocationBuffer(deviceBuffer, bufferSize);
+  // Indicates the partition offset each warp will use to write new tasks.
+  ui jump = TOTAL_WARPS;
 
-  while (1) {
+  // Shared memory size for Process Task kernel.
+
+  std::string totalTime;
+
+  
+
+  /*while (1) {
     // This kernel applies all three reduction rules and computes the minimum degree, ustar, and upper bound for the maximum minimum degree for each task.
     ProcessTask << < BLK_NUMS, BLK_DIM, sharedMemorySizeTask >>> (
       deviceGraph, deviceTask, N1, N2, partitionSize, dMAX, result);
@@ -365,7 +381,7 @@ int main(int argc,
     cout << "Level " << c << " kl " << kl << endl;
   }
 
-  cudaDeviceSynchronize();
+  cudaDeviceSynchronize();*/
 
   // Free Memory
   freeGraph(deviceGraph);
