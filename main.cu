@@ -63,7 +63,7 @@ void process_messages() {
                 queryData query(argValues[0],argValues[1],argValues[2],argValues[3],argValues[4]);
                 queries.push_back(query);
                 if (isHeu) 
-                kl = CSSC_heu(queryId);
+                CSSC_heu(queryId);
                 cout<< "Processing QID : "<<queryId<<" Query Message: "<<queryText<<endl;
                 cout << "Heuristic Kl " <<  queries[queryId].kl << " Ku " << queries[queryId].ku << endl;
                 if (queries[queryId].kl == queries[queryId].ku) {
@@ -161,7 +161,7 @@ int main(int argc,
   double copyLimit = stod(argv[4]); // Specifies that only warps with at most this percentage of their partition space filled will read from the buffer and write to their partition.
   ui readLimit = atoi(argv[5]); // Maximum number of tasks a warp with an empty partition can read from the buffer.
   cout << "File Path = " << filepath << endl;
-  cout << "QID = " << QID << endl;
+
 
   // Read the graph to CPU
   load_graph(filepath);
@@ -206,9 +206,9 @@ int main(int argc,
   // Allocate memory for buffer. 
   memoryAllocationBuffer(deviceBuffer, bufferSize);
 
-  size_t sharedMemorySizeTask = 3 * WARPS_EACH_BLK * sizeof(ui) +
+  /*size_t sharedMemorySizeTask = 3 * WARPS_EACH_BLK * sizeof(ui) +
     WARPS_EACH_BLK * sizeof(int) +
-    WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + N2 * WARPS_EACH_BLK * sizeof(ui);
+    WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + N2 * WARPS_EACH_BLK * sizeof(ui);*/
 
   // Shared memory size for expand Task kernel. 
   size_t sharedMemorySizeExpand = WARPS_EACH_BLK * sizeof(ui);
@@ -244,7 +244,7 @@ int main(int argc,
   thread listener(listen_for_messages);
   thread processor(process_messages);
 
-  StartTime = (double) clock() / CLOCKS_PER_SEC;
+  //StartTime = (double) clock() / CLOCKS_PER_SEC;
 
   // Indicates the partition offset each warp will use to write new tasks.
   ui jump = TOTAL_WARPS;

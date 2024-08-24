@@ -43,6 +43,7 @@ bool over_time_flag;
 
 ui n; //vertices
 ui m; //edges
+ui  dMAX;
 
 ui totalQuerry;
 vector<ui> H;
@@ -54,6 +55,7 @@ ui * peel_sequence;
 ui * degree;
 ui * core;
 ui * q_dist;
+
 
 vector<ui> G0;
 ui * G0_edges;
