@@ -2,6 +2,8 @@
 #include "Timer.h"
 #include <limits.h>
 #include <cuda_runtime.h>
+#include <string>
+#include <chrono>
 
 #define BLK_NUMS 64
 #define BLK_DIM 1024
@@ -9,6 +11,11 @@
 #define WARPSIZE 32
 #define WARPS_EACH_BLK (BLK_DIM/32)
 #define TOTAL_WARPS (BLK_NUMS*WARPS_EACH_BLK)
+
+typedef std::chrono::high_resolution_clock::time_point tim;
+
+
+using namespace std;
 
 
 ofstream fout;
@@ -74,10 +81,8 @@ ui * inNEI;
 double * NEI_score;
 vector<vector<ui>> combs;
 
-vector<queryInfo> message_queue;
-mutex message_queue_mutex;
 
-vector<queryData> queries;
+
 
 ui verbose;
 
@@ -106,7 +111,7 @@ typedef struct {
     ui *lowerBoundDegree;
     ui *newNeighbors;
     ui *newOffset;
-}deviceGraphPointer;
+}deviceGraphPointers;
 
 typedef struct  {
      ui *taskList;
@@ -139,8 +144,7 @@ ui *temp;
 ui *numReadTasks;
 ui *writeMutex;
 ui *readMutex;
-ui *queryIndicator
-
+ui *queryIndicator;
 
 
 }deviceBufferPointers;
@@ -181,4 +185,43 @@ struct queryData
      }
 
 
-}
+};
+
+
+
+struct queryInfo
+{
+	int queryId;
+	string queryString;
+    tim queryRecivedTime;
+    tim queryProcessedTime;
+
+
+	queryInfo(){}
+
+	queryInfo(int queryId, char* queryString)
+	{
+		this->queryId = queryId;
+		this->queryString = queryString;
+	}
+
+    queryInfo(int queryId, char* queryString, tim queryRecivedTime)
+	{
+		this->queryId = queryId;
+		this->queryString = queryString;
+        this->queryRecivedTime = queryRecivedTime;
+	}
+
+     queryInfo(int queryId, char* queryString, tim queryRecivedTime, tim queryProcessedTime)
+	{
+		this->queryId = queryId;
+		this->queryString = queryString;
+        this->queryRecivedTime = queryRecivedTime;
+        this->queryProcessedTime = queryProcessedTime;
+	}
+};
+
+vector<queryInfo> message_queue;
+mutex message_queue_mutex;
+
+vector<queryData> queries;

@@ -26,7 +26,7 @@ void memoryAllocationGenGraph(deviceGraphGenPointers &G){
 
 }
 
-void memeoryAllocationGraph(deviceGraphPointer &G, ui totalQueries){
+void memeoryAllocationGraph(deviceGraphPointers &G, ui totalQueries){
     chkerr(cudaMalloc((void**)&(G.degree),totalQueries* n * sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.distance),totalQueries* n * sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.lowerBoundDegree), totalQueries*sizeof(ui)));
@@ -96,7 +96,7 @@ void memoryAllocationBuffer(deviceBufferPointers &p,ui bufferSize){
 
     chkerr(cudaMalloc((void**)&(p.readMutex), sizeof(ui)));
     chkerr(cudaMemset(p.readMutex,0,sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(p.queryIndicator), numWraps*pSize*sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(p.queryIndicator), bufferSize*sizeof(ui)));
 
 
 

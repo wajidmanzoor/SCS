@@ -1,4 +1,4 @@
-#include "./ipc/msgtool.h"
+#include "../ipc/msgtool.h"
 #include <iostream>
 using namespace std;
 

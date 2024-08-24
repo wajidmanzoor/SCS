@@ -195,7 +195,7 @@ __device__ void warpSelectionSort(double* keys, ui* values, ui start, ui end,
   }
 }
 
-__global__ void initialReductionRules(deviceGraphGenPointers G,deviceGraphPointers G_,
+__global__ void initialReductionRules(deviceGraphGenPointers G, deviceGraphPointers G_,
                                       deviceInterPointers P, ui size,
                                       ui upperBoundDistance,
                                       ui lowerBoundDegree, ui pSize, ui queryId) {
@@ -265,7 +265,7 @@ __global__ void initialReductionRules(deviceGraphGenPointers G,deviceGraphPointe
   }
 }
 
-__global__ void CompressTask(deviceGraphPointers G, deviceGraphPointers G_, deviceInterPointers P,
+__global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, deviceInterPointers P,
   deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size ) {
 
   /**
@@ -338,7 +338,7 @@ __global__ void CompressTask(deviceGraphPointers G, deviceGraphPointers G_, devi
   }
 }
 
-__global__ void NeighborUpdate(deviceGraphPointers G, deviceGraphPointers G_, ui INTOTAL_WARPS,ui queryId, ui size, ui totalEdges ) {
+__global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_, ui INTOTAL_WARPS,ui queryId, ui size, ui totalEdges ) {
   /**
    * Generate a the neighbor list for each vertex in the graph after the after vertex elimination..
    *
