@@ -13,6 +13,15 @@ struct subtract_functor {
   }
 };
 
+inline void chkerr(cudaError_t code)
+{
+    if (code != cudaSuccess)
+    {
+        std::cout<<cudaGetErrorString(code)<<std::endl;
+        exit(-1);
+    }
+}
+
 
 /*void listenForMessages() {
 
