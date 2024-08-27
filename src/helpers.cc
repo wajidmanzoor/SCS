@@ -1216,7 +1216,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
                 break;
 
               }else{
-                *B..outOfMemoryFlag = 1;
+                *B.outOfMemoryFlag = 1;
                 atomicExch(B.writeMutex, 0);
                 break;
               }

@@ -150,8 +150,8 @@ struct queryData
      ui ubD;
      ui isHeu;
      ui limitDoms;
-     ui *numRead;
-     ui *numWrite;
+     ui numRead;
+     ui numWrite;
      ui solFlag;
      Timer receiveTimer; // Timer to track time from received to processed
 
@@ -167,9 +167,9 @@ struct queryData
           this->kl = 0;
           this->ku = miv(core[QID], N2 - 1);
           this->ubD = 0;
+          this->solFlag = false;
           this->numRead = 0;
           this->numWrite = 0;
-          this->solFlag = false;
 
 
      }
@@ -222,8 +222,6 @@ deviceGraphPointers deviceGraph;
 deviceInterPointers initialTask;
 deviceTaskPointers deviceTask;
 deviceBufferPointers deviceBuffer;
-
-inline void chkerr(cudaError_t code);
 
 void memoryAllocationGenGraph(deviceGraphGenPointers &G);
 void memeoryAllocationGraph(deviceGraphPointers &G,ui totalQueries);
