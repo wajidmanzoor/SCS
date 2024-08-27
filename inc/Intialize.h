@@ -169,7 +169,7 @@ struct queryData
            << "limitDoms = " << qd.limitDoms << ", "
            << "kl = " << qd.kl << ", "
            << "ku = " << qd.ku <<", "
-           << "Elapsed Time = " << integer_to_string(qd.processTimer.elapsed()).c_str();
+           << "Elapsed Time = " << integer_to_string(qd.receiveTimer.elapsed()).c_str();
         return os;
     }
 
@@ -187,9 +187,11 @@ struct queryInfo
 	queryInfo(int queryId, char* queryString)
 	{
 		this->queryId = queryId;
+
+        
 		this->queryString = queryString;
 	}
-    friend ostream& operator<<(ostream& os, queryInfo& q)
+    friend ostream& operator<<(ostream& os, const queryInfo& q)
     {
         os << "Query ID: " << q.queryId << ", Query String: " << q.queryString;
         return os;

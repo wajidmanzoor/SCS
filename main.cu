@@ -15,6 +15,16 @@
 #include "./src/helpers.cc"
 #include "./ipc/msgtool.h"
 
+struct subtract_functor {
+  const ui x;
+
+  subtract_functor(ui _x): x(_x) {}
+
+  __host__ __device__ ui operator()(const ui & y) const {
+    return y - x;
+  }
+};
+
 
 void listenForMessages() {
 
@@ -133,7 +143,7 @@ void processMessages() {
        WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + maxN2 * WARPS_EACH_BLK * sizeof(ui);
 
       ProcessTask << < BLK_NUMS, BLK_DIM, sharedMemorySizeTask >>> (
-        deviceGenGraph, deviceGraph, deviceTask, partitionSize, maxN2, n, m);
+        deviceGenGraph, deviceGraph, deviceTask, partitionSize, maxN2, n, m,dMAX);
       cudaDeviceSynchronize();
 
       // Indicates the partition offset each warp will use to write new tasks.
@@ -144,13 +154,13 @@ void processMessages() {
 
       // This kernel identifies vertices dominated by ustar and sorts them in decreasing order of their connection score.
       FindDoms << < BLK_NUMS, BLK_DIM, sharedMemorySizeDoms >>> (
-        deviceGenGraph, deviceGraph, deviceTask, partitionSize, n, m);
+        deviceGenGraph, deviceGraph, deviceTask, partitionSize, n, m,dMAX);
       cudaDeviceSynchronize();
 
       // This kernel writes new tasks, based on ustar and the dominating set, into the task array or buffer. It reads from the buffer and writes to the task array.
       Expand << < BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (
         deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,
-        jump, outOfMemoryFlag, copyLimit, bufferSize, numTaskHost, readLimit, n, m);
+        jump, outOfMemoryFlag, copyLimit, bufferSize, numTaskHost, readLimit, n, m, dMAX);
       cudaDeviceSynchronize();
 
       chkerr(cudaMemcpy( & outMemFlag, outOfMemoryFlag, sizeof(bool),
@@ -239,16 +249,6 @@ void processMessages() {
 
   }
 }
-
-struct subtract_functor {
-  const ui x;
-
-  subtract_functor(ui _x): x(_x) {}
-
-  __host__ __device__ ui operator()(const ui & y) const {
-    return y - x;
-  }
-};
 
 int main(int argc, const char * argv[]) {
   if (argc != 6) {
