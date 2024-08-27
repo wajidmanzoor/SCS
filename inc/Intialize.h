@@ -3,7 +3,6 @@
 #include <limits.h>
 #include <cuda_runtime.h>
 #include <string>
-#include <chrono>
 
 #define BLK_NUMS 64
 #define BLK_DIM 1024
@@ -12,49 +11,19 @@
 #define WARPS_EACH_BLK (BLK_DIM/32)
 #define TOTAL_WARPS (BLK_NUMS*WARPS_EACH_BLK)
 
-typedef std::chrono::high_resolution_clock::time_point tim;
+ui BLK_DIM2 = 1024;
+ui BLK_NUM2 = 32;
+ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
+
 
 
 using namespace std;
 
-
-ofstream fout;
-
-int MaxTime = 1800;
-
-ui domBr;
-ui binBr;
-
-
-
-bool EXE_heu2;
-bool EXE_heu3;
-bool EXE_heu4;
-
-bool EXE_ub1;
-bool EXE_ub2;
-bool EXE_ub3;
-bool EXE_ub3_optimization;
-bool EXE_refine_G0;
-bool EXE_core_maintenance;
-bool EXE_new2VI;
-bool EXE_del_from_VR;
-bool EXE_dom_ustar;
-double total_val_ub1;
-double total_val_ub3;
-double total_UB;
-ui domS_Threshold;
-ui srch_ord;
-double total_Heu_time;
-bool over_time_flag;
+vector<ui> H;
 
 ui n; //vertices
 ui m; //edges
 ui  dMAX;
-
-ui totalQuerry;
-vector<ui> H;
-
 
 ui * pstart; //neighbors offset
 ui * edges; //neighbors
@@ -63,41 +32,36 @@ ui * degree;
 ui * core;
 ui * q_dist;
 
+ui initialPartitionSize;
+bool * outOfMemoryFlag;
+ui outMemFlag;
+bool *queryStopFlag;
+ui jump;
 
-vector<ui> G0;
-ui * G0_edges;
-ui * G0_x;
-ui * G0_deg;
+ui partitionSize; 
+ui bufferSize; 
+double copyLimit; 
+ui readLimit;
 
-vector<ui> VI;
-vector<ui> VIVR;
-bool * inVI;
-bool * inVR;
-ui * degVI;
-ui * degVIVR;
+ui tempHost;
+ui numReadHost;
+ui numTaskHost;
+ui startOffset;
+ui endOffset;
 
-vector<ui> NEI;
-ui * inNEI;
-double * NEI_score;
-vector<vector<ui>> combs;
+ui totalQuerry;
+ui numQueriesProcessing;
+ui maxN2;
 
+size_t sharedMemorySizeinitial;
+size_t  sharedMemoryUpdateNeigh;
+size_t sharedMemorySizeTask;
+size_t sharedMemorySizeDoms;
+size_t sharedMemorySizeExpand;
 
-
-
-ui verbose;
-
-bool cmp_of_domS(const ui x, const ui y)
-{
-    return degVIVR[x]>degVIVR[y];
-}
-
-double time_new2VI;
-double time_del_from_VR;
-double time_find_NEI;
-double time_find_usatr;
-double time_comp_ub;
 
 typedef struct  {
+
     ui *offset;
     ui *neighbors;
     ui *core;
@@ -106,14 +70,24 @@ typedef struct  {
 }deviceGraphGenPointers;
 
 typedef struct {
+
     ui *degree;
     ui *distance;
-    ui *lowerBoundDegree;
     ui *newNeighbors;
     ui *newOffset;
+    ui *lowerBoundDegree;
+    ui *lowerBoundSize;
+    ui *upperBoundSize;
+    ui *limitDoms;
+    ui *dmax;
+    bool *flag;
+    ui *numRead;
+    ui *numWrite;
+
 }deviceGraphPointers;
 
 typedef struct  {
+
      ui *taskList;
      ui *statusList;
      ui *taskOffset;
@@ -123,33 +97,30 @@ typedef struct  {
      int *ustar;
      ui *doms;
      double *cons;
-     bool *flag;
      ui *queryIndicator;
-
-
-
+     
 
 }deviceTaskPointers;
 
 typedef struct {
 
-ui *taskOffset;
-ui *taskList;
-ui *statusList;
-ui *degreeInC;
-ui *degreeInR;
-ui  *size;
-ui *numTask;
-ui *temp;
-ui *numReadTasks;
-ui *writeMutex;
-ui *readMutex;
-ui *queryIndicator;
-
+    ui *taskOffset;
+    ui *taskList;
+    ui *statusList;
+    ui *degreeInC;
+    ui *degreeInR;
+    ui  *size;
+    ui *numTask;
+    ui *temp;
+    ui *numReadTasks;
+    ui *writeMutex;
+    ui *readMutex;
+    ui *queryIndicator;
 
 }deviceBufferPointers;
 
 typedef struct  {
+
      ui *initialTaskList;
      ui *globalCounter;
      ui *entries;
@@ -158,43 +129,61 @@ typedef struct  {
 
 struct queryData
 {
-	ui N1; //size LB
+	 ui N1; //size LB
      ui N2; //size UB
      int QID;
      ui kl; //min deg
      ui ku; //max min deg
      ui ubD;
-     double StartTime = 0.0;
-     Timer timer;
+     ui dmax;
      ui isHeu;
      ui limitDoms;
+     ui *numRead;
+     ui *numWrite;
+     bool *solFalg;
+     Timer receiveTimer; // Timer to track time from received to processed
+     Timer processTimer; // Timer to track time from start processing to completed
+
 	queryData(){
 
      }
-	queryData(ui N1, ui N2, int QID,ui isHeu,ui limitDoms){
+	queryData(ui N1, ui N2, int QID,ui isHeu,ui limitDoms, ui dmax){
           this->N1 = N1;
           this->N2 = N2;
           this->QID = QID;
           this->isHeu = isHeu;
           this->limitDoms = limitDoms;
+          this->dmax = dmax;
           this->kl = 0;
           this->ku = miv(core[QID], N2 - 1);
           this->ubD = 0;
+          this->numRead = 0;
+          this->numWrite = 0;
+          this->solFlag = false;
 
 
      }
+     
+     friend ostream& operator<<(ostream& os, const queryData& qd) {
+        os << "N1 = " << qd.N1 << ", "
+           << "N2 = " << qd.N2 << ", "
+           << "QID = " << qd.QID << ", "
+           << "isHeu = " << qd.isHeu << ", "
+           << "limitDoms = " << qd.limitDoms << ", "
+           << "dmax = " << qd.dmax << ", "
+           << "kl = " << qd.kl << ", "
+           << "ku = " << qd.ku <<", "
+           << "Elapsed Time = " << integer_to_string(qd.processTimer.elapsed()).c_str();
+        return os;
+    }
 
 
 };
-
-
 
 struct queryInfo
 {
 	int queryId;
 	string queryString;
-    tim queryRecivedTime;
-    tim queryProcessedTime;
 
 
 	queryInfo(){}
@@ -204,24 +193,21 @@ struct queryInfo
 		this->queryId = queryId;
 		this->queryString = queryString;
 	}
+    friend ostream& operator<<(ostream& os, const queryInfo& q)
+    {
+        os << "Query ID: " << q.queryId << ", Query String: " << q.queryString;
+        return os;
+    }
 
-    queryInfo(int queryId, char* queryString, tim queryRecivedTime)
-	{
-		this->queryId = queryId;
-		this->queryString = queryString;
-        this->queryRecivedTime = queryRecivedTime;
-	}
-
-     queryInfo(int queryId, char* queryString, tim queryRecivedTime, tim queryProcessedTime)
-	{
-		this->queryId = queryId;
-		this->queryString = queryString;
-        this->queryRecivedTime = queryRecivedTime;
-        this->queryProcessedTime = queryProcessedTime;
-	}
 };
 
-vector<queryInfo> message_queue;
-mutex message_queue_mutex;
+vector<queryInfo> messageQueue;
+mutex messageQueueMutex;
 
 vector<queryData> queries;
+
+deviceGraphGenPointers deviceGenGraph;
+deviceGraphPointers deviceGraph;
+deviceInterPointers initialTask;
+deviceTaskPointers deviceTask;
+deviceBufferPointers deviceBuffer;
