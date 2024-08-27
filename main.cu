@@ -32,7 +32,7 @@ void listenForMessages() {
   long type = 1;
   while (true) {
     if (server.recv_msg(type)) {
-      char * msg = server.get_msg();
+      string msg = server.get_msg();
       queryInfo query(totalQuerry, msg);
       totalQuerry++;
       messageQueueMutex.lock();
@@ -64,7 +64,7 @@ void processMessages() {
           argValues.push_back(number);
         }
         if (countArgs != 5) {
-          cout << "Client Size: wrong input parameters! " << message << endl;
+          cout << "Client wrong input parameters! " << message << endl;
           continue;
         }
         queryData query(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4]);

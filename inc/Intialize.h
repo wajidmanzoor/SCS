@@ -184,11 +184,11 @@ struct queryInfo
 
 	queryInfo(){}
 
-	queryInfo(int queryId, char* queryString)
+	queryInfo(int queryId, string queryString)
 	{
 		this->queryId = queryId;
 
-        
+
 		this->queryString = queryString;
 	}
     friend ostream& operator<<(ostream& os, const queryInfo& q)
