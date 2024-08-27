@@ -317,7 +317,7 @@ void heu4(vector<ui>& H4, ui& kl4,ui N1,ui N2, ui QID) {
 
 // Description: Calls multiple heusteric algorithms and choses the one what
 // returns max min degree
-ui CSSC_heu(ui queryId) {
+void CSSC_heu(ui queryId) {
   H.clear();
   ui kl = queries[queryId].kl;
   ui N1 = queries[queryId].N1;
