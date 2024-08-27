@@ -34,7 +34,6 @@ void memeoryAllocationGraph(deviceGraphPointers &G, ui totalQueries){
     chkerr(cudaMalloc((void**)&(G.lowerBoundSize), totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.upperBoundSize), totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.limitDoms), totalQueries*sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(G.dmax), totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.flag), totalQueries*sizeof(bool)));
     chkerr(cudaMalloc((void**)&(G.numRead), totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.numWrite), totalQueries*sizeof(ui)));
@@ -126,7 +125,6 @@ void freeGraph(deviceGraphPointers &p){
     chkerr(cudaFree(p.lowerBoundSize));
     chkerr(cudaFree(p.upperBoundSize));
     chkerr(cudaFree(p.limitDoms));
-    chkerr(cudaFree(p.dmax));
     chkerr(cudaFree(p.flag));
     chkerr(cudaFree(p.numRead));
     chkerr(cudaFree(p.numWrite));

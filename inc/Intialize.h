@@ -42,6 +42,7 @@ ui partitionSize;
 ui bufferSize; 
 double copyLimit; 
 ui readLimit;
+ui limitQueries;
 
 ui tempHost;
 ui numReadHost;
@@ -79,7 +80,6 @@ typedef struct {
     ui *lowerBoundSize;
     ui *upperBoundSize;
     ui *limitDoms;
-    ui *dmax;
     bool *flag;
     ui *numRead;
     ui *numWrite;
@@ -135,25 +135,22 @@ struct queryData
      ui kl; //min deg
      ui ku; //max min deg
      ui ubD;
-     ui dmax;
      ui isHeu;
      ui limitDoms;
      ui *numRead;
      ui *numWrite;
-     bool *solFalg;
+     bool solFlag;
      Timer receiveTimer; // Timer to track time from received to processed
-     Timer processTimer; // Timer to track time from start processing to completed
 
 	queryData(){
 
      }
-	queryData(ui N1, ui N2, int QID,ui isHeu,ui limitDoms, ui dmax){
+	queryData(ui N1, ui N2, int QID,ui isHeu,ui limitDoms){
           this->N1 = N1;
           this->N2 = N2;
           this->QID = QID;
           this->isHeu = isHeu;
           this->limitDoms = limitDoms;
-          this->dmax = dmax;
           this->kl = 0;
           this->ku = miv(core[QID], N2 - 1);
           this->ubD = 0;
@@ -164,13 +161,12 @@ struct queryData
 
      }
      
-     friend ostream& operator<<(ostream& os, const queryData& qd) {
+     friend ostream& operator<<(ostream& os, queryData& qd) {
         os << "N1 = " << qd.N1 << ", "
            << "N2 = " << qd.N2 << ", "
            << "QID = " << qd.QID << ", "
            << "isHeu = " << qd.isHeu << ", "
            << "limitDoms = " << qd.limitDoms << ", "
-           << "dmax = " << qd.dmax << ", "
            << "kl = " << qd.kl << ", "
            << "ku = " << qd.ku <<", "
            << "Elapsed Time = " << integer_to_string(qd.processTimer.elapsed()).c_str();
@@ -193,7 +189,7 @@ struct queryInfo
 		this->queryId = queryId;
 		this->queryString = queryString;
 	}
-    friend ostream& operator<<(ostream& os, const queryInfo& q)
+    friend ostream& operator<<(ostream& os, queryInfo& q)
     {
         os << "Query ID: " << q.queryId << ", Query String: " << q.queryString;
         return os;

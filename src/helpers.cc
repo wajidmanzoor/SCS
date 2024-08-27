@@ -405,7 +405,7 @@ __global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_,
 }
 
 __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T,
-                          ui pSize, ui maxN2, ui size, ui totalEdges) {
+                          ui pSize, ui maxN2, ui size, ui totalEdges, ui dmax) {
   /**
    * Applies all three reduction rules and updates the degree of each vertex in a task.
    * computes the minimum degree or all tasks and updates the global maximum minimum degree.
@@ -502,7 +502,6 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
     ui maskGen = total;
     ui lowerBoundSize = G_.lowerBoundSize[queryId];
     ui upperBoundSize = G_.upperBoundSize[queryId];
-    ui dmax = G_.dmax[queryId];
 
     if (T.ustar[warpId * pSize + iter] != INT_MAX) {
       for (ui i = laneId; i < total; i += warpSize)
@@ -549,7 +548,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
         if (status == 0) {
           if ((minn((degR + degC), (degC + upperBoundSize - hSize - 1)) <=
                G_.lowerBoundDegree[queryId]) ||
-              (ubD < G.distance[vertex])) {
+              (ubD < G_.distance[(queryId*size) + vertex])) {
             T.statusList[ind] = 2;
             T.degreeInR[ind] = 0;
             T.degreeInC[ind] = 0;
@@ -710,7 +709,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
         }
         if(status == 1){
           ui locC = atomicAdd(&sharedCounterC[threadIdx.x / warpSize],1);
-          sharedC_[(threadIdx.x / warpSize)*upperBoundSize+locC] = T.degreeInC[ind];
+          sharedC_[(threadIdx.x / warpSize)*maxN2+locC] = T.degreeInC[ind];
 
         }
 
@@ -735,7 +734,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
 
 
           __syncwarp();
-          warpBubbleSort(sharedC_, (threadIdx.x / warpSize)*upperBoundSize, (threadIdx.x / warpSize)*upperBoundSize +sharedCounterC[threadIdx.x / warpSize] , laneId,0);
+          warpBubbleSort(sharedC_, (threadIdx.x / warpSize)*maxN2, (threadIdx.x / warpSize)*maxN2 +sharedCounterC[threadIdx.x / warpSize] , laneId,0);
         currentSize = T.size[startIndex + iter];
 
         ui totalIter_ = minn((upperBoundSize-currentSize),sharedCounterR[threadIdx.x / warpSize]);
@@ -743,17 +742,17 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
           __syncwarp();
           ui value = T.doms[startIndex + start + iter_];
           for(ui i=laneId; i < value ; i+=32){
-            sharedC_[(threadIdx.x / warpSize)*upperBoundSize+i] ++;
+            sharedC_[(threadIdx.x / warpSize)*maxN2+i] ++;
           }
           __syncwarp();
-          warpBubbleSort(sharedC_, (threadIdx.x / warpSize)*upperBoundSize, (threadIdx.x / warpSize)*upperBoundSize +sharedCounterC[threadIdx.x / warpSize] , laneId,0);
+          warpBubbleSort(sharedC_, (threadIdx.x / warpSize)*maxN2, (threadIdx.x / warpSize)*maxN2 +sharedCounterC[threadIdx.x / warpSize] , laneId,0);
 
         }
 
        __syncwarp();
 
       if (laneId == 0) {
-        ui upperBoundDegreeLimit = minn(sharedC_[(threadIdx.x / warpSize)*upperBoundSize],sharedUBDegree[threadIdx.x / warpSize]);
+        ui upperBoundDegreeLimit = minn(sharedC_[(threadIdx.x / warpSize)*maxN2],sharedUBDegree[threadIdx.x / warpSize]);
         currentSize = T.size[startIndex + iter];
         if ((lowerBoundSize <= currentSize) &&
             (currentSize <= upperBoundSize)) {
@@ -801,7 +800,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
 __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T,
                        deviceBufferPointers B, ui pSize, ui jump,
                        bool* outOfMemoryFlag, double copyLimit,
-                       ui bufferSize, ui lastWritten,ui readLimit, ui size, ui totalEdges ) {
+                       ui bufferSize, ui lastWritten,ui readLimit, ui size, ui totalEdges, ui dmax ) {
 /**
  * This kernel creates new tasks using `ustar` and vertices in the dominating set.
  * The `C + ustar` task is written at the same location by updating the status of `ustar` and the dominating set vertices.
@@ -856,7 +855,6 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
     ui queryId = T.queryIndicator[startIndex + iter];
     ui lowerBoundSize = G_.lowerBoundSize[queryId];
     ui upperBoundSize = G_.upperBoundSize[queryId];
-    ui dmax = G_.dmax[queryId];
 
     if ((T.ustar[warpId * pSize + iter] != INT_MAX) &&
         (T.ustar[warpId * pSize + iter] != -1) &&
@@ -1102,7 +1100,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
                             B.taskOffset[numTaskBuffer1] + totalWrite;
 
                         __threadfence();
-                         G.numWrite[queryId]++;
+                         G_.numWrite[queryId]++;
                         writeFlag = 1;
                         atomicExch(B.writeMutex, 0);
                         break;
@@ -1315,7 +1313,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
             T.size[warpId * pSize + iter]++;
             T.statusList[T.ustar[warpId * pSize + iter]] = 1;
             atomicAdd(B.numTask, 1);
-            B.queryIndicator[numTaskBuffer] = queryID;
+            B.queryIndicator[numTaskBuffer] = queryId;
             G_.flag[queryId] = 0;
             G_.numWrite[queryId]++;
             G_.flag[queryId] = 0;
@@ -1416,7 +1414,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
   }
 }
 
-__global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T, ui pSize, ui level, ui size, ui totalEdges) {
+__global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T, ui pSize, ui size, ui totalEdges, ui dmax) {
   /**
    * This kernel iterates through tasks assigned to each warp, and finds the verticies that are dominated by the ustar of that task.
    * Vertex v' is dominated by ustar if all of its neighbors are either neighbors of ustar or ustar itself.
@@ -1455,7 +1453,6 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
     ui total = end - start;
     ui writeOffset = startIndex + start;
     ui queryId = T.queryIndicator[startIndex + iter];
-    ui dmax = G_.dmax[queryId];
     ui limitDoms = G_.limitDoms[queryId];
 
     if ((T.ustar[warpId * pSize + iter] != INT_MAX) &&

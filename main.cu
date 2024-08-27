@@ -48,6 +48,7 @@ void processMessages() {
         istringstream iss(queryText);
         vector < ui > argValues;
         ui number, countArgs;
+        countArgs = 0;
 
         while (iss >> number) {
           argValues.push_back(number);
@@ -74,7 +75,6 @@ void processMessages() {
         chkerr(cudaMemcpy(deviceGraph.lowerBoundSize + queryId, & (queries[queryId].N1), sizeof(ui), cudaMemcpyHostToDevice));
         chkerr(cudaMemcpy(deviceGraph.upperBoundSize + queryId, & (queries[queryId].N2), sizeof(ui), cudaMemcpyHostToDevice));
         chkerr(cudaMemcpy(deviceGraph.limitDoms + queryId, & (queries[queryId].limitDoms), sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.dmax + queryId, & (queries[queryId].dmax), sizeof(ui), cudaMemcpyHostToDevice));
 
         chkerr(cudaMemset(initialTask.globalCounter, 0, sizeof(ui)));
         chkerr(cudaMemset(initialTask.entries, 0, INTOTAL_WARPS * sizeof(ui)));
@@ -99,7 +99,7 @@ void processMessages() {
         }
         maxN2 = mav(maxN2,queries[queryId].N2);
 
-        queries[queryId].restart();
+        queries[queryId].receiveTimer.restart();
 
         initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[queryId].ubD, queries[queryId].kl, initialPartitionSize, queryId, jump);
         cudaDeviceSynchronize();
@@ -144,13 +144,13 @@ void processMessages() {
 
       // This kernel identifies vertices dominated by ustar and sorts them in decreasing order of their connection score.
       FindDoms << < BLK_NUMS, BLK_DIM, sharedMemorySizeDoms >>> (
-        deviceGenGraph, deviceGraph, deviceTask, partitionSize, c, n, m);
+        deviceGenGraph, deviceGraph, deviceTask, partitionSize, n, m);
       cudaDeviceSynchronize();
 
       // This kernel writes new tasks, based on ustar and the dominating set, into the task array or buffer. It reads from the buffer and writes to the task array.
       Expand << < BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (
         deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,
-        jump, outOfMemoryFlag, copyLimit, bufferSize, lastWritten, readLimit, n, m);
+        jump, outOfMemoryFlag, copyLimit, bufferSize, numTaskHost, readLimit, n, m);
       cudaDeviceSynchronize();
 
       chkerr(cudaMemcpy( & outMemFlag, outOfMemoryFlag, sizeof(bool),
@@ -164,7 +164,7 @@ void processMessages() {
 
       chkerr(cudaMemcpy(queryStopFlag, deviceGraph.flag, limitQueries * sizeof(bool), cudaMemcpyDeviceToHost));
 
-      for (ui i = 0; i < TotalQuerrys; i++) {
+      for (ui i = 0; i < totalQuerry; i++) {
         if (i < queries.size()) {
           if ((queryStopFlag[i]) && (!queries[i].solFlag)) {
             chkerr(cudaMemcpy( & (queries[i].numRead), deviceGraph.numRead + i, sizeof(ui), cudaMemcpyDeviceToHost));
@@ -263,7 +263,8 @@ int main(int argc, const char * argv[]) {
   readLimit = atoi(argv[5]); // Maximum number of tasks a warp with an empty partition can read from the buffer.
   load_graph(filepath);
   core_decomposition_linear_list();
-
+  limitQueries = 100;
+  
   memoryAllocationGenGraph(deviceGenGraph);
   memeoryAllocationGraph(deviceGraph, limitQueries);
 
@@ -275,7 +276,6 @@ int main(int argc, const char * argv[]) {
   maxN2 = 0;
 
   initialPartitionSize = (n / INTOTAL_WARPS) + 1;
-  ui limitQueries;
   memoryAllocationinitialTask(initialTask, INTOTAL_WARPS, initialPartitionSize);
   memoryAllocationTask(deviceTask, TOTAL_WARPS, partitionSize, limitQueries);
   memoryAllocationBuffer(deviceBuffer, bufferSize);
@@ -309,7 +309,7 @@ int main(int argc, const char * argv[]) {
   freeGraph(deviceGraph);
   freeInterPointer(initialTask);
   freeTaskPointer(deviceTask);
-  freeBufferPointer();
+  freeBufferPointer(deviceBuffer);
 
   return 0;
 }
