@@ -1,3 +1,4 @@
+#pragma once
 #include "../src/Graph.h"
 
 // Description : Greedy Algorithm to get the intial fesible solution H

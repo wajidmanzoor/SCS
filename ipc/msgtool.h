@@ -1,6 +1,4 @@
-#ifndef MSGTOOL_H
-#define MSGTOOL_H
-
+#pragma once
 //This is a wrapper of IPC message buffer
 
 //If eclipse reports "__gxx_personality_v0" problem, following the instruction below to set eclipse
@@ -277,4 +275,3 @@ struct msg_queue_receiver
 
 };
 
-#endif

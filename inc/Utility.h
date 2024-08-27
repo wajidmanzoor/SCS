@@ -1,6 +1,4 @@
 #pragma once
-#ifndef utility_h
-#define utility_h
 
 #define miv(a, b) ((a) > (b) ? (b) : (a))
 #define mav(a, b) ((a) < (b) ? (b) : (a))
@@ -91,4 +89,4 @@ string integer_to_string(long long number) {
   return res;
 }
 
-#endif /* utility_h */
+

@@ -1,4 +1,5 @@
-#include "../inc/ListLinearHeap.h"
+#include "../inc/Intialize.h"
+
 
 inline void chkerr(cudaError_t code)
 {
@@ -34,7 +35,7 @@ void memeoryAllocationGraph(deviceGraphPointers &G, ui totalQueries){
     chkerr(cudaMalloc((void**)&(G.lowerBoundSize), totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.upperBoundSize), totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.limitDoms), totalQueries*sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(G.flag), totalQueries*sizeof(bool)));
+    chkerr(cudaMalloc((void**)&(G.flag), totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.numRead), totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.numWrite), totalQueries*sizeof(ui)));
 
@@ -103,6 +104,9 @@ void memoryAllocationBuffer(deviceBufferPointers &p,ui bufferSize){
     chkerr(cudaMemset(p.readMutex,0,sizeof(ui)));
 
     chkerr(cudaMalloc((void**)&(p.queryIndicator), bufferSize*sizeof(ui)));
+    
+    chkerr(cudaMalloc((void**)&(p.outOfMemoryFlag), sizeof(ui)));
+    chkerr(cudaMemset(p.outOfMemoryFlag,0,sizeof(ui)));
 
 }
 
@@ -111,12 +115,12 @@ void freeGenGraph(deviceGraphGenPointers &p){
     chkerr(cudaFree(p.neighbors));
     chkerr(cudaFree(p.degree));
     chkerr(cudaFree(p.core));
-    
+
 
 }
 
 void freeGraph(deviceGraphPointers &p){
-   
+
     chkerr(cudaFree(p.degree));
     chkerr(cudaFree(p.distance));
     chkerr(cudaFree(p.newNeighbors));
@@ -128,7 +132,7 @@ void freeGraph(deviceGraphPointers &p){
     chkerr(cudaFree(p.flag));
     chkerr(cudaFree(p.numRead));
     chkerr(cudaFree(p.numWrite));
-    
+
 
 }
 

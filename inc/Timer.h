@@ -6,8 +6,6 @@
  *      Email: ljchang@outlook.com
  */
 #pragma once
-#ifndef TIMER_H_
-#define TIMER_H_
 
 #include <sys/time.h>
 
@@ -30,4 +28,3 @@ class Timer {
   }
 };
 
-#endif /* TIMER_H_ */

@@ -1,18 +1,31 @@
+#pragma once
 #include "Utility.h"
 #include "Timer.h"
 #include <limits.h>
 #include <cuda_runtime.h>
 #include <string>
+#include <mutex>
+#include <map>
+#include <iomanip>
+#include <sstream>
+#include <thrust/device_ptr.h>
+#include <thrust/copy.h>
+#include <thrust/transform.h>
+#include <thrust/functional.h>
+#include <thread>
 
-#define BLK_NUMS 64
-#define BLK_DIM 1024
+#include "../ipc/msgtool.h"
+
+
+#define BLK_NUMS 4
+#define BLK_DIM 32
 #define TOTAL_THREAD (BLK_NUMS*BLK_DIM)
 #define WARPSIZE 32
 #define WARPS_EACH_BLK (BLK_DIM/32)
 #define TOTAL_WARPS (BLK_NUMS*WARPS_EACH_BLK)
 
-ui BLK_DIM2 = 1024;
-ui BLK_NUM2 = 32;
+ui BLK_DIM2 = 32;
+ui BLK_NUM2 = 1;
 ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
 
 
@@ -33,14 +46,13 @@ ui * core;
 ui * q_dist;
 
 ui initialPartitionSize;
-bool * outOfMemoryFlag;
 ui outMemFlag;
-bool *queryStopFlag;
+ui *queryStopFlag;
 ui jump;
 
-ui partitionSize; 
-ui bufferSize; 
-double copyLimit; 
+ui partitionSize;
+ui bufferSize;
+double copyLimit;
 ui readLimit;
 ui limitQueries;
 
@@ -80,7 +92,7 @@ typedef struct {
     ui *lowerBoundSize;
     ui *upperBoundSize;
     ui *limitDoms;
-    bool *flag;
+    ui *flag;
     ui *numRead;
     ui *numWrite;
 
@@ -98,7 +110,7 @@ typedef struct  {
      ui *doms;
      double *cons;
      ui *queryIndicator;
-     
+
 
 }deviceTaskPointers;
 
@@ -116,6 +128,7 @@ typedef struct {
     ui *writeMutex;
     ui *readMutex;
     ui *queryIndicator;
+    ui *outOfMemoryFlag;
 
 }deviceBufferPointers;
 
@@ -139,7 +152,7 @@ struct queryData
      ui limitDoms;
      ui *numRead;
      ui *numWrite;
-     bool solFlag;
+     ui solFlag;
      Timer receiveTimer; // Timer to track time from received to processed
 
 	queryData(){
@@ -160,7 +173,7 @@ struct queryData
 
 
      }
-     
+
      friend ostream& operator<<(ostream& os, queryData& qd) {
         os << "N1 = " << qd.N1 << ", "
            << "N2 = " << qd.N2 << ", "
@@ -209,3 +222,19 @@ deviceGraphPointers deviceGraph;
 deviceInterPointers initialTask;
 deviceTaskPointers deviceTask;
 deviceBufferPointers deviceBuffer;
+
+inline void chkerr(cudaError_t code);
+
+void memoryAllocationGenGraph(deviceGraphGenPointers &G, ui n, ui m, ui* core, ui* degree, ui* pstart, ui* edges);
+void memeoryAllocationGraph(deviceGraphPointers &G, ui n, ui m, ui totalQueries);
+void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps, ui psize);
+void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui totalQueries);
+void memoryAllocationBuffer(deviceBufferPointers &p, ui bufferSize);
+
+void freeGenGraph(deviceGraphGenPointers &p);
+void freeGraph(deviceGraphPointers &p);
+void freeInterPointer(deviceInterPointers &p);
+void freeTaskPointer(deviceTaskPointers &p);
+void freeBufferPointer(deviceBufferPointers &p);
+
+ 

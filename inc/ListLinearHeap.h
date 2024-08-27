@@ -8,9 +8,6 @@
 #pragma once
 #include "Intialize.h"
 
-#ifndef DATA_STRUCTURES_LISTLINEARHEAP_H_
-#define DATA_STRUCTURES_LISTLINEARHEAP_H_
-
 #define pb push_back
 #define mp make_pair
 
@@ -227,4 +224,3 @@ class ListLinearHeap {
   }
 };
 
-#endif /* DATA_STRUCTURES_LISTLINEARHEAP_H_ */

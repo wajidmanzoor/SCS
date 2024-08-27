@@ -1,9 +1,9 @@
-__device__ ui minn(ui a, ui b) { 
+__device__ ui minn(ui a, ui b) {
   /**
    * Returns the minimum of two numbers.
 
    */
-  return (a < b) ? a : b; 
+  return (a < b) ? a : b;
   }
 
 
@@ -13,14 +13,14 @@ __device__ int findIndexKernel(ui* arr, ui start, ui end, ui target)
 {
   /**
    * Performs a linear search to find the index of the target vertex in the task array.
-   * 
+   *
    * @param arr      Pointer to the array of unsigned integers where the search is performed.
    * @param start    Starting index of the array segment to search within.
    * @param end      Ending index of the array segment to search within.
    * @param target   Vertex to locate in the array.
-   * 
+   *
    * This function searches for the index of the specified `target` vertex within a specified range of the `arr` array,
-   * from index `start` to `end`. It returns the index of the `target` if found, or an indicator of not found. A single 
+   * from index `start` to `end`. It returns the index of the `target` if found, or an indicator of not found. A single
    * thread will perform the search.
    */
 
@@ -86,15 +86,15 @@ __device__ void selectionSort(ui* values, ui start, ui end, ui laneId) {
    * @param end      Ending index of the partition of the array to be sorted.
    * @param laneId   The lane ID of the current thread within the warp.
    *
-   * This function sorts a segment of the array within a single warp using the selection sort algorithm. 
+   * This function sorts a segment of the array within a single warp using the selection sort algorithm.
    * The sorting is performed as follows:
-   * 
+   *
    * 1. Each thread identifies the maximum value in its portion of the array segment.
    * 2. A warp-wide reduction is used to determine the global maximum value and its index within the warp.
    * 3. The global maximum value is swapped with the value at the current index if they are different.
    * 4. The process is repeated for each index in the segment to achieve sorted order.
    *
-   * The sorting is performed in-place and only within the specified segment of the array. The lane with `laneId` 0 
+   * The sorting is performed in-place and only within the specified segment of the array. The lane with `laneId` 0
    * performs the swap to ensure that the maximum value is placed in the correct position.
    */
 
@@ -145,15 +145,15 @@ __device__ void warpSelectionSort(double* keys, ui* values, ui start, ui end,
    * @param end      Ending index of the partition of the arrays to be sorted.
    * @param laneId   The lane ID of the current thread within the warp.
    *
-   * This function sorts a segment of the `keys` array and reorders the corresponding `values` array within a single warp using the selection sort algorithm. 
+   * This function sorts a segment of the `keys` array and reorders the corresponding `values` array within a single warp using the selection sort algorithm.
    * The sorting process is as follows:
-   * 
+   *
    * 1. Each thread identifies the maximum key value within its portion of the array segment.
    * 2. A warp-wide reduction is used to determine the global maximum key value and its index within the warp.
    * 3. The maximum key value and its corresponding value are swapped with the value at the current index if they are different.
    * 4. The process is repeated for each index in the segment to achieve sorted order.
-   * 
-   * The sorting is performed in-place and only within the specified segment of the `keys` and `values` arrays. The lane with `laneId` 0 performs the swap to 
+   *
+   * The sorting is performed in-place and only within the specified segment of the `keys` and `values` arrays. The lane with `laneId` 0 performs the swap to
    * ensure that the maximum value is placed in the correct position.
    */
 
@@ -200,7 +200,7 @@ __global__ void initialReductionRules(deviceGraphGenPointers G, deviceGraphPoint
                                       ui upperBoundDistance,
                                       ui lowerBoundDegree, ui pSize, ui queryId) {
 
-  
+
   extern __shared__ ui shared_memory1[];
 
   ui* local_counter = shared_memory1;
@@ -241,7 +241,7 @@ __global__ void initialReductionRules(deviceGraphGenPointers G, deviceGraphPoint
 }
 
 __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, deviceInterPointers P,
-  deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size,  ui jump ) {
+  deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size,  ui jump1 ) {
 
   ui idx = blockIdx.x * blockDim.x + threadIdx.x;
   int warpId = idx / warpSize;
@@ -250,13 +250,17 @@ __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, d
   ui start = warpId * pSize;
   int temp = warpId - 1;
   ui total = P.entries[warpId];
-  // add some of mechanism 
-  while((pSize-  T.taskOffset[pSize*(warpId+jump+1)-1])<=*P.globalCounter)
+  // add some of mechanism
+  ui jump = jump1;
+  while((pSize-  T.taskOffset[pSize*(jump+1)-1])<=*P.globalCounter)
       jump++;
-  ui writeOffset = T.taskOffset[pSize*(warpId+jump) + T.taskOffset[pSize*(warpId+jump+1)-1]];
+
+  ui writeOffset = pSize*jump + T.taskOffset[pSize*jump + T.taskOffset[pSize*(jump+1)-1]];
   if (idx == 0) {
-    T.size[pSize*(warpId+jump) + T.taskOffset[pSize*(warpId+jump+1)-1]] = 1;
-    T.queryIndicator[pSize*(warpId+jump) + T.taskOffset[pSize*(warpId+jump+1)-1]] = queryId;
+    printf(" jump %u writeoffset %u \n",jump,writeOffset);
+    T.size[pSize*(jump) + T.taskOffset[pSize*(jump+1)-1]] = 1;
+    T.queryIndicator[pSize*(jump) + T.taskOffset[pSize*(jump+1)-1]] = queryId;
+    T.taskOffset[pSize*(jump) + T.taskOffset[pSize*(jump+1)-1]+1] = *P.globalCounter;
   }
 
   for (ui i = laneId; i < total; i += warpSize) {
@@ -284,8 +288,9 @@ __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, d
         totalNeigh++;
       }
     }
-    G_.newOffset[(queryId*(size+1))+ vertex + 1] = totalNeigh;
 
+    G_.newOffset[(queryId*(size+1))+ vertex + 1] = totalNeigh;
+    printf("wrap id %u lane %u loc %u vertex %u \n",warpId,laneId,(queryId*(size+1))+ vertex + 1,G_.newOffset[(queryId*(size+1))+ vertex + 1]);
     T.degreeInR[writeOffset + i] = degInR;
     T.degreeInC[writeOffset + i] = degInc;
   }
@@ -300,15 +305,15 @@ __global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_,
    * @param INTOTAL_WARPS    Total number of warps.
    *
    * This kernel performs the following operations:
-   * 
+   *
    * 1. Each warp processes the neighbors of a single vertex in parallel, then moves to the next vertex if available.
    * 2. For each vertex:
    *    - Retrieves the vertex degree and writes its new neighbor list.
    *    - Threads within each warp collect neighbors of the current vertex with a non zero degree.
    *    - Uses atomic operations to update the new neighbor list.
    * 4. Resets local counters in shared memory after processing each vertex segment.
-   * 
-   * Shared memory is used to manage local counters efficiently, and synchronization ensures correct updates to the new neighbor list. 
+   *
+   * Shared memory is used to manage local counters efficiently, and synchronization ensures correct updates to the new neighbor list.
    * Only neighbors of a single vertex compete for write locations, as the total number of new neighbors for each vertex is precomputed.
    */
 
@@ -341,7 +346,7 @@ __global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_,
           ui loc = atomicAdd( & localCounter[threadIdx.x / warpSize], 1);
           G_.newNeighbors[(2*totalEdges*queryId) + writeOffset + loc] = neighbor;
 
-          
+
         }
 
       }
@@ -362,17 +367,17 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
    * computes the minimum degree or all tasks and updates the global maximum minimum degree.
    * Computes ustar, and upper bound for the maximum minimum degree for each task.
    * Removes tasks that don't need further processing from task list.
-   * 
+   *
    * @param G                Device graph pointers containing graph data.
    * @param T                Device task pointers containing task data.
    * @param lowerBoundSize   The lower bound size constraint for subgraph.
    * @param upperBoundSize   The upper bound size constraint for subgraph
    * @param pSize            Size of the partition each warp processes.
    * @param dmax             Maximum degree of the graph.
-   * 
+   *
    * Each warp processes its assigned task sequentially from its partition.
    * For each task, the warp iterates through 32 vertices at a time:
-   * 
+   *
    *  - If the sum of degrees in C and R is less than the current maximum minimum degree, the vertex is removed from R (status set to 2), and the degrees of its neighbors are updated accordingly.
    *  - If the sum of degrees in C and R equals the maximum minimum degree, all neighbors of the vertex are added to C (status set to 1), and the degrees of both the vertex and its neighbors are updated.
    *  - The minimum degree of the 32 vertices is calculated, and the shared memory is updated to reflect the overall minimum degree for the entire task.
@@ -750,7 +755,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
 
 __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T,
                        deviceBufferPointers B, ui pSize, ui jump,
-                       bool* outOfMemoryFlag, double copyLimit,
+                       ui* MemoryFlag, double copyLimit,
                        ui bufferSize, ui lastWritten,ui readLimit, ui size, ui totalEdges, ui dmax ) {
 /**
  * This kernel creates new tasks using `ustar` and vertices in the dominating set.
@@ -771,10 +776,10 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
  * @param pSize            Size of the partition each warp processes.
  * @param dmax             Maximum degree of the graph.
  * @param jump             Specifies the partition offset for write.
- * @param outOfMemoryFlag  Flag that indicates if buffer is full. 
- * @param copyLimit        Indicates the at max full capacity of a pration that can read from buffer. 
+ * @param outOfMemoryFlag  Flag that indicates if buffer is full.
+ * @param copyLimit        Indicates the at max full capacity of a pration that can read from buffer.
  * @param bufferSize       The buffer size.
- * @param readLimit        The at max tasks a wrap will read from the buffer. 
+ * @param readLimit        The at max tasks a wrap will read from the buffer.
 */
 
 
@@ -1055,7 +1060,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
                         atomicExch(B.writeMutex, 0);
                         break;
                   }else{
-                    *outOfMemoryFlag = 1;
+                    *MemoryFlag = 1;
                     atomicExch(B.writeMutex, 0);
                     break;
 
@@ -1177,7 +1182,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
                  G_.numRead[readQueryId1]++;
                 G_.flag[readQueryId1] = 0;
 
-                
+
 
               }
 
@@ -1212,7 +1217,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
                 break;
 
               }else{
-                *outOfMemoryFlag = 1;
+                *MemoryFlag = 1;
                 atomicExch(B.writeMutex, 0);
                 break;
               }
@@ -1268,7 +1273,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
             G_.numWrite[queryId]++;
             G_.flag[queryId] = 0;
 
-            
+
 
           }
         }
@@ -1280,7 +1285,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
   if (T.taskOffset[endIndex] == 0) {
   for(ui iterRead = 0; iterRead < readLimit; iterRead ++){
   __syncwarp();
-     
+
     ui bufferNum = warpId + jump;
     if (bufferNum > TOTAL_WARPS) {
       bufferNum = bufferNum % TOTAL_WARPS;

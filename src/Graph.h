@@ -1,3 +1,4 @@
+#pragma once
 #include "../inc/ListLinearHeap.h"
 
 // Description: Read graph from text file
