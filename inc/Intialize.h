@@ -225,8 +225,8 @@ deviceBufferPointers deviceBuffer;
 
 inline void chkerr(cudaError_t code);
 
-void memoryAllocationGenGraph(deviceGraphGenPointers &G, ui n, ui m, ui* core, ui* degree, ui* pstart, ui* edges);
-void memeoryAllocationGraph(deviceGraphPointers &G, ui n, ui m, ui totalQueries);
+void memoryAllocationGenGraph(deviceGraphGenPointers &G);
+void memeoryAllocationGraph(deviceGraphPointers &G,ui totalQueries);
 void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps, ui psize);
 void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui totalQueries);
 void memoryAllocationBuffer(deviceBufferPointers &p, ui bufferSize);

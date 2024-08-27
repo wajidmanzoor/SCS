@@ -224,12 +224,12 @@ void processMessages() {
       // This kernel writes new tasks, based on ustar and the dominating set, into the task array or buffer. It reads from the buffer and writes to the task array.
       Expand << < BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (
         deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,
-        jump, outOfMemoryFlag, copyLimit, bufferSize, numTaskHost, readLimit, n, m, dMAX);
+        jump, copyLimit, bufferSize, numTaskHost, readLimit, n, m, dMAX);
       cudaDeviceSynchronize();
       cout<<"After all kernels"<<endl;
 
   ui flag;
-      chkerr(cudaMemcpy( &flag, outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
+      chkerr(cudaMemcpy( &flag, deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
       cout<<"After all kernels 2 "<<endl;
 
       chkerr(cudaMemcpy( &tempHost, deviceBuffer.temp, sizeof(ui),
@@ -382,7 +382,6 @@ int main(int argc, const char * argv[]) {
   freeInterPointer(initialTask);
   freeTaskPointer(deviceTask);
   freeBufferPointer(deviceBuffer);
-  cudaFree(outOfMemoryFlag);
 
   return 0;
 }

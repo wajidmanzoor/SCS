@@ -754,8 +754,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
 }
 
 __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T,
-                       deviceBufferPointers B, ui pSize, ui jump,
-                       ui* MemoryFlag, double copyLimit,
+                       deviceBufferPointers B, ui pSize, ui jump, double copyLimit,
                        ui bufferSize, ui lastWritten,ui readLimit, ui size, ui totalEdges, ui dmax ) {
 /**
  * This kernel creates new tasks using `ustar` and vertices in the dominating set.
@@ -1060,7 +1059,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
                         atomicExch(B.writeMutex, 0);
                         break;
                   }else{
-                    *MemoryFlag = 1;
+                    *B.outOfMemoryFlag = 1;
                     atomicExch(B.writeMutex, 0);
                     break;
 
@@ -1217,7 +1216,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
                 break;
 
               }else{
-                *MemoryFlag = 1;
+                *B..outOfMemoryFlag = 1;
                 atomicExch(B.writeMutex, 0);
                 break;
               }
