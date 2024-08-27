@@ -1170,7 +1170,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
 
               while (true) {
                 if (atomicCAS(B.readMutex, 0, 1) == 0) {
-                  if ( * B.numReadTasks < * B.numTask) {
+                  if ( * B.numReadTasks < lastWritten) {
                       numRead1 = atomicAdd(B.numReadTasks, 1); readFlag1 = 1;
 
                   }
@@ -1347,7 +1347,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
     if ((laneId == 0)) {
       while (true) {
         if (atomicCAS(B.readMutex, 0, 1) == 0) {
-          if (*B.numReadTasks < *B.numTask) {
+          if (*B.numReadTasks < lastWritten) {
             numRead = atomicAdd(B.numReadTasks, 1);
             readFlag = 1;
           }
