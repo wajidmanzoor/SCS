@@ -111,13 +111,13 @@ void processMessages() {
 
         queries[queryId].receiveTimer.restart();
 
-        initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[queryId].ubD, queries[queryId].kl, initialPartitionSize, queryId, jump);
+        initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[queryId].ubD, queries[queryId].kl, initialPartitionSize, queryId);
         cudaDeviceSynchronize();
 
         ui globalCounter;
         chkerr(cudaMemcpy( & globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
 
-        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[queryId].QID, queryId, n);
+        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[queryId].QID, queryId, n,jump);
         cudaDeviceSynchronize();
 
         thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * queryId)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (queryId + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * queryId)));

@@ -198,34 +198,9 @@ __device__ void warpSelectionSort(double* keys, ui* values, ui start, ui end,
 __global__ void initialReductionRules(deviceGraphGenPointers G, deviceGraphPointers G_,
                                       deviceInterPointers P, ui size,
                                       ui upperBoundDistance,
-                                      ui lowerBoundDegree, ui pSize, ui queryId, ui jump) {
+                                      ui lowerBoundDegree, ui pSize, ui queryId) {
 
-  /**
-   * Applies initial reduction rules based on core value and distance from Query vertex to filter vertices.
-   *
-   * @param G                Device graph pointers containing graph data.
-   * @param P                Device pointers for storing the results of the reduction.
-   * @param size             Total number of vertices in the graph.
-   * @param upperBoundDistance Upper Bound of distance  distance for a Querry vertex.
-   * @param lowerBoundDegree  Lower Bound of Maximum minimum degree.
-   * @param pSize            Size of the partition for each warp, indicating the number of vertices processed by a single warp.
-   *
-   * This kernel performs an initial reduction based on two criteria:
-   * 1. The core value of each vertex must be greater than `lowerBoundDegree`.
-   * 2. The distance of each vertex from Querry Index must be less than or equal to `upperBoundDistance`.
-   * 
-   * The kernel operates as follows:
-   * 
-   * 1. Each thread computes its index and determines the segment of vertices it will process based on `pSize`.
-   * 2. Threads within each warp collaboratively count the vertices that meet the criteria and store them in the `initialTaskList`.
-   * 3. Vertices not meeting the criteria have their degree set to zero.
-   * 4. At the end of processing, each warp updates the global counter and records the number of valid vertices.
-   * 
-   * To avoid contention among threads for write locations, the array is divided into partitions of size `pSize`, 
-   * and local counters are stored in shared memory. This way, only threads within a warp compete for write locations, 
-   * minimizing the contention compared to a global approach.
-   */
-
+  
   extern __shared__ ui shared_memory1[];
 
   ui* local_counter = shared_memory1;
@@ -266,31 +241,7 @@ __global__ void initialReductionRules(deviceGraphGenPointers G, deviceGraphPoint
 }
 
 __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, deviceInterPointers P,
-  deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size ) {
-
-  /**
-   * Compresses verticies of a task. Updates the status of each vertex (whether it is in R (0) or C (1)), 
-   * recalculates the degree of each vertex , and computes the new number of neighbors for each vertex after vertex elimination.
-   *
-   * @param G                Device graph pointers containing graph data.
-   * @param P                Device pointers containing reduced vertex data.
-   * @param T                Device pointers for storing compressed task information 
-   * @param pSize            Size of the partition for each warp.
-   * @param queryVertex      The vertex of interest used to compute degree information.
-   *
-   * This kernel performs the following operations:
-   * 
-   * 1. Calculates the starting index and the total number of vertex for each warp.
-   * 2. Computes a write offset to place the processed tasks into the correct position in the `taskList` and `statusList`.
-   * 3. For each vertex in the current warp’s segment:
-   *    - Write the vertex in  the `taskList`.
-   *    - Sets the `statusList` to 1 if the vertex matches the `queryVertex`, otherwise 0.
-   *    - Calculates the number of neighbors of the vertex that are not the `queryVertex` and have a non-zero degree (`degInR`), i.e Degree in R.
-   *    - Counts the number of neighbors that are equal to `queryVertex` (`degInc`). i.e degree in C. 
-   *    - Computes the total number of neighbors with a non-zero degree (`totalNeigh`). i.e total number of neighbors after vertex elimination.
-   *    - Updates `G_.newOffset` with the total number of neighbors.
-   * 
-   */
+  deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size,  ui jump ) {
 
   ui idx = blockIdx.x * blockDim.x + threadIdx.x;
   int warpId = idx / warpSize;
@@ -853,7 +804,6 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
     ui end = T.taskOffset[startIndex + iter + 1];
     ui total = end - start;
     ui queryId = T.queryIndicator[startIndex + iter];
-    ui lowerBoundSize = G_.lowerBoundSize[queryId];
     ui upperBoundSize = G_.upperBoundSize[queryId];
 
     if ((T.ustar[warpId * pSize + iter] != INT_MAX) &&
