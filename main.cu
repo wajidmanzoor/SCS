@@ -17,7 +17,7 @@ struct subtract_functor {
 
 
 
-/*void listenForMessages() {
+void listenForMessages() {
 
   msg_queue_server server('g');
   long type = 1;
@@ -31,7 +31,7 @@ struct subtract_functor {
       messageQueueMutex.unlock();
     }
   }
-}*/
+}
 
 void processMessages() {
   cout<<"start processing"<<endl;
@@ -246,7 +246,7 @@ void processMessages() {
 
     }
     c++;
-    if(c==12)
+    if(c==100)
     break;
 
   }
@@ -291,7 +291,7 @@ int main(int argc, const char * argv[]) {
 
   queryStopFlag = new ui[limitQueries];
 
-  memset(queryStopFlag, true, limitQueries * sizeof(ui));
+  memset(queryStopFlag,1, limitQueries * sizeof(ui));
 
   sharedMemorySizeDoms = WARPS_EACH_BLK * sizeof(ui);
   sharedMemorySizeExpand = WARPS_EACH_BLK * sizeof(ui);
@@ -302,14 +302,10 @@ int main(int argc, const char * argv[]) {
   startOffset = 0;
   endOffset = 0;
 
-  queryInfo query(totalQuerry, "3 10 2 0 2");
-  totalQuerry++;
-  messageQueue.push_back(query);
-
-  //thread listener(listenForMessages);
-  processMessages();
-  //listener.join();
-  //processor.join();
+  thread listener(listenForMessages);
+  thread processor(processMessages);
+  listener.join();
+  processor.join();
   cudaDeviceSynchronize();
   //freeGenGraph(deviceGenGraph);
   //freeGraph(deviceGraph);
