@@ -120,6 +120,7 @@ void processMessages() {
 
         NeighborUpdate << < BLK_NUM2, BLK_DIM2, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, INTOTAL_WARPS, queryId, n, m);
         cudaDeviceSynchronize();
+        break;
 
       }
 
