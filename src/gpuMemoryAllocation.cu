@@ -1,11 +1,14 @@
 #include "../inc/Intialize.h"
 
+#define chkerr(code) { chkerr_impl((code), __FILE__, __LINE__); }
 
-inline void chkerr(cudaError_t code)
+inline void chkerr_impl(cudaError_t code, const char *file, int line)
 {
     if (code != cudaSuccess)
     {
-        std::cout<<cudaGetErrorString(code)<<std::endl;
+        std::cerr << "CUDA Error: " << cudaGetErrorString(code)
+                  << " | File: " << file
+                  << " | Line: " << line << std::endl;
         exit(-1);
     }
 }
@@ -61,6 +64,7 @@ void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui total
     chkerr(cudaMemset(p.taskOffset,0, numWraps*pSize*sizeof(ui)));
 
     chkerr(cudaMalloc((void**)&(p.ustar), numWraps*pSize*sizeof(int)));
+    chkerr(cudaMemset(p.ustar,-1,numWraps*pSize*sizeof(int)));
 
     chkerr(cudaMalloc((void**)&(p.size), numWraps*pSize*sizeof(ui)));
     chkerr(cudaMemset(p.size,0,numWraps*pSize*sizeof(ui)));
@@ -104,7 +108,7 @@ void memoryAllocationBuffer(deviceBufferPointers &p,ui bufferSize){
     chkerr(cudaMemset(p.readMutex,0,sizeof(ui)));
 
     chkerr(cudaMalloc((void**)&(p.queryIndicator), bufferSize*sizeof(ui)));
-    
+
     chkerr(cudaMalloc((void**)&(p.outOfMemoryFlag), sizeof(ui)));
     chkerr(cudaMemset(p.outOfMemoryFlag,0,sizeof(ui)));
 

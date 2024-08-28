@@ -197,8 +197,7 @@ __device__ void warpSelectionSort(double* keys, ui* values, ui start, ui end,
 
 __global__ void initialReductionRules(deviceGraphGenPointers G, deviceGraphPointers G_,
                                       deviceInterPointers P, ui size,
-                                      ui upperBoundDistance,
-                                      ui lowerBoundDegree, ui pSize, ui queryId) {
+                                      ui upperBoundDistance, ui pSize, ui queryId) {
 
 
   extern __shared__ ui shared_memory1[];
@@ -222,7 +221,7 @@ __global__ void initialReductionRules(deviceGraphGenPointers G, deviceGraphPoint
 
   for (ui i = laneId; i < total; i += warpSize) {
     ui vertex = start + i;
-    if ((G.core[vertex] > lowerBoundDegree) &&
+    if ((G.core[vertex] >= G_.lowerBoundDegree[queryId]) &&
         (G_.distance[(queryId*size)+vertex] <= upperBoundDistance)) {
       ui loc = atomicAdd(&local_counter[threadIdx.x / warpSize], 1);
       P.initialTaskList[loc + writeOffset] = vertex;
@@ -241,7 +240,7 @@ __global__ void initialReductionRules(deviceGraphGenPointers G, deviceGraphPoint
 }
 
 __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, deviceInterPointers P,
-  deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size,  ui jump1 ) {
+  deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size,  ui jump1, ui taskPSize ) {
 
   ui idx = blockIdx.x * blockDim.x + threadIdx.x;
   int warpId = idx / warpSize;
@@ -252,15 +251,16 @@ __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, d
   ui total = P.entries[warpId];
   // add some of mechanism
   ui jump = jump1;
-  while((pSize-  T.taskOffset[pSize*(jump+1)-1])<=*P.globalCounter)
+  while((taskPSize-  T.taskOffset[taskPSize*(jump+1)-1])<=*P.globalCounter)
       jump++;
 
-  ui writeOffset = pSize*jump + T.taskOffset[pSize*jump + T.taskOffset[pSize*(jump+1)-1]];
+  ui writeOffset = taskPSize*jump + T.taskOffset[taskPSize*jump + T.taskOffset[taskPSize*(jump+1)-1]];
   if (idx == 0) {
-    printf(" jump %u writeoffset %u \n",jump,writeOffset);
-    T.size[pSize*(jump) + T.taskOffset[pSize*(jump+1)-1]] = 1;
-    T.queryIndicator[pSize*(jump) + T.taskOffset[pSize*(jump+1)-1]] = queryId;
-    T.taskOffset[pSize*(jump) + T.taskOffset[pSize*(jump+1)-1]+1] = *P.globalCounter;
+    T.size[taskPSize*(jump) + T.taskOffset[pSize*(jump+1)-1]] = 1;
+    T.queryIndicator[taskPSize*(jump) + T.taskOffset[taskPSize*(jump+1)-1]] = queryId;
+    T.taskOffset[taskPSize*(jump) + T.taskOffset[taskPSize*(jump+1)-1]+1] = *P.globalCounter;
+    T.taskOffset[taskPSize*(jump+1)-1]++;
+
   }
 
   for (ui i = laneId; i < total; i += warpSize) {
@@ -290,32 +290,12 @@ __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, d
     }
 
     G_.newOffset[(queryId*(size+1))+ vertex + 1] = totalNeigh;
-    printf("wrap id %u lane %u loc %u vertex %u \n",warpId,laneId,(queryId*(size+1))+ vertex + 1,G_.newOffset[(queryId*(size+1))+ vertex + 1]);
     T.degreeInR[writeOffset + i] = degInR;
     T.degreeInC[writeOffset + i] = degInc;
   }
 }
 
 __global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_, ui INTOTAL_WARPS,ui queryId, ui size, ui totalEdges ) {
-  /**
-   * Generate a the neighbor list for each vertex in the graph after the after vertex elimination..
-   *
-   * @param G                Device graph pointers containing vertex and adjacency information.
-   * @param n                Total number of vertices in the graph.
-   * @param INTOTAL_WARPS    Total number of warps.
-   *
-   * This kernel performs the following operations:
-   *
-   * 1. Each warp processes the neighbors of a single vertex in parallel, then moves to the next vertex if available.
-   * 2. For each vertex:
-   *    - Retrieves the vertex degree and writes its new neighbor list.
-   *    - Threads within each warp collect neighbors of the current vertex with a non zero degree.
-   *    - Uses atomic operations to update the new neighbor list.
-   * 4. Resets local counters in shared memory after processing each vertex segment.
-   *
-   * Shared memory is used to manage local counters efficiently, and synchronization ensures correct updates to the new neighbor list.
-   * Only neighbors of a single vertex compete for write locations, as the total number of new neighbors for each vertex is precomputed.
-   */
 
   extern __shared__ ui sharedMem[];
   ui * localCounter = sharedMem;
@@ -362,34 +342,6 @@ __global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_,
 
 __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T,
                           ui pSize, ui maxN2, ui size, ui totalEdges, ui dmax) {
-  /**
-   * Applies all three reduction rules and updates the degree of each vertex in a task.
-   * computes the minimum degree or all tasks and updates the global maximum minimum degree.
-   * Computes ustar, and upper bound for the maximum minimum degree for each task.
-   * Removes tasks that don't need further processing from task list.
-   *
-   * @param G                Device graph pointers containing graph data.
-   * @param T                Device task pointers containing task data.
-   * @param lowerBoundSize   The lower bound size constraint for subgraph.
-   * @param upperBoundSize   The upper bound size constraint for subgraph
-   * @param pSize            Size of the partition each warp processes.
-   * @param dmax             Maximum degree of the graph.
-   *
-   * Each warp processes its assigned task sequentially from its partition.
-   * For each task, the warp iterates through 32 vertices at a time:
-   *
-   *  - If the sum of degrees in C and R is less than the current maximum minimum degree, the vertex is removed from R (status set to 2), and the degrees of its neighbors are updated accordingly.
-   *  - If the sum of degrees in C and R equals the maximum minimum degree, all neighbors of the vertex are added to C (status set to 1), and the degrees of both the vertex and its neighbors are updated.
-   *  - The minimum degree of the 32 vertices is calculated, and the shared memory is updated to reflect the overall minimum degree for the entire task.
-   *  - The `ustar` value is determined based on the vertex with the highest connection score within the warp.
-   *  - The upper bound for the maximum minimum degree is computed for each task, using two different algorithms to select the tighter bound.
-   *  - If the task size falls within the lower and upper bounds, the global maximum minimum degree is updated.
-   *  - If the task's upper bound for the maximum minimum degree exceeds the global maximum minimum degree, `ustar` is written to global memory; otherwise, `ustar` is set to `INT_MAX`.
-   *  - Tasks with `ustar` set to `INT_MAX` are removed from further processing.
-   *
-   *
-  */
-
   extern __shared__ char shared_memory[];
   ui sizeOffset = 0;
 
@@ -402,9 +354,6 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
   int* sharedUstar = (int*)(shared_memory + sizeOffset);
   sizeOffset += WARPS_EACH_BLK * sizeof(int);
 
-  double* sharedScore = (double*)(shared_memory + sizeOffset);
-  sizeOffset += WARPS_EACH_BLK * sizeof(double);
-
   ui* sharedCounterC = (ui*)(shared_memory + sizeOffset);
   sizeOffset += WARPS_EACH_BLK * sizeof(ui);
 
@@ -413,6 +362,10 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
 
   ui* sharedC_ = (ui*)(shared_memory + sizeOffset);
   sizeOffset += maxN2*WARPS_EACH_BLK * sizeof(ui);
+  sizeOffset = (sizeOffset + alignof(double) - 1) & ~(alignof(double) - 1);
+
+   double* sharedScore = (double*)(shared_memory + sizeOffset);
+  sizeOffset += WARPS_EACH_BLK * sizeof(double);
 
   // minimum degree initialized to zero.
   ui currentMinDegree;
@@ -427,27 +380,32 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
   ui degreeBasedUpperBound;
 
   int otherId;
-
+  
   int resultIndex, resInd;
   ui currentSize;
 
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   int warpId = idx / warpSize;
   int laneId = idx % warpSize;
-
+ 
+  
   ui startIndex = warpId * pSize;
   ui endIndex = (warpId + 1) * pSize - 1;
   ui totalTasks = T.taskOffset[endIndex];
+
+
   if (laneId == 0) {
+
     sharedUBDegree[threadIdx.x / warpSize] = UINT_MAX;
-    sharedScore[threadIdx.x / warpSize] = 0;
-    sharedUstar[threadIdx.x / warpSize] = -1;
     sharedDegree[threadIdx.x / warpSize] = UINT_MAX;
+    sharedUstar[threadIdx.x / warpSize] = -1;
     sharedCounterC[threadIdx.x / warpSize] = 0;
     sharedCounterR[threadIdx.x / warpSize] = 0;
-  }
-  __syncwarp();
+    sharedScore[threadIdx.x / warpSize] = 0;
 
+  }
+
+  __syncwarp();
   for (ui iter = 0; iter < totalTasks; iter++) {
     __syncwarp();
 
@@ -455,10 +413,10 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
     ui end = T.taskOffset[startIndex + iter + 1];
     ui total = end - start;
     ui queryId = T.queryIndicator[startIndex + iter];
-    ui maskGen = total;
     ui lowerBoundSize = G_.lowerBoundSize[queryId];
     ui upperBoundSize = G_.upperBoundSize[queryId];
 
+    ui maskGen = total;
     if (T.ustar[warpId * pSize + iter] != INT_MAX) {
       for (ui i = laneId; i < total; i += warpSize)
 
@@ -493,11 +451,9 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
         if (maskGen > warpSize) {
           mask = 0xFFFFFFFF;
           maskGen -= warpSize;
-          // printf("here");
 
         } else {
           mask = (1u << maskGen) - 1;
-          // printf("2nd here");
         }
         __syncwarp(mask);
 
@@ -625,10 +581,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
         if (status == 1) {
           currentMinDegree = T.degreeInC[ind];
         }
-        // if(warpId==1939)
-        // printf("iter %u warpId %u laneId %u i %u vertex %u status %u degree
-        // %u mask %u mask gen %u cond %u
-        // \n",iter,warpId,laneId,i,vertex,status,currentMinDegree,mask,maskGen,cond);
+      
 
         for (int offset = warpSize / 2; offset > 0; offset /= 2) {
           temp2 = __shfl_down_sync(mask, currentMinDegree, offset);
@@ -904,7 +857,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
         if (laneId == 0) {
           if ((T.size[warpId * pSize + iter] < upperBoundSize) &&
               (T.ustar[warpId * pSize + iter] != -1)) {
-            G_.flag[queryId] = 0;
+            G_.flag[queryId] = 1;
             T.statusList[T.ustar[warpId * pSize + iter]] = 1;
 
             T.taskOffset[(bufferNum - 1) * pSize + totalTasksWrite + 1] =
@@ -1098,7 +1051,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
               B.statusList[B.taskOffset[numTaskBuffer1 + 1] - 1] = 1;
               B.queryIndicator[numTaskBuffer1] = queryId;
               G_.numWrite[queryId] ++;
-              G_.flag[queryId] = 0;
+              G_.flag[queryId] = 1;
 
               // printf("doms write iter %u warp %u loc %u \n", iter, warpId,
               // bufferNum);
@@ -1179,7 +1132,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
                 T.taskOffset[bufferNum * pSize - 1]++;
                  T.queryIndicator[(bufferNum - 1) * pSize + totalTasksWrite] = readQueryId1;
                  G_.numRead[readQueryId1]++;
-                G_.flag[readQueryId1] = 0;
+                G_.flag[readQueryId1] = 1;
 
 
 
@@ -1268,9 +1221,9 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
             T.statusList[T.ustar[warpId * pSize + iter]] = 1;
             atomicAdd(B.numTask, 1);
             B.queryIndicator[numTaskBuffer] = queryId;
-            G_.flag[queryId] = 0;
+            G_.flag[queryId] = 1;
             G_.numWrite[queryId]++;
-            G_.flag[queryId] = 0;
+            G_.flag[queryId] = 1;
 
 
 
@@ -1358,7 +1311,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
         T.taskOffset[bufferNum * pSize - 1]++;
         T.queryIndicator[(bufferNum - 1) * pSize + totalTasksWrite] = readQueryId;
         G_.numRead[readQueryId]++;
-        G_.flag[readQueryId] = 0;
+        G_.flag[readQueryId] = 1;
 
 
       }

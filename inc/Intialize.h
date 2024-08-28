@@ -235,4 +235,3 @@ void freeInterPointer(deviceInterPointers &p);
 void freeTaskPointer(deviceTaskPointers &p);
 void freeBufferPointer(deviceBufferPointers &p);
 
- 

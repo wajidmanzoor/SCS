@@ -1,7 +1,9 @@
-
-
 #include "./inc/heuristic.h"
-#include "./src/helpers.cc"
+#include "gpuMemoryAllocation.cc"
+#include "helpers.cc"
+
+int c =0;
+
 
 struct subtract_functor {
   const ui x;
@@ -13,14 +15,6 @@ struct subtract_functor {
   }
 };
 
-inline void chkerr(cudaError_t code)
-{
-    if (code != cudaSuccess)
-    {
-        std::cout<<cudaGetErrorString(code)<<std::endl;
-        exit(-1);
-    }
-}
 
 
 /*void listenForMessages() {
@@ -40,14 +34,13 @@ inline void chkerr(cudaError_t code)
 }*/
 
 void processMessages() {
-  cout<<"start processing 1 "<<endl;
+  cout<<"start processing"<<endl;
   while (true) {
-    //messageQueueMutex.lock();
+    messageQueueMutex.lock();
     while (!messageQueue.empty()) {
       vector < queryInfo > messages = messageQueue;
       messageQueue.clear();
-      //messageQueueMutex.unlock();
-      cout<<"start processing 2 "<<endl;
+      messageQueueMutex.unlock();
       for (const auto & message: messages) {
 
         ui queryId = message.queryId;
@@ -80,12 +73,17 @@ void processMessages() {
         }
 
         cal_query_dist(queries[queryId].QID);
+        cout<<"DIST "<<queries[queryId].QID<<endl;
+        for(ui i =0;i<n;i++){
+          cout<<q_dist[i]<<" ";
+        }
+        cout<<endl;
         chkerr(cudaMemcpy(deviceGraph.degree + (queryId * n), degree, n * sizeof(ui), cudaMemcpyHostToDevice));
         chkerr(cudaMemcpy(deviceGraph.distance + (queryId * n), q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.lowerBoundDegree + queryId, & (queries[queryId].kl), sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.lowerBoundSize + queryId, & (queries[queryId].N1), sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.lowerBoundDegree + queryId, &(queries[queryId].kl), sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.lowerBoundSize + queryId, &(queries[queryId].N1), sizeof(ui), cudaMemcpyHostToDevice));
         chkerr(cudaMemcpy(deviceGraph.upperBoundSize + queryId, & (queries[queryId].N2), sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.limitDoms + queryId, & (queries[queryId].limitDoms), sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.limitDoms + queryId, &(queries[queryId].limitDoms), sizeof(ui), cudaMemcpyHostToDevice));
 
         chkerr(cudaMemset(initialTask.globalCounter, 0, sizeof(ui)));
         chkerr(cudaMemset(initialTask.entries, 0, INTOTAL_WARPS * sizeof(ui)));
@@ -108,54 +106,62 @@ void processMessages() {
             }
           }
         }
+        cout<<" ubd yayaya "<<queries[queryId].ubD<<endl;
         maxN2 = mav(maxN2,queries[queryId].N2);
+        cout<<"maxN2 "<<maxN2<<endl;
         ui *hostNewOffset, *hostNewNeigh;
         hostNewOffset = new ui[limitQueries*(n+1)];
         hostNewNeigh = new ui[limitQueries*2*m];
-        chkerr(cudaMemcpy( hostNewOffset, deviceGraph.newOffset, limitQueries*(n+1)*sizeof(ui),cudaMemcpyDeviceToHost));
-        chkerr(cudaMemcpy( hostNewNeigh, deviceGraph.newNeighbors, limitQueries*2*m*sizeof(ui),cudaMemcpyDeviceToHost));
 
-        for(ui i=0;i< (limitQueries*(n+1));i++){
-          cout<<hostNewOffset[i]<<" ";
-
-        }
-        cout<<endl<<"neigh "<<endl;
-        for(ui i=0;i< (limitQueries*2*m);i++){
-          cout<<hostNewNeigh[i]<<" ";
-
-        }
-        cout<<endl;
 
         queries[queryId].receiveTimer.restart();
-        cout<<"befor intsial task"<<endl;
-        initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[queryId].ubD, queries[queryId].kl, initialPartitionSize, queryId);
+
+        initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[queryId].ubD, initialPartitionSize, queryId);
         cudaDeviceSynchronize();
 
         ui globalCounter;
-        chkerr(cudaMemcpy( & globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
-        cout<<"befor compress task "<<globalCounter<<" jump "<<jump<<endl;
-        chkerr(cudaMemcpy( hostNewOffset, deviceGraph.newOffset, limitQueries*(n+1)*sizeof(ui),cudaMemcpyDeviceToHost));
-        chkerr(cudaMemcpy( hostNewNeigh, deviceGraph.newNeighbors, limitQueries*2*m*sizeof(ui),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( &globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
 
-        for(ui i=0;i< (limitQueries*(n+1));i++){
-          cout<<hostNewOffset[i]<<" ";
-
-        }
-        cout<<endl<<"neigh "<<endl;
-        for(ui i=0;i< (limitQueries*2*m);i++){
-          cout<<hostNewNeigh[i]<<" ";
-
-        }
-        cout<<endl;
-
-
-        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[queryId].QID, queryId, n,1);
+        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[queryId].QID, queryId, n,0,partitionSize);
         cudaDeviceSynchronize();
 
         thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * queryId)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (queryId + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * queryId)));
         cudaDeviceSynchronize();
-        cout<<"after Compress "<<endl;
+        cout<<"After Compress "<<endl;
         chkerr(cudaMemcpy( hostNewOffset, deviceGraph.newOffset, limitQueries*(n+1)*sizeof(ui),cudaMemcpyDeviceToHost));
+        cout<<"Neigh offset ";
+        for(ui i=0;i< (limitQueries*(n+1));i++){
+          cout<<hostNewOffset[i]<<" ";
+
+        }
+        cout<<endl;
+
+         /*ui *taskHost, *taskOffset;
+        taskHost = new ui[partitionSize*TOTAL_WARPS];
+        taskOffset = new ui[partitionSize*TOTAL_WARPS];
+
+        chkerr(cudaMemcpy( taskHost, deviceTask.taskList, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( taskOffset, deviceTask.taskOffset, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+
+        cout<<"Offset ";
+        for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
+          cout<<taskOffset[i]<<" ";
+        }
+        cout<<endl;
+        cout<<"Task ";
+        for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
+          cout<<taskHost[i]<<" ";
+        }
+        cout<<endl;*/
+
+        numQueriesProcessing++;
+
+        NeighborUpdate << < BLK_NUM2, BLK_DIM2, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, INTOTAL_WARPS, queryId, n, m);
+        cudaDeviceSynchronize();
+
+        cout<<"after Neigh task "<<globalCounter<<endl;
+
+	      chkerr(cudaMemcpy( hostNewOffset, deviceGraph.newOffset, limitQueries*(n+1)*sizeof(ui),cudaMemcpyDeviceToHost));
         chkerr(cudaMemcpy( hostNewNeigh, deviceGraph.newNeighbors, limitQueries*2*m*sizeof(ui),cudaMemcpyDeviceToHost));
 
         for(ui i=0;i< (limitQueries*(n+1));i++){
@@ -169,54 +175,24 @@ void processMessages() {
         }
         cout<<endl;
 
-
-        numQueriesProcessing++;
-        cout<<"before Neigh task "<<globalCounter<<endl;
-        NeighborUpdate << < BLK_NUM2, BLK_DIM2, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, INTOTAL_WARPS, queryId, n, m);
-        cudaDeviceSynchronize();
-        cout<<"after Neigh task "<<globalCounter<<endl;
-
-
-        break;
-
-
       }
 
-     // messageQueueMutex.lock();
+      messageQueueMutex.lock();
     }
-    //messageQueueMutex.unlock();
+    messageQueueMutex.unlock();
 
     if (numQueriesProcessing != 0) {
 
-      ui *taskHost, *taskOffset;
-      taskHost = new ui[partitionSize*TOTAL_WARPS];
-      taskOffset = new ui[partitionSize*TOTAL_WARPS];
+      chkerr(cudaMemset(deviceGraph.flag,0, limitQueries * sizeof(ui)));
+      cout<<"maxN2 "<<maxN2<<endl;
+      sharedMemorySizeTask = 2 * WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + maxN2 * WARPS_EACH_BLK * sizeof(ui);
+      cout<<"before process Task  psize "<<partitionSize<<endl;
 
-      chkerr(cudaMemcpy( taskHost, deviceTask.taskList, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
-      chkerr(cudaMemcpy( taskOffset, deviceTask.taskOffset, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
-
-      cout<<"Offset ";
-      for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
-        cout<<taskOffset[i]<<" ";
-      }
-      cout<<endl;
-      cout<<"Task ";
-      for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
-        cout<<taskHost[i]<<" ";
-      }
-      cout<<endl;
-
-
-
-      chkerr(cudaMemset(deviceGraph.flag, 0, limitQueries * sizeof(ui)));
-      sharedMemorySizeTask = 3 * WARPS_EACH_BLK * sizeof(ui) +
-       WARPS_EACH_BLK * sizeof(int) +
-       WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + maxN2 * WARPS_EACH_BLK * sizeof(ui);
-      cout<<"before process Task"<<endl;
+    
       ProcessTask << < BLK_NUMS, BLK_DIM, sharedMemorySizeTask >>> (
         deviceGenGraph, deviceGraph, deviceTask, partitionSize, maxN2, n, m,dMAX);
       cudaDeviceSynchronize();
-
+         
       // Indicates the partition offset each warp will use to write new tasks.
       jump = jump >> 1;
       if (jump == 1) {
@@ -230,15 +206,84 @@ void processMessages() {
         deviceGenGraph, deviceGraph, deviceTask, partitionSize, n, m,dMAX);
       cudaDeviceSynchronize();
 
+
+
       // This kernel writes new tasks, based on ustar and the dominating set, into the task array or buffer. It reads from the buffer and writes to the task array.
+      //ui flag = 1 ;
+      //chkerr(cudaMemcpy( &flag, &deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
       Expand << < BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (
         deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,
         jump, copyLimit, bufferSize, numTaskHost, readLimit, n, m, dMAX);
       cudaDeviceSynchronize();
-      cout<<"After all kernels"<<endl;
+      
+      ui *taskHost, *taskOffset, *hostStatus, *hostDc, *hostDr, *hostDoms;
+         int *hostUstar;
+         double *hostCons;
+        taskHost = new ui[partitionSize*TOTAL_WARPS];
+        taskOffset = new ui[partitionSize*TOTAL_WARPS];
+        hostStatus  = new ui[partitionSize*TOTAL_WARPS];
+        hostDc  = new ui[partitionSize*TOTAL_WARPS];
+        hostDr  = new ui[partitionSize*TOTAL_WARPS];
+        hostUstar = new int[partitionSize*TOTAL_WARPS];
+        hostDoms = new ui[partitionSize*TOTAL_WARPS];
+        hostCons = new double[partitionSize*TOTAL_WARPS];
 
-  ui flag;
-      chkerr(cudaMemcpy( &flag, deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( taskHost, deviceTask.taskList, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( taskOffset, deviceTask.taskOffset, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+
+        chkerr(cudaMemcpy( hostStatus, deviceTask.statusList, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( hostDc, deviceTask.degreeInC, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( hostDr, deviceTask.degreeInR, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( hostUstar , deviceTask.ustar, partitionSize*TOTAL_WARPS*sizeof(int),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( hostDoms , deviceTask.doms, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( hostCons , deviceTask.cons, partitionSize*TOTAL_WARPS*sizeof(double),cudaMemcpyDeviceToHost));
+
+
+
+        cout<<"Offs ";
+        for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
+          cout<<taskOffset[i]<<" ";
+        }
+        cout<<endl;
+        cout<<"Task ";
+        for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
+          cout<<taskHost[i]<<" ";
+        }
+        cout<<endl;
+        cout<<"stat ";
+        for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
+          cout<<hostStatus[i]<<" ";
+        }
+        cout<<endl;
+        cout<<"degC ";
+        for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
+          cout<<hostDc[i]<<" ";
+        }
+        cout<<endl;
+
+        cout<<"degR ";
+        for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
+          cout<<hostDr[i]<<" ";
+        }
+        cout<<endl;
+        cout<<"usta ";
+        for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
+          cout<<hostUstar[i]<<" ";
+        }
+        cout<<endl;
+
+        cout<<"Doms ";
+        for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
+          cout<<hostDoms[i]<<" ";
+        }
+        cout<<endl;
+        cout<<"cons ";
+        for(ui i =0;i< (partitionSize*TOTAL_WARPS);i ++){
+          cout<<hostCons[i]<<" ";
+        }
+        cout<<endl;
+      cout<<"After all kernels"<<endl;
+      chkerr(cudaMemcpy(&(outMemFlag), deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
       cout<<"After all kernels 2 "<<endl;
 
       chkerr(cudaMemcpy( &tempHost, deviceBuffer.temp, sizeof(ui),
@@ -254,7 +299,8 @@ void processMessages() {
 
       for (ui i = 0; i < totalQuerry; i++) {
         if (i < queries.size()) {
-          if ((queryStopFlag[i]==1) && (queries[i].solFlag==0)) {
+          cout<<"query id "<<i<<"stop flag "<<queryStopFlag[i]<<"queries sol flag  "<<queries[i].solFlag<<endl;
+          if ((queryStopFlag[i]==0) && (queries[i].solFlag==0)) {
             chkerr(cudaMemcpy( & (queries[i].numRead), deviceGraph.numRead + i, sizeof(ui), cudaMemcpyDeviceToHost));
             chkerr(cudaMemcpy( & (queries[i].numWrite), deviceGraph.numWrite + i, sizeof(ui), cudaMemcpyDeviceToHost));
             if ((queries[i].numRead == queries[i].numWrite)) {
@@ -325,6 +371,9 @@ void processMessages() {
       chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
 
     }
+    c++;
+    if(c==12)
+    break;
 
   }
 }
@@ -342,11 +391,14 @@ int main(int argc, const char * argv[]) {
   readLimit = atoi(argv[5]); // Maximum number of tasks a warp with an empty partition can read from the buffer.
   load_graph(filepath);
   core_decomposition_linear_list();
+
+
+
   limitQueries = 10;
 
   memoryAllocationGenGraph(deviceGenGraph);
   memeoryAllocationGraph(deviceGraph, limitQueries);
-  
+
   totalQuerry = 0;
   q_dist = new ui[n];
   outMemFlag = 0;
@@ -375,10 +427,9 @@ int main(int argc, const char * argv[]) {
   tempHost = 0;
   startOffset = 0;
   endOffset = 0;
-  
-  queryInfo query(totalQuerry, "5 10 2 1 1");
+
+  queryInfo query(totalQuerry, "3 10 2 0 2");
   totalQuerry++;
-  messageQueueMutex.lock();
   messageQueue.push_back(query);
 
   //thread listener(listenForMessages);
@@ -386,11 +437,11 @@ int main(int argc, const char * argv[]) {
   //listener.join();
   //processor.join();
   cudaDeviceSynchronize();
-  freeGenGraph(deviceGenGraph);
-  freeGraph(deviceGraph);
-  freeInterPointer(initialTask);
-  freeTaskPointer(deviceTask);
-  freeBufferPointer(deviceBuffer);
+  //freeGenGraph(deviceGenGraph);
+  //freeGraph(deviceGraph);
+  //freeInterPointer(initialTask);
+  //freeTaskPointer(deviceTask);
+  //freeBufferPointer(deviceBuffer);
 
   return 0;
 }
