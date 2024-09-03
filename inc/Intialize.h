@@ -24,7 +24,7 @@
 #define WARPS_EACH_BLK (BLK_DIM/32)
 #define TOTAL_WARPS (BLK_NUMS*WARPS_EACH_BLK)
 
-ui BLK_DIM2 = 32;
+ui BLK_DIM2 = 1024;
 ui BLK_NUM2 = 1;
 ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
 
@@ -228,6 +228,13 @@ struct queryInfo
     }
 
 };
+
+
+
+
+
+
+
 
 vector<queryInfo> messageQueue;
 mutex messageQueueMutex;

@@ -16,6 +16,16 @@ struct subtract_functor {
   }
 };
 
+bool isServerExit(const std::string& str) {
+    std::string trimmedStr = str;
+    trimmedStr.erase(trimmedStr.find_last_not_of(" \n\r\t") + 1);
+    trimmedStr.erase(0, trimmedStr.find_first_not_of(" \n\r\t"));
+    
+    std::transform(trimmedStr.begin(), trimmedStr.end(), trimmedStr.begin(), ::tolower);
+
+    return trimmedStr == "server_exit";
+}
+
 
 
 void listenForMessages() {
@@ -30,7 +40,7 @@ void listenForMessages() {
       messageQueueMutex.lock();
       messageQueue.push_back(query);
       messageQueueMutex.unlock();
-      if(msg == "server_exit")
+      if(isServerExit(msg))
       break;
     }
   }
@@ -53,7 +63,7 @@ void processMessages() {
         vector<ui> argValues;
         ui number, countArgs;
         countArgs = 0;
-        if(queryText=="server_exit"){
+        if(isServerExit(queryText)){
           serverQuit = true;
           break;
         }
@@ -71,6 +81,7 @@ void processMessages() {
         for(ui x =0; x < limitQueries;x++){
           if(queries[x].solFlag!=0){
             ind = x;
+            cout<<" **** Ind *** "<<ind;
             break;
           }
         }
@@ -89,10 +100,10 @@ void processMessages() {
         cal_query_dist(queries[ind].QID);
         chkerr(cudaMemcpy(deviceGraph.degree + (ind * n), degree, n * sizeof(ui), cudaMemcpyHostToDevice));
         chkerr(cudaMemcpy(deviceGraph.distance + (ind * n), q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.lowerBoundDegree + ind, &(queries[queryId].kl), sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.lowerBoundSize + ind, &(queries[queryId].N1), sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.upperBoundSize + ind, & (queries[queryId].N2), sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.limitDoms + ind, &(queries[queryId].limitDoms), sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.lowerBoundDegree + ind, &(queries[ind].kl), sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.lowerBoundSize + ind, &(queries[ind].N1), sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.upperBoundSize + ind, & (queries[ind].N2), sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.limitDoms + ind, &(queries[ind].limitDoms), sizeof(ui), cudaMemcpyHostToDevice));
 
         chkerr(cudaMemset(initialTask.globalCounter, 0, sizeof(ui)));
         chkerr(cudaMemset(initialTask.entries, 0, INTOTAL_WARPS * sizeof(ui)));
@@ -119,13 +130,13 @@ void processMessages() {
 
         queries[ind].receiveTimer.restart();
 
-        initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[ind].ubD, initialPartitionSize, queryId);
+        initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[ind].ubD, initialPartitionSize, ind);
         cudaDeviceSynchronize();
 
         ui globalCounter;
         chkerr(cudaMemcpy( &globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
 
-        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, queryId, n,partitionSize,TOTAL_WARPS);
+        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, ind, n,partitionSize,TOTAL_WARPS);
         cudaDeviceSynchronize();
 
         thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (ind + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)));
@@ -136,6 +147,50 @@ void processMessages() {
         NeighborUpdate << < BLK_NUM2, BLK_DIM2, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, INTOTAL_WARPS, ind, n, m);
         cudaDeviceSynchronize();
 
+        ui *hostNeighOffset, *hostNeighbors;
+        ui *hostTaskOffset, *hostTaskList, *hostStatus, *hostIndicator;
+        hostNeighOffset= new ui[(n+1)*limitQueries];
+        hostNeighbors = new ui[2*m*limitQueries];
+        hostTaskOffset = new ui[TOTAL_WARPS*partitionSize];
+        hostTaskList = new ui[TOTAL_WARPS*partitionSize];
+        hostStatus = new ui[TOTAL_WARPS*partitionSize];
+        hostIndicator = new ui[TOTAL_WARPS*partitionSize];
+
+        chkerr(cudaMemcpy( hostTaskList, deviceTask.taskList, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( hostTaskOffset, deviceTask.taskOffset, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+
+        chkerr(cudaMemcpy( hostStatus, deviceTask.statusList, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( hostIndicator , deviceTask.queryIndicator, partitionSize*TOTAL_WARPS*sizeof(ui),cudaMemcpyDeviceToHost));
+
+        chkerr(cudaMemcpy( hostNeighOffset , deviceGraph.newOffset, (n+1)*limitQueries*sizeof(ui),cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( hostNeighbors , deviceGraph.newNeighbors, 2*m*limitQueries*sizeof(ui),cudaMemcpyDeviceToHost));
+
+        cout<<"heigh offset "<<endl;
+        for(ui i=0; i <((n+1)*limitQueries);i ++)
+        cout<<hostNeighOffset[i]<<" ";
+        cout<<endl;
+        cout<<"Neighbor "<<endl;
+        for(ui i=0;i< (2*m*limitQueries);i++)
+        cout<< hostNeighbors[i]<< " ";
+        cout<<endl;
+        cout<<"Offs ";
+        for(ui i=0;i< (partitionSize*TOTAL_WARPS);i++)
+        cout<<hostTaskOffset[i]<<" ";
+        cout<<endl;
+        cout<<"Task ";
+        for(ui i=0;i< (partitionSize*TOTAL_WARPS);i++)
+        cout<<hostTaskList[i]<<" ";
+        cout<<endl;cout<<"stat ";
+        for(ui i=0;i< (partitionSize*TOTAL_WARPS);i++)
+        cout<<hostStatus[i]<<" ";
+        cout<<endl;cout<<"indc ";
+        for(ui i=0;i< (partitionSize*TOTAL_WARPS);i++)
+        cout<<hostIndicator[i]<<" ";
+        cout<<endl;
+
+
+
+
 
       messageQueueMutex.lock();
     }
@@ -145,6 +200,7 @@ void processMessages() {
 
       chkerr(cudaMemset(deviceGraph.flag,0, limitQueries * sizeof(ui)));
       sharedMemorySizeTask = 2 * WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + maxN2 * WARPS_EACH_BLK * sizeof(ui);
+
 
     
       ProcessTask << < BLK_NUMS, BLK_DIM, sharedMemorySizeTask >>> (
@@ -192,7 +248,6 @@ void processMessages() {
             chkerr(cudaMemcpy( & (queries[i].numWrite), deviceGraph.numWrite + i, sizeof(ui), cudaMemcpyDeviceToHost));
             if ((queries[i].numRead == queries[i].numWrite)) {
               chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
-              cout<<"kl "<<i<<" "<<queries[i].kl<<endl;
               cout << "Found Solution : " << queries[i] << endl;
               queries[i].solFlag = 1;
               numQueriesProcessing--;
