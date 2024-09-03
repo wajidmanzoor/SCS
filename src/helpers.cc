@@ -240,7 +240,7 @@ __global__ void initialReductionRules(deviceGraphGenPointers G, deviceGraphPoint
 }
 
 __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, deviceInterPointers P,
-  deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size,  ui jump1, ui taskPSize ) {
+  deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size, ui taskPSize, ui totalWarps ) {
 
   ui idx = blockIdx.x * blockDim.x + threadIdx.x;
   int warpId = idx / warpSize;
@@ -250,18 +250,31 @@ __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, d
   int temp = warpId - 1;
   ui total = P.entries[warpId];
   // add some of mechanism
-  ui jump = jump1;
-  while((taskPSize-  T.taskOffset[taskPSize*(jump+1)-1])<=*P.globalCounter)
-      jump++;
+  ui minTasks = UINT_MAX;
+  ui writeWarp = 0;
+  ui spaceLeft;
+  for(ui i =0;i<totalWarps;i++){
+    spaceLeft = taskPSize - T.taskOffset[taskPSize*i + T.taskOffset[taskPSize*(i+1)-1]];
+    if( spaceLeft > *P.globalCounter ){
+      if(T.taskOffset[taskPSize*(i+1)-1]<minTasks){
+        minTasks = T.taskOffset[taskPSize*(i+1)-1];
+        writeWarp = i;
+      }
 
-  ui writeOffset = taskPSize*jump + T.taskOffset[taskPSize*jump + T.taskOffset[taskPSize*(jump+1)-1]];
-  if (idx == 0) {
-    T.size[taskPSize*(jump) + T.taskOffset[pSize*(jump+1)-1]] = 1;
-    T.queryIndicator[taskPSize*(jump) + T.taskOffset[taskPSize*(jump+1)-1]] = queryId;
-    T.taskOffset[taskPSize*(jump) + T.taskOffset[taskPSize*(jump+1)-1]+1] = *P.globalCounter;
-    T.taskOffset[taskPSize*(jump+1)-1]++;
+    }
 
   }
+  __syncwarp();
+
+  ui writeOffset = taskPSize*writeWarp + T.taskOffset[taskPSize*writeWarp + T.taskOffset[taskPSize*(writeWarp+1)-1]];
+  if (idx == 0) {
+    T.size[taskPSize*(writeWarp) + T.taskOffset[pSize*(writeWarp+1)-1]] = 1;
+    T.queryIndicator[taskPSize*(writeWarp) + T.taskOffset[taskPSize*(writeWarp+1)-1]] = queryId;
+    T.taskOffset[taskPSize*(writeWarp) + T.taskOffset[taskPSize*(writeWarp+1)-1]+1] =  T.taskOffset[taskPSize*(writeWarp) + T.taskOffset[taskPSize*(writeWarp+1)-1]] + *P.globalCounter;
+    T.taskOffset[taskPSize*(writeWarp+1)-1]++;
+
+  }
+
 
   for (ui i = laneId; i < total; i += warpSize) {
     while (temp >= 0) {
@@ -364,7 +377,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
   sizeOffset += maxN2*WARPS_EACH_BLK * sizeof(ui);
   sizeOffset = (sizeOffset + alignof(double) - 1) & ~(alignof(double) - 1);
 
-   double* sharedScore = (double*)(shared_memory + sizeOffset);
+  double* sharedScore = (double*)(shared_memory + sizeOffset);
   sizeOffset += WARPS_EACH_BLK * sizeof(double);
 
   // minimum degree initialized to zero.
@@ -380,15 +393,15 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
   ui degreeBasedUpperBound;
 
   int otherId;
-  
+
   int resultIndex, resInd;
   ui currentSize;
 
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   int warpId = idx / warpSize;
   int laneId = idx % warpSize;
- 
-  
+
+
   ui startIndex = warpId * pSize;
   ui endIndex = (warpId + 1) * pSize - 1;
   ui totalTasks = T.taskOffset[endIndex];
@@ -581,7 +594,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
         if (status == 1) {
           currentMinDegree = T.degreeInC[ind];
         }
-      
+
 
         for (int offset = warpSize / 2; offset > 0; offset /= 2) {
           temp2 = __shfl_down_sync(mask, currentMinDegree, offset);

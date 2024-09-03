@@ -144,7 +144,7 @@ struct queryData
 {
 	 ui N1; //size LB
      ui N2; //size UB
-     int QID;
+     ui QID;
      ui kl; //min deg
      ui ku; //max min deg
      ui ubD;
@@ -158,7 +158,7 @@ struct queryData
 	queryData(){
 
      }
-	queryData(ui N1, ui N2, int QID,ui isHeu,ui limitDoms){
+	queryData(ui N1, ui N2, ui QID,ui isHeu,ui limitDoms){
           this->N1 = N1;
           this->N2 = N2;
           this->QID = QID;

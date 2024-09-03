@@ -40,7 +40,10 @@ void memeoryAllocationGraph(deviceGraphPointers &G, ui totalQueries){
     chkerr(cudaMalloc((void**)&(G.limitDoms), totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.flag), totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.numRead), totalQueries*sizeof(ui)));
+    chkerr(cudaMemset(G.numRead,0,totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.numWrite), totalQueries*sizeof(ui)));
+    chkerr(cudaMemset(G.numWrite,0,totalQueries*sizeof(ui)));
+
 
     chkerr(cudaMalloc((void **)&(G.newNeighbors), totalQueries*(2 * m) * sizeof(ui)));
     chkerr(cudaMalloc((void **)&(G.newOffset), totalQueries*(n + 1) * sizeof(ui)));

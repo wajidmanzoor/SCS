@@ -3,6 +3,7 @@
 #include "./src/helpers.cc"
 
 int c =0;
+bool serverQuit = false;
 
 
 struct subtract_functor {
@@ -38,18 +39,23 @@ void processMessages() {
   while (true) {
     messageQueueMutex.lock();
     while (!messageQueue.empty()) {
-      vector < queryInfo > messages = messageQueue;
+      vector<queryInfo> messages = messageQueue;
       messageQueue.clear();
       messageQueueMutex.unlock();
-      for (const auto & message: messages) {
+      for ( const auto & message: messages) {
 
         ui queryId = message.queryId;
         string queryText = message.queryString;
 
         istringstream iss(queryText);
-        vector < ui > argValues;
+        cout<<"Recieved: query id "<<queryId<<" message "<<queryText<<endl;
+        vector<ui> argValues;
         ui number, countArgs;
         countArgs = 0;
+        if(queryText=="server_exit"){
+          serverQuit = true;
+          break;
+        }
 
         while (iss >> number) {
           argValues.push_back(number);
@@ -68,6 +74,7 @@ void processMessages() {
         if (queries[queryId].kl == queries[queryId].ku) {
           cout << "heuristic find the OPT!" << endl;
           cout << "Found Solution : " << "QueryId = " << queryId << ", " << queries[queryId] << endl;
+          queries[queryId].solFlag = 1;
           continue;
         }
 
@@ -110,7 +117,7 @@ void processMessages() {
         ui globalCounter;
         chkerr(cudaMemcpy( &globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
 
-        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[queryId].QID, queryId, n,0,partitionSize);
+        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[queryId].QID, queryId, n,partitionSize,TOTAL_WARPS);
         cudaDeviceSynchronize();
 
         thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * queryId)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (queryId + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * queryId)));
@@ -120,7 +127,6 @@ void processMessages() {
 
         NeighborUpdate << < BLK_NUM2, BLK_DIM2, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, INTOTAL_WARPS, queryId, n, m);
         cudaDeviceSynchronize();
-        break;
 
       }
 
@@ -173,13 +179,14 @@ void processMessages() {
 
       chkerr(cudaMemcpy(queryStopFlag, deviceGraph.flag, limitQueries * sizeof(ui), cudaMemcpyDeviceToHost));
 
-      for (ui i = 0; i < totalQuerry; i++) {
+      for (ui i = 0; i <= totalQuerry; i++) {
         if (i < queries.size()) {
           if ((queryStopFlag[i]==0) && (queries[i].solFlag==0)) {
             chkerr(cudaMemcpy( & (queries[i].numRead), deviceGraph.numRead + i, sizeof(ui), cudaMemcpyDeviceToHost));
             chkerr(cudaMemcpy( & (queries[i].numWrite), deviceGraph.numWrite + i, sizeof(ui), cudaMemcpyDeviceToHost));
             if ((queries[i].numRead == queries[i].numWrite)) {
               chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
+              cout<<"kl "<<i<<" "<<queries[i].kl<<endl;
               cout << "Found Solution : " << "QueryId = " << i << ", " << queries[i] << endl;
               queries[i].solFlag = 1;
               numQueriesProcessing--;
@@ -244,12 +251,18 @@ void processMessages() {
         chkerr(cudaMemset(deviceBuffer.readMutex, 0, sizeof(ui)));
       }
       chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
+      c++;
+      cout<<"Level "<<c<<endl;
+
+      if(c==100)
+      break;
+
 
     }
-    c++;
-    if(c==100)
-    break;
 
+    if(serverQuit && (numQueriesProcessing==0))
+    break;
+    
   }
 }
 
@@ -292,7 +305,7 @@ int main(int argc, const char * argv[]) {
 
   queryStopFlag = new ui[limitQueries];
 
-  memset(queryStopFlag,1, limitQueries * sizeof(ui));
+  memset(queryStopFlag,0, limitQueries * sizeof(ui));
 
   sharedMemorySizeDoms = WARPS_EACH_BLK * sizeof(ui);
   sharedMemorySizeExpand = WARPS_EACH_BLK * sizeof(ui);
@@ -308,6 +321,7 @@ int main(int argc, const char * argv[]) {
   listener.join();
   processor.join();
   cudaDeviceSynchronize();
+  cout<<"End"<<endl;
   //freeGenGraph(deviceGenGraph);
   //freeGraph(deviceGraph);
   //freeInterPointer(initialTask);
