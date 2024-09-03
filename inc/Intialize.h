@@ -153,12 +153,26 @@ struct queryData
      ui numRead;
      ui numWrite;
      ui solFlag;
+     ui querryId;
      Timer receiveTimer; // Timer to track time from received to processed
 
 	queryData(){
+          this->N1 = 0;
+          this->N2 = 0;
+          this->QID = 0;
+          this->isHeu = 0;
+          this->limitDoms = 0;
+          this->kl = 0;
+          this->ku = 0;
+          this->ubD = 0;
+          this->solFlag = 2;
+          this->numRead = 0;
+          this->numWrite = 0;
+          this->querryId = 0;
+          this->receiveTimer.restart();
 
      }
-	queryData(ui N1, ui N2, ui QID,ui isHeu,ui limitDoms){
+	void updateQueryData(ui N1, ui N2, ui QID,ui isHeu,ui limitDoms, ui querryId){
           this->N1 = N1;
           this->N2 = N2;
           this->QID = QID;
@@ -167,15 +181,18 @@ struct queryData
           this->kl = 0;
           this->ku = miv(core[QID], N2 - 1);
           this->ubD = 0;
-          this->solFlag = false;
+          this->solFlag = 0;
           this->numRead = 0;
           this->numWrite = 0;
+          this->querryId = querryId;
+          this->receiveTimer.restart();
 
 
      }
 
      friend ostream& operator<<(ostream& os, queryData& qd) {
-        os << "N1 = " << qd.N1 << ", "
+        os << "Querry Id = "<< qd.querryId << ", "
+           << "N1 = " << qd.N1 << ", "
            << "N2 = " << qd.N2 << ", "
            << "QID = " << qd.QID << ", "
            << "isHeu = " << qd.isHeu << ", "
@@ -215,7 +232,7 @@ struct queryInfo
 vector<queryInfo> messageQueue;
 mutex messageQueueMutex;
 
-vector<queryData> queries;
+queryData *queries;
 
 deviceGraphGenPointers deviceGenGraph;
 deviceGraphPointers deviceGraph;

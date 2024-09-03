@@ -30,6 +30,8 @@ void listenForMessages() {
       messageQueueMutex.lock();
       messageQueue.push_back(query);
       messageQueueMutex.unlock();
+      if(msg == "server_exit")
+      break;
     }
   }
 }
@@ -38,11 +40,10 @@ void processMessages() {
   cout<<"start processing"<<endl;
   while (true) {
     messageQueueMutex.lock();
-    while (!messageQueue.empty()) {
-      vector<queryInfo> messages = messageQueue;
-      messageQueue.clear();
+    while ( (!messageQueue.empty()) && (numQueriesProcessing < limitQueries)) {
+      queryInfo message = messageQueue.front();
+      messageQueue.erase(messageQueue.begin());
       messageQueueMutex.unlock();
-      for ( const auto & message: messages) {
 
         ui queryId = message.queryId;
         string queryText = message.queryString;
@@ -66,69 +67,75 @@ void processMessages() {
           cout << "Client wrong input parameters! " << message << endl;
           continue;
         }
-        queryData query(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4]);
-        queries.push_back(query);
-        if (queries[queryId].isHeu)
-          CSSC_heu(queryId);
-        cout << "Processing : " << "QueryId = " << queryId << ", " << queries[queryId] << endl;
-        if (queries[queryId].kl == queries[queryId].ku) {
+        int ind  = -1; 
+        for(ui x =0; x < limitQueries;x++){
+          if(queries[x].solFlag!=0){
+            ind = x;
+            break;
+          }
+        }
+
+        queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4],queryId);
+        if (queries[ind].isHeu)
+          CSSC_heu(ind);
+        cout << "Processing : " << queries[ind] << endl;
+        if (queries[ind].kl == queries[ind].ku) {
           cout << "heuristic find the OPT!" << endl;
-          cout << "Found Solution : " << "QueryId = " << queryId << ", " << queries[queryId] << endl;
-          queries[queryId].solFlag = 1;
+          cout << "Found Solution : " << queries[ind] << endl;
+          queries[ind].solFlag = 1;
           continue;
         }
 
-        cal_query_dist(queries[queryId].QID);
-        chkerr(cudaMemcpy(deviceGraph.degree + (queryId * n), degree, n * sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.distance + (queryId * n), q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.lowerBoundDegree + queryId, &(queries[queryId].kl), sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.lowerBoundSize + queryId, &(queries[queryId].N1), sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.upperBoundSize + queryId, & (queries[queryId].N2), sizeof(ui), cudaMemcpyHostToDevice));
-        chkerr(cudaMemcpy(deviceGraph.limitDoms + queryId, &(queries[queryId].limitDoms), sizeof(ui), cudaMemcpyHostToDevice));
+        cal_query_dist(queries[ind].QID);
+        chkerr(cudaMemcpy(deviceGraph.degree + (ind * n), degree, n * sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.distance + (ind * n), q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.lowerBoundDegree + ind, &(queries[queryId].kl), sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.lowerBoundSize + ind, &(queries[queryId].N1), sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.upperBoundSize + ind, & (queries[queryId].N2), sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(deviceGraph.limitDoms + ind, &(queries[queryId].limitDoms), sizeof(ui), cudaMemcpyHostToDevice));
 
         chkerr(cudaMemset(initialTask.globalCounter, 0, sizeof(ui)));
         chkerr(cudaMemset(initialTask.entries, 0, INTOTAL_WARPS * sizeof(ui)));
 
-        if (queries[queryId].kl <= 1)
-          queries[queryId].ubD = queries[queryId].N2 - 1;
+        if (queries[ind].kl <= 1)
+          queries[ind].ubD = queries[ind].N2 - 1;
         else {
-          for (ui d = 1; d <= queries[queryId].N2; d++) {
+          for (ui d = 1; d <= queries[ind].N2; d++) {
             if (d == 1 || d == 2) {
-              if (queries[queryId].kl + d > queries[queryId].N2) {
-                queries[queryId].ubD = d - 1;
+              if (queries[ind].kl + d > queries[ind].N2) {
+                queries[ind].ubD = d - 1;
                 break;
               }
             } else {
-              ui min_n = queries[queryId].kl + d + 1 + floor(d / 3) * (queries[queryId].kl - 2);
-              if (queries[queryId].N2 < min_n) {
-                queries[queryId].ubD = d - 1;
+              ui min_n = queries[ind].kl + d + 1 + floor(d / 3) * (queries[ind].kl - 2);
+              if (queries[ind].N2 < min_n) {
+                queries[ind].ubD = d - 1;
                 break;
               }
             }
           }
         }
-        maxN2 = mav(maxN2,queries[queryId].N2);
+        maxN2 = mav(maxN2,queries[ind].N2);
 
-        queries[queryId].receiveTimer.restart();
+        queries[ind].receiveTimer.restart();
 
-        initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[queryId].ubD, initialPartitionSize, queryId);
+        initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[ind].ubD, initialPartitionSize, queryId);
         cudaDeviceSynchronize();
 
         ui globalCounter;
         chkerr(cudaMemcpy( &globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
 
-        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[queryId].QID, queryId, n,partitionSize,TOTAL_WARPS);
+        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, queryId, n,partitionSize,TOTAL_WARPS);
         cudaDeviceSynchronize();
 
-        thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * queryId)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (queryId + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * queryId)));
+        thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (ind + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)));
         cudaDeviceSynchronize();
 
         numQueriesProcessing++;
 
-        NeighborUpdate << < BLK_NUM2, BLK_DIM2, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, INTOTAL_WARPS, queryId, n, m);
+        NeighborUpdate << < BLK_NUM2, BLK_DIM2, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, INTOTAL_WARPS, ind, n, m);
         cudaDeviceSynchronize();
 
-      }
 
       messageQueueMutex.lock();
     }
@@ -179,20 +186,19 @@ void processMessages() {
 
       chkerr(cudaMemcpy(queryStopFlag, deviceGraph.flag, limitQueries * sizeof(ui), cudaMemcpyDeviceToHost));
 
-      for (ui i = 0; i <= totalQuerry; i++) {
-        if (i < queries.size()) {
+      for (ui i = 0; i <= limitQueries; i++) {
           if ((queryStopFlag[i]==0) && (queries[i].solFlag==0)) {
             chkerr(cudaMemcpy( & (queries[i].numRead), deviceGraph.numRead + i, sizeof(ui), cudaMemcpyDeviceToHost));
             chkerr(cudaMemcpy( & (queries[i].numWrite), deviceGraph.numWrite + i, sizeof(ui), cudaMemcpyDeviceToHost));
             if ((queries[i].numRead == queries[i].numWrite)) {
               chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
               cout<<"kl "<<i<<" "<<queries[i].kl<<endl;
-              cout << "Found Solution : " << "QueryId = " << i << ", " << queries[i] << endl;
+              cout << "Found Solution : " << queries[i] << endl;
               queries[i].solFlag = 1;
               numQueriesProcessing--;
             }
           }
-        }
+        
 
       }
 
@@ -267,7 +273,7 @@ void processMessages() {
 }
 
 int main(int argc, const char * argv[]) {
-  if (argc != 6) {
+  if (argc != 7) {
     cout << "Server wrong input parameters!" << endl;
     exit(1);
   }
@@ -276,13 +282,17 @@ int main(int argc, const char * argv[]) {
   partitionSize = atoi(argv[2]); // Defines the partition size, in number of elements, that a single warp will read from and write to.
   bufferSize = atoi(argv[3]); // Specifies the size, in number of elements, where warps will write in case the partition overflows.
   copyLimit = stod(argv[4]); // Specifies that only warps with at most this percentage of their partition space filled will read from the buffer and write to their partition.
-  readLimit = atoi(argv[5]); // Maximum number of tasks a warp with an empty partition can read from the buffer.
+  readLimit = atoi(argv[5]); // Maximum number of tasks a warp with an empty partition can read from the buffer. 
+  limitQueries = atoi(argv[6]);
+
+  queries = new queryData[limitQueries];
+  for(ui i =0; i < limitQueries;i ++ ){
+     queryData query;
+    queries[i] = query;
+  }
+
   load_graph(filepath);
   core_decomposition_linear_list();
-
-
-
-  limitQueries = 10;
 
   memoryAllocationGenGraph(deviceGenGraph);
   memeoryAllocationGraph(deviceGraph, limitQueries);
