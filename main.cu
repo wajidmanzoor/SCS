@@ -190,7 +190,7 @@ void processMessages() {
       //chkerr(cudaMemcpy( &flag, &deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
       Expand << < BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (
         deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,
-        jump, copyLimit, bufferSize, numTaskHost, readLimit, n, m, dMAX);
+        jump, copyLimit, bufferSize, numTaskHost-numReadHost, readLimit, n, m, dMAX);
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Expand ");
       RemoveCompletedTasks<<<BLK_NUMS, BLK_DIM>>>( deviceGraph,deviceTask, partitionSize);
