@@ -154,6 +154,7 @@ struct queryData
      ui numWrite;
      ui solFlag;
      ui querryId;
+     ui ind;
      Timer receiveTimer; // Timer to track time from received to processed
 
 	queryData(){
@@ -169,10 +170,12 @@ struct queryData
           this->numRead = 0;
           this->numWrite = 0;
           this->querryId = 0;
+          ui ind = UINT_MAX;
           this->receiveTimer.restart();
 
+
      }
-	void updateQueryData(ui N1, ui N2, ui QID,ui isHeu,ui limitDoms, ui querryId){
+	void updateQueryData(ui N1, ui N2, ui QID,ui isHeu,ui limitDoms, ui querryId,ui ind){
           this->N1 = N1;
           this->N2 = N2;
           this->QID = QID;
@@ -185,6 +188,7 @@ struct queryData
           this->numRead = 0;
           this->numWrite = 0;
           this->querryId = querryId;
+          this->ind = ind;
           this->receiveTimer.restart();
 
 
@@ -192,6 +196,7 @@ struct queryData
 
      friend ostream& operator<<(ostream& os, queryData& qd) {
         os << "Querry Id = "<< qd.querryId << ", "
+           << "IND = "<<qd.ind<<", "
            << "N1 = " << qd.N1 << ", "
            << "N2 = " << qd.N2 << ", "
            << "QID = " << qd.QID << ", "
@@ -229,13 +234,6 @@ struct queryInfo
 
 };
 
-
-
-
-
-
-
-
 vector<queryInfo> messageQueue;
 mutex messageQueueMutex;
 
@@ -251,7 +249,7 @@ void memoryAllocationGenGraph(deviceGraphGenPointers &G);
 void memeoryAllocationGraph(deviceGraphPointers &G,ui totalQueries);
 void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps, ui psize);
 void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui totalQueries);
-void memoryAllocationBuffer(deviceBufferPointers &p, ui bufferSize);
+void memoryAllocationBuffer(deviceBufferPointers &p, ui bufferSize,ui totalQueries);
 
 void freeGenGraph(deviceGraphGenPointers &p);
 void freeGraph(deviceGraphPointers &p);

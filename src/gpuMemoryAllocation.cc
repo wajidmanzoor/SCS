@@ -31,19 +31,23 @@ void memoryAllocationGenGraph(deviceGraphGenPointers &G){
 
 void memeoryAllocationGraph(deviceGraphPointers &G, ui totalQueries){
 
+
     chkerr(cudaMalloc((void**)&(G.degree),totalQueries* n * sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.distance),totalQueries* n * sizeof(ui)));
 
     chkerr(cudaMalloc((void**)&(G.lowerBoundDegree), totalQueries*sizeof(ui)));
+    chkerr(cudaMemset(G.lowerBoundDegree,0,totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.lowerBoundSize), totalQueries*sizeof(ui)));
+    chkerr(cudaMemset(G.lowerBoundSize,0,totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.upperBoundSize), totalQueries*sizeof(ui)));
+    chkerr(cudaMemset(G.upperBoundSize,0,totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.limitDoms), totalQueries*sizeof(ui)));
+    chkerr(cudaMemset(G.limitDoms,0,totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.flag), totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.numRead), totalQueries*sizeof(ui)));
     chkerr(cudaMemset(G.numRead,0,totalQueries*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(G.numWrite), totalQueries*sizeof(ui)));
     chkerr(cudaMemset(G.numWrite,0,totalQueries*sizeof(ui)));
-
 
     chkerr(cudaMalloc((void **)&(G.newNeighbors), totalQueries*(2 * m) * sizeof(ui)));
     chkerr(cudaMalloc((void **)&(G.newOffset), totalQueries*(n + 1) * sizeof(ui)));
@@ -76,12 +80,12 @@ void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui total
     chkerr(cudaMalloc((void**)&(p.cons), numWraps*pSize*sizeof(double)));
 
     chkerr(cudaMalloc((void**)&(p.queryIndicator), numWraps*pSize*sizeof(ui)));
-
-
+    thrust::device_ptr<ui> dev_ptr(p.queryIndicator);
+    thrust::fill(dev_ptr, dev_ptr + (numWraps*pSize), totalQueries);
 
 }
 
-void memoryAllocationBuffer(deviceBufferPointers &p,ui bufferSize){
+void memoryAllocationBuffer(deviceBufferPointers &p,ui bufferSize, ui totalQueries){
 
     chkerr(cudaMalloc((void**)&(p.taskOffset), bufferSize*sizeof(ui)));
     chkerr(cudaMemset(p.taskOffset,0, bufferSize*sizeof(ui)));
@@ -111,6 +115,8 @@ void memoryAllocationBuffer(deviceBufferPointers &p,ui bufferSize){
     chkerr(cudaMemset(p.readMutex,0,sizeof(ui)));
 
     chkerr(cudaMalloc((void**)&(p.queryIndicator), bufferSize*sizeof(ui)));
+    thrust::device_ptr<ui> dev_ptr(p.queryIndicator);
+    thrust::fill(dev_ptr, dev_ptr + bufferSize, totalQueries);
 
     chkerr(cudaMalloc((void**)&(p.outOfMemoryFlag), sizeof(ui)));
     chkerr(cudaMemset(p.outOfMemoryFlag,0,sizeof(ui)));
@@ -179,6 +185,8 @@ void freeBufferPointer(deviceBufferPointers &p){
     chkerr(cudaFree(p.writeMutex));
     chkerr(cudaFree(p.readMutex));
     chkerr(cudaFree(p.queryIndicator));
+    chkerr(cudaFree(p.outOfMemoryFlag));
+
 
 }
 
