@@ -145,7 +145,7 @@ void processMessages() {
         ui globalCounter;
         chkerr(cudaMemcpy( &globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
 
-        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, ind, n,partitionSize,TOTAL_WARPS);
+        CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, ind, n,partitionSize,TOTAL_WARPS,factor);
         cudaDeviceSynchronize();
 
         thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (ind + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)));
@@ -166,7 +166,7 @@ void processMessages() {
 
 
       ProcessTask << < BLK_NUMS, BLK_DIM, sharedMemorySizeTask >>> (
-        deviceGenGraph, deviceGraph, deviceTask, partitionSize, maxN2, n, m,dMAX);
+        deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor,maxN2, n, m,dMAX);
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Process Task");
 
@@ -179,7 +179,7 @@ void processMessages() {
 
       // This kernel identifies vertices dominated by ustar and sorts them in decreasing order of their connection score.
       FindDoms << < BLK_NUMS, BLK_DIM, sharedMemorySizeDoms >>> (
-        deviceGenGraph, deviceGraph, deviceTask, partitionSize, n, m,dMAX);
+        deviceGenGraph, deviceGraph, deviceTask, partitionSize,factor, n, m,dMAX);
       cudaDeviceSynchronize();
      CUDA_CHECK_ERROR("Find Doms");
 
@@ -189,17 +189,19 @@ void processMessages() {
       //ui flag = 1 ;
       //chkerr(cudaMemcpy( &flag, &deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
       Expand << < BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (
-        deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,
+        deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,factor,
         jump, copyLimit, bufferSize, numTaskHost-numReadHost, readLimit, n, m, dMAX);
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Expand ");
-      RemoveCompletedTasks<<<BLK_NUMS, BLK_DIM>>>( deviceGraph,deviceTask, partitionSize);
+      RemoveCompletedTasks<<<BLK_NUMS, BLK_DIM>>>( deviceGraph,deviceTask, partitionSize,factor);
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Remove Completed ");
 
 
       chkerr(cudaMemcpy(&(outMemFlag), deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
-
+      if(outMemFlag)
+      cout<<" Warning !!!!! buffer out of memory answers will be approx."<<outMemFlag<<endl;
+      
       chkerr(cudaMemcpy( &tempHost, deviceBuffer.temp, sizeof(ui),
         cudaMemcpyDeviceToHost));
       chkerr(cudaMemcpy( &numReadHost, deviceBuffer.numReadTasks, sizeof(ui),
@@ -283,7 +285,7 @@ void processMessages() {
       c++;
       cout<<"Level "<<c<<endl;
 
-      if(c==7)
+      if(c==300)
       break;
 
 
@@ -296,7 +298,7 @@ void processMessages() {
 }
 
 int main(int argc, const char * argv[]) {
-  if (argc != 7) {
+  if (argc != 8) {
     cout << "Server wrong input parameters!" << endl;
     exit(1);
   }
@@ -307,6 +309,7 @@ int main(int argc, const char * argv[]) {
   copyLimit = stod(argv[4]); // Specifies that only warps with at most this percentage of their partition space filled will read from the buffer and write to their partition.
   readLimit = atoi(argv[5]); // Maximum number of tasks a warp with an empty partition can read from the buffer.
   limitQueries = atoi(argv[6]);
+  factor = atoi(argv[7]); 
 
   queries = new queryData[limitQueries];
   for(ui i =0; i < limitQueries;i ++ ){
@@ -329,8 +332,8 @@ int main(int argc, const char * argv[]) {
 
   initialPartitionSize = (n / INTOTAL_WARPS) + 1;
   memoryAllocationinitialTask(initialTask, INTOTAL_WARPS, initialPartitionSize);
-  memoryAllocationTask(deviceTask, TOTAL_WARPS, partitionSize, limitQueries);
-  memoryAllocationBuffer(deviceBuffer, bufferSize,limitQueries);
+  memoryAllocationTask(deviceTask, TOTAL_WARPS, partitionSize, limitQueries,factor);
+  memoryAllocationBuffer(deviceBuffer, bufferSize,limitQueries,factor);
 
 
   sharedMemorySizeinitial = INTOTAL_WARPS * sizeof(ui);

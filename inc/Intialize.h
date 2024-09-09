@@ -55,6 +55,7 @@ ui bufferSize;
 double copyLimit;
 ui readLimit;
 ui limitQueries;
+ui factor;
 
 ui tempHost;
 ui numReadHost;
@@ -65,6 +66,7 @@ ui endOffset;
 ui totalQuerry;
 ui numQueriesProcessing;
 ui maxN2;
+
 
 size_t sharedMemorySizeinitial;
 size_t  sharedMemoryUpdateNeigh;
@@ -110,6 +112,8 @@ typedef struct  {
      ui *doms;
      double *cons;
      ui *queryIndicator;
+     ui *numTasks;
+     ui *limitTasks;
 
 
 }deviceTaskPointers;
@@ -119,8 +123,6 @@ typedef struct {
     ui *taskOffset;
     ui *taskList;
     ui *statusList;
-    ui *degreeInC;
-    ui *degreeInR;
     ui  *size;
     ui *numTask;
     ui *temp;
@@ -129,6 +131,7 @@ typedef struct {
     ui *readMutex;
     ui *queryIndicator;
     ui *outOfMemoryFlag;
+    ui *limitTasks;
 
 }deviceBufferPointers;
 
@@ -248,8 +251,8 @@ deviceBufferPointers deviceBuffer;
 void memoryAllocationGenGraph(deviceGraphGenPointers &G);
 void memeoryAllocationGraph(deviceGraphPointers &G,ui totalQueries);
 void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps, ui psize);
-void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui totalQueries);
-void memoryAllocationBuffer(deviceBufferPointers &p, ui bufferSize,ui totalQueries);
+void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui totalQueries, ui factor);
+void memoryAllocationBuffer(deviceBufferPointers &p, ui bufferSize,ui totalQueries, ui factor);
 
 void freeGenGraph(deviceGraphGenPointers &p);
 void freeGraph(deviceGraphPointers &p);
