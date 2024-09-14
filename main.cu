@@ -141,32 +141,34 @@ void processMessages() {
 
         initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[ind].ubD, initialPartitionSize, ind);
         cudaDeviceSynchronize();
+        CUDA_CHECK_ERROR("Intial Reduction ");
 
         ui globalCounter;
         chkerr(cudaMemcpy( &globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
 
         CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, ind, n,partitionSize,TOTAL_WARPS,factor);
         cudaDeviceSynchronize();
+        CUDA_CHECK_ERROR("Compress ");
 
         thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (ind + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)));
         cudaDeviceSynchronize();
 
         numQueriesProcessing++;
 
-        NeighborUpdate << < BLK_NUM2, BLK_DIM2, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, INTOTAL_WARPS, ind, n, m);
+        NeighborUpdate << < BLK_NUMS, BLK_DIM , sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, TOTAL_WARPS, ind, n, m);
         cudaDeviceSynchronize();
+        CUDA_CHECK_ERROR("Neighbor  ");
       messageQueueMutex.lock();
     }
     messageQueueMutex.unlock();
 
     if (numQueriesProcessing != 0) {
       chkerr(cudaMemset(deviceGraph.flag,0, limitQueries * sizeof(ui)));
+
       sharedMemorySizeTask = 2 * WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + maxN2 * WARPS_EACH_BLK * sizeof(ui);
 
-
-
       ProcessTask << < BLK_NUMS, BLK_DIM, sharedMemorySizeTask >>> (
-        deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor,maxN2, n, m,dMAX);
+        deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor,maxN2, n, m,dMAX,limitQueries);
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Process Task");
 
@@ -238,6 +240,7 @@ void processMessages() {
 
       // If the number of tasks written to the buffer exceeds the number read at this level, left shift the tasks that were written but not read to the start of the array.
       if ((numReadHost < numTaskHost) && (numReadHost > 0)) {
+        cout<<"Num read "<<numReadHost<<" num Task "<<numTaskHost<<endl;
         chkerr(cudaMemcpy( & startOffset, deviceBuffer.taskOffset + numReadHost,
           sizeof(ui), cudaMemcpyDeviceToHost));
         chkerr(cudaMemcpy( & endOffset, deviceBuffer.taskOffset + numTaskHost, sizeof(ui),
@@ -283,11 +286,27 @@ void processMessages() {
       }
       chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
       c++;
-      cout<<"Level "<<c<<endl;
+      thrust::device_ptr<ui> d_input_ptr(deviceTask.numTasks);
+      thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
+      thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
 
-      if(c==300)
-      break;
+      thrust::device_vector<ui> d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
 
+      thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+
+      thrust::sort_by_key(thrust::device,
+                          d_temp_input.begin(), d_temp_input.end(),
+                          d_sortedIndex_ptr,
+                          thrust::less<ui>());
+
+      thrust::scatter(thrust::device,
+                      thrust::make_counting_iterator<ui>(0),
+                      thrust::make_counting_iterator<ui>(TOTAL_WARPS),
+                      d_sortedIndex_ptr,
+                      d_mapping_ptr);
+
+
+      thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
 
     }
 

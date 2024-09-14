@@ -13,24 +13,28 @@
 #include <thrust/transform.h>
 #include <thrust/functional.h>
 #include <thread>
+#include <thrust/device_vector.h>
+
 
 #include "../ipc/msgtool.h"
 
 
-#define BLK_NUMS 4
-#define BLK_DIM 32
+#define BLK_NUMS 64
+#define BLK_DIM 1024
 #define TOTAL_THREAD (BLK_NUMS*BLK_DIM)
 #define WARPSIZE 32
 #define WARPS_EACH_BLK (BLK_DIM/32)
 #define TOTAL_WARPS (BLK_NUMS*WARPS_EACH_BLK)
 
 ui BLK_DIM2 = 1024;
-ui BLK_NUM2 = 1;
+ui BLK_NUM2 = 4;
 ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
 
 
 
 using namespace std;
+
+
 
 vector<ui> H;
 
@@ -114,6 +118,8 @@ typedef struct  {
      ui *queryIndicator;
      ui *numTasks;
      ui *limitTasks;
+     ui *sortedIndex;
+     ui *mapping;
 
 
 }deviceTaskPointers;

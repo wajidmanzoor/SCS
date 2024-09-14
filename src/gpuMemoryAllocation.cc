@@ -12,8 +12,13 @@ inline void chkerr_impl(cudaError_t code, const char *file, int line)
         exit(-1);
     }
 }
-
-
+struct subtract_from {
+    const ui x;
+    subtract_from(ui _x) : x(_x) {}
+    __host__ __device__ ui operator()(const ui & y) const {
+        return x - y;
+    }
+};
 void memoryAllocationGenGraph(deviceGraphGenPointers &G){
     chkerr(cudaMalloc((void**)&(G.core), n * sizeof(ui)));
     chkerr(cudaMemcpy(G.core, core, n * sizeof(ui), cudaMemcpyHostToDevice));
@@ -68,8 +73,18 @@ void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui total
     chkerr(cudaMalloc((void**)&(p.limitTasks), sizeof(ui)));
     chkerr(cudaMemcpy(p.limitTasks, &limitTasks, sizeof(ui), cudaMemcpyHostToDevice));
 
+
     chkerr(cudaMalloc((void**)&(p.numTasks), numWraps*sizeof(ui)));
     chkerr(cudaMemset(p.numTasks,0, numWraps*sizeof(ui)));
+
+    chkerr(cudaMalloc((void**)&(p.sortedIndex), numWraps*sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(p.mapping), numWraps*sizeof(ui)));
+
+    thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
+    thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
+
+    thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+    thrust::transform(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
 
     chkerr(cudaMalloc((void**)&(p.taskOffset), (offsetSize)*sizeof(ui)));
     chkerr(cudaMemset(p.taskOffset,0, (offsetSize)*sizeof(ui)));
@@ -92,6 +107,9 @@ void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui total
 
     chkerr(cudaMalloc((void**)&(p.doms), taskSize*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.cons), taskSize*sizeof(double)));
+
+
+
 }
 
 void memoryAllocationBuffer(deviceBufferPointers &p,ui bufferSize, ui totalQueries, ui factor){

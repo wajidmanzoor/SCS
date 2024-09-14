@@ -256,7 +256,6 @@ __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, d
   ui writeWarp = 0;
   ui spaceLeft;
   ui numTasks;
-
   for(ui i =0;i<totalWarps;i++){
     numTasks = T.numTasks[i];
     spaceLeft = taskPSize - T.taskOffset[offsetPsize*i + numTasks];
@@ -362,7 +361,7 @@ __global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_,
 }
 
 __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T,
-  ui pSize, ui factor, ui maxN2, ui size, ui totalEdges, ui dmax) {
+  ui pSize, ui factor, ui maxN2, ui size, ui totalEdges, ui dmax, ui limitQueries) {
   extern __shared__ char shared_memory[];
   ui sizeOffset = 0;
 
@@ -395,6 +394,8 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
   ui otherPsize = *T.limitTasks;
   double score;
   int ustar;
+  ui currentMinDegree;
+
 
   double temp;
   ui temp3;
@@ -444,7 +445,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
     }
 
     ui maskGen = total;
-    if ((T.ustar[otherStartIndex + iter] != INT_MAX) && (queryId != UINT_MAX)) {
+    if ((T.ustar[otherStartIndex + iter] != INT_MAX) && (queryId != UINT_MAX) && (T.size[otherStartIndex + iter]<=upperBoundSize)) {
       for (ui i = laneId; i < total; i += warpSize)
 
       {
@@ -453,6 +454,8 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
         ui status = T.statusList[ind];
         ui degR = T.degreeInR[ind];
         ui degC = T.degreeInC[ind];
+        ui hSize = T.size[otherStartIndex + iter];
+
         ui startNeighbor = G_.newOffset[(queryId * (size + 1)) + vertex];
         ui endNeighbor = G_.newOffset[(queryId * (size + 1)) + vertex + 1];
         ui ubD = upperBoundSize - 1;
@@ -484,7 +487,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
         __syncwarp(mask);
 
         if (status == 0) {
-          if ((minn((degR + degC), (degC + upperBoundSize - T.size[otherStartIndex + iter] - 1)) <=
+          if ((minn((degR + degC), (degC + upperBoundSize - hSize - 1)) <=
               G_.lowerBoundDegree[queryId]) ||
             (ubD < G_.distance[(queryId * size) + vertex])) {
             T.statusList[ind] = 2;
@@ -545,7 +548,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
         ui status = T.statusList[ind];
         ui degInC = T.degreeInC[ind];
         ui degInR = T.degreeInR[ind];
-
+        currentMinDegree = UINT_MAX;
         degreeBasedUpperBound = UINT_MAX;
         ui oneside;
 
@@ -580,6 +583,19 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
         }
         degreeBasedUpperBound = __shfl_sync(mask, degreeBasedUpperBound, 0);
 
+        if (status == 1) {
+          currentMinDegree = T.degreeInC[ind];
+        }
+        for (int offset = warpSize / 2; offset > 0; offset /= 2) {
+          ui temp2 = __shfl_down_sync(mask, currentMinDegree, offset);
+
+          if (laneId + offset < cond) {
+            currentMinDegree = minn(currentMinDegree, temp2);
+          }
+        }
+
+        currentMinDegree = __shfl_sync(mask, currentMinDegree, 0);
+
         if (status == 0) {
           ui locR = atomicAdd( & sharedCounterR[threadIdx.x / warpSize], 1);
           T.doms[startIndex + start + locR] = degInC;
@@ -591,6 +607,9 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
 
         }
         if (i % warpSize == 0) {
+           if (currentMinDegree < sharedDegree[threadIdx.x / warpSize]) {
+            sharedDegree[threadIdx.x / warpSize] = currentMinDegree;
+          }
           if (degreeBasedUpperBound < sharedUBDegree[threadIdx.x / warpSize]) {
             sharedUBDegree[threadIdx.x / warpSize] = degreeBasedUpperBound;
           }
@@ -603,18 +622,12 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
       __syncwarp();
       warpBubbleSort(sharedC_, (threadIdx.x / warpSize) * maxN2, (threadIdx.x / warpSize) * maxN2 + sharedCounterC[threadIdx.x / warpSize], laneId, 0);
       currentSize = T.size[otherStartIndex + iter];
-
-      if (laneId == 0){
-        sharedDegree[threadIdx.x / warpSize] = sharedC_[(threadIdx.x / warpSize) * maxN2];
-      }
-        
-        //printf("threadx %u warp %u shared c %u current min %u current size %u loc %u added %u \n", threadIdx.x, warpId, sharedC_[(threadIdx.x / warpSize) * maxN2], sharedDegree[threadIdx.x / warpSize], currentSize, ((threadIdx.x / warpSize) * maxN2), sharedCounterC[threadIdx.x / warpSize]);
-      
+      ui justCMD = sharedC_[(threadIdx.x / warpSize) * maxN2];
       ui totalIter_ = minn((upperBoundSize - currentSize), sharedCounterR[threadIdx.x / warpSize]);
       for (ui iter_ = 0; iter_ < totalIter_; iter_++) {
         __syncwarp();
         ui value = T.doms[startIndex + start + iter_];
-        for (ui i = laneId; i < value; i += 32) {
+        for (ui i = laneId; i < minn(value,sharedCounterC[threadIdx.x / warpSize]); i += 32) {
           sharedC_[(threadIdx.x / warpSize) * maxN2 + i]++;
         }
         __syncwarp();
@@ -624,9 +637,8 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
 
       __syncwarp();
 
-     
+
       if(laneId==0){
-        currentSize = T.size[otherStartIndex + iter];
 
         //printf("warp Id %u iter %u query %u current size %u current %u shared  % u \n",warpId,iter,queryId,currentSize,G_.lowerBoundDegree[queryId],sharedDegree[threadIdx.x / warpSize]);
         if ((lowerBoundSize <= currentSize) &&
@@ -634,6 +646,10 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
           if (sharedDegree[threadIdx.x / warpSize] != UINT_MAX) {
 
             ui old = atomicMax( & G_.lowerBoundDegree[queryId],sharedDegree[threadIdx.x / warpSize]);
+            if(old<G_.lowerBoundDegree[queryId]){
+              printf(" solution query %u warp %u iter %u old %u new %u cmd %u ub2 %u ub1 %u  \n", queryId,warpId,iter,old,G_.lowerBoundDegree[queryId],justCMD,sharedC_[(threadIdx.x / warpSize) * maxN2],sharedUBDegree[threadIdx.x / warpSize]);
+            }
+
 
           }
         }
@@ -643,6 +659,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
        ui upperBoundDegreeLimit = minn(sharedC_[(threadIdx.x / warpSize) * maxN2], sharedUBDegree[threadIdx.x / warpSize]);
        ui kl = G_.lowerBoundDegree[queryId];
        if (upperBoundDegreeLimit > kl ){
+
              maskGen = total;
             for (ui i = laneId; i < total; i += warpSize) {
                 int index = startIndex + start + i;
@@ -706,10 +723,10 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
                 ustar = __shfl_sync(mask, index, 0);
                 score = __shfl_sync(mask, score, 0);
 
-            
+
 
                 if (i % warpSize == 0) {
-                
+
                 if (score > sharedScore[threadIdx.x / warpSize]) {
                     sharedScore[threadIdx.x / warpSize] = score;
                     sharedUstar[threadIdx.x / warpSize] = ustar;
@@ -720,7 +737,6 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
        }
          __syncwarp();
       if (laneId == 0) {
-        
         int writeOffset = warpId * otherPsize;
         if ((sharedScore[threadIdx.x / warpSize] > 0) &&
           (sharedUBDegree[threadIdx.x / warpSize] != UINT_MAX) &&
@@ -741,7 +757,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
   }
 
   __syncwarp();
-  for (int iter = totalTasks - 1; iter >= 0; --iter) {
+  for (int iter = totalTasks - 1; iter >= 0; iter--) {
     bool shouldDecrement = (T.queryIndicator[warpId * otherPsize + iter] == UINT_MAX) ||
       (T.ustar[warpId * otherPsize + iter] == INT_MAX);
     shouldDecrement = __all_sync(0xFFFFFFFF, shouldDecrement);
@@ -752,37 +768,14 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
 
     if (laneId == 0) {
       T.numTasks[warpId]--;
+      T.ustar[warpId * otherPsize + iter] = -1;
+      T.queryIndicator[warpId * otherPsize + iter] = limitQueries;
     }
   }
 }
 __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T,
                        deviceBufferPointers B, ui pSize, ui factor, ui jump, double copyLimit,
                        ui bufferSize, ui lastWritten,ui readLimit, ui size, ui totalEdges, ui dmax ) {
-/**
- * This kernel creates new tasks using `ustar` and vertices in the dominating set.
- * The `C + ustar` task is written at the same location by updating the status of `ustar` and the dominating set vertices.
- * The `C - ustar` and `C + dominating set + ustar` tasks are written in task array with offset determined by `jump` partitions.
- * If a partition is full, the task is written to the buffer.
- * If a task doesn't have a dominating set and its partition is at max at `copyLimit`% capacity, one task is read from the buffer and written into the task array with offset determined by `jump` partitions.
- * If a warp has no tasks to process, it reads up to `readLimit` tasks from the buffer and writes them into the task array with offset determined by `jump` partitions.
- * Simultaneous read and write operations from the buffer are enabled using locks:
- *  - One warp accesses the buffer offset to obtain locations for writing, releasing the lock after obtaining the locations.
- *  - One warp accesses the buffer offset to obtain locations for reading, releasing the lock after obtaining the locations.
- *
- * @param G                Device graph pointers containing graph data.
- * @param T                Device task pointers containing task data.
- * @param B                Buffer pointers containing task data.
- * @param lowerBoundSize   The lower bound size constraint for subgraph.
- * @param upperBoundSize   The upper bound size constraint for subgraph
- * @param pSize            Size of the partition each warp processes.
- * @param dmax             Maximum degree of the graph.
- * @param jump             Specifies the partition offset for write.
- * @param outOfMemoryFlag  Flag that indicates if buffer is full.
- * @param copyLimit        Indicates the at max full capacity of a pration that can read from buffer.
- * @param bufferSize       The buffer size.
- * @param readLimit        The at max tasks a wrap will read from the buffer.
-*/
-
 
   extern __shared__ char sharedMemory[];
   size_t sizeOffset = 0;
@@ -826,17 +819,14 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
     if ((T.ustar[otherStartIndex + iter] != INT_MAX) &&
         (T.ustar[otherStartIndex + iter] != -1) &&
         (T.size[otherStartIndex + iter] < upperBoundSize)  && ( queryId != UINT_MAX)) {
-      ui bufferNum = warpId + jump;
-      if (bufferNum > TOTAL_WARPS) {
-        bufferNum = bufferNum % TOTAL_WARPS;
-      }
-      ui totalTasksWrite = T.numTasks[bufferNum - 1];
-      ui writeOffset = ((bufferNum - 1) * pSize) +
-                       T.taskOffset[(bufferNum - 1) * offsetPsize + totalTasksWrite];
+      ui bufferNum = T.sortedIndex[T.mapping[warpId]];
+      ui totalTasksWrite = T.numTasks[bufferNum];
+      ui writeOffset = ((bufferNum) * pSize) +
+                       T.taskOffset[(bufferNum) * offsetPsize + totalTasksWrite];
       ui ustar = T.taskList[T.ustar[otherStartIndex + iter]];
       ui totalWrite;
 
-      if (((writeOffset + total) < (bufferNum * pSize - 1))&&(totalTasksWrite< *T.limitTasks)) {
+      if (((writeOffset + total) < ((bufferNum+1) * pSize - 1))&&(totalTasksWrite< *T.limitTasks)) {
         for (ui i = laneId; i < total; i += warpSize) {
           ui ind = startIndex + start + i;
           ui vertex = T.taskList[ind];
@@ -920,14 +910,15 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
             G_.flag[queryId] = 1;
             T.statusList[T.ustar[otherStartIndex + iter]] = 1;
 
-            T.taskOffset[(bufferNum - 1) * offsetPsize + totalTasksWrite + 1] =
-                T.taskOffset[(bufferNum - 1) * offsetPsize + totalTasksWrite] +
+            T.taskOffset[(bufferNum) * offsetPsize + totalTasksWrite + 1] =
+                T.taskOffset[(bufferNum) * offsetPsize + totalTasksWrite] +
                 sharedCounter[threadIdx.x / warpSize];
-            T.numTasks[bufferNum - 1]++;
-            T.size[(bufferNum - 1) * otherPsize + totalTasksWrite] =
+            T.numTasks[bufferNum]++;
+
+            T.size[(bufferNum) * otherPsize + totalTasksWrite] =
                 T.size[warpId * otherPsize + iter];
             T.size[warpId * otherPsize + iter] += 1;
-            T.queryIndicator[(bufferNum - 1) * otherPsize + totalTasksWrite] = queryId;
+            T.queryIndicator[(bufferNum) * otherPsize + totalTasksWrite] = queryId;
           }
         }
         __syncwarp();
@@ -950,7 +941,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
           int leftSpace;
           int overFlow;
           int leftTasks = *T.limitTasks - newTotalTasksWrite;
-          leftSpace = (bufferNum * pSize) - (domsWriteOffset + totalWrite);
+          leftSpace = ((bufferNum+1) * pSize) - (domsWriteOffset + totalWrite);
 
           leftSpace = max(leftSpace, 0);
           overFlow = leftSpace / totalWrite;
@@ -997,15 +988,15 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
                          totalWrite - 1] = ustar;
               T.statusList[domsWriteOffset + (totalWrite * domIndex) +
                            totalWrite - 1] = 1;
-              T.size[(bufferNum - 1) * otherPsize + newTotalTasksWrite + domIndex] =
+              T.size[(bufferNum) * otherPsize + newTotalTasksWrite + domIndex] =
                   T.size[warpId * otherPsize + iter] + 1;
-              T.taskOffset[(bufferNum - 1) * offsetPsize + newTotalTasksWrite +
+              T.taskOffset[(bufferNum) * offsetPsize + newTotalTasksWrite +
                            domIndex + 1] =
-                  T.taskOffset[(bufferNum - 1) * offsetPsize + newTotalTasksWrite] +
+                  T.taskOffset[(bufferNum) * offsetPsize + newTotalTasksWrite] +
                   ((domIndex + 1) * totalWrite);
-              T.numTasks[bufferNum - 1]++;
+              T.numTasks[bufferNum]++;
               T.doms[startIndex + end - 1] = 0;
-              T.queryIndicator[(bufferNum - 1) * otherPsize + newTotalTasksWrite + domIndex] = queryId;
+              T.queryIndicator[(bufferNum) * otherPsize + newTotalTasksWrite + domIndex] = queryId;
 
             }
           }
@@ -1123,13 +1114,10 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
         } else {
           if (( *B.numTask> 0)) {
 
-            ui bufferNum = warpId + jump;
-            if (bufferNum > TOTAL_WARPS) {
-              bufferNum = bufferNum % TOTAL_WARPS;
-            }
-            ui totalTasksWrite = T.numTasks[bufferNum - 1];
-            ui writeOffset = ((bufferNum - 1) * pSize) + T.taskOffset[(bufferNum- 1) * offsetPsize + totalTasksWrite];
-            if((T.taskOffset[(bufferNum - 1) * offsetPsize + totalTasksWrite] < (ui)(pSize*copyLimit)) && (totalTasksWrite< *T.limitTasks )){
+            ui bufferNum = T.sortedIndex[T.mapping[warpId]];
+            ui totalTasksWrite = T.numTasks[bufferNum];
+            ui writeOffset = ((bufferNum) * pSize) + T.taskOffset[(bufferNum) * offsetPsize + totalTasksWrite];
+            if((T.taskOffset[(bufferNum) * offsetPsize + totalTasksWrite] < (ui)(pSize*copyLimit)) && (totalTasksWrite< *T.limitTasks )){
            ui numRead1 = UINT_MAX; ui readFlag1 = 0;
             __syncwarp();
             if (laneId == 0) {
@@ -1156,8 +1144,6 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
               ui readEnd = B.taskOffset[numRead1 + 1];
               ui totalRead = readEnd - readStart;
               ui readQueryId1 = B.queryIndicator[numRead1];
-              if(laneId==0)
-              printf("wrap %u readQueryId %u \n",warpId,readQueryId1);
 
               for (ui i = laneId; i < totalRead; i += warpSize) {
                 ui ind = readStart + i;
@@ -1186,7 +1172,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
                 }
 
                 }
-               
+
 
                 T.degreeInC[writeOffset + i] = degC;
                 T.degreeInR[writeOffset + i] = degR;
@@ -1194,10 +1180,10 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
               __syncwarp();
 
               if (laneId == 0) {
-                T.taskOffset[(bufferNum - 1) * offsetPsize + totalTasksWrite + 1] = T.taskOffset[(bufferNum - 1) * offsetPsize + totalTasksWrite] + totalRead;
-                T.size[(bufferNum - 1) * otherPsize + totalTasksWrite] =B.size[numRead1];
-                T.numTasks[bufferNum - 1]++;
-                 T.queryIndicator[(bufferNum - 1) * otherPsize + totalTasksWrite] = readQueryId1;
+                T.taskOffset[(bufferNum) * offsetPsize + totalTasksWrite + 1] = T.taskOffset[(bufferNum) * offsetPsize + totalTasksWrite] + totalRead;
+                T.size[(bufferNum) * otherPsize + totalTasksWrite] =B.size[numRead1];
+                T.numTasks[bufferNum]++;
+                 T.queryIndicator[(bufferNum) * otherPsize + totalTasksWrite] = readQueryId1;
                  G_.numRead[readQueryId1]++;
                 G_.flag[readQueryId1] = 1;
 
@@ -1284,7 +1270,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
           __syncwarp();
           if (laneId == 0) {
             B.size[numTaskBuffer] = T.size[warpId * otherPsize + iter];
-            //T.size[warpId * otherPsize + iter]++;
+            T.size[warpId * otherPsize + iter]++;
             T.statusList[T.ustar[warpId * otherPsize + iter]] = 1;
             atomicAdd(B.numTask, 1);
             B.queryIndicator[numTaskBuffer] = queryId;
@@ -1305,14 +1291,11 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
   for(ui iterRead = 0; iterRead < readLimit; iterRead ++){
   __syncwarp();
 
-    ui bufferNum = warpId + jump;
-    if (bufferNum > TOTAL_WARPS) {
-      bufferNum = bufferNum % TOTAL_WARPS;
-    }
-    ui totalTasksWrite = T.numTasks[bufferNum - 1];
-    ui writeOffset = ((bufferNum - 1) * pSize) +
-                     T.taskOffset[(bufferNum - 1) * offsetPsize + totalTasksWrite];
-    if((T.taskOffset[(bufferNum - 1) * offsetPsize + totalTasksWrite]< (ui) (pSize*copyLimit)) && (totalTasksWrite< *T.limitTasks )){
+    ui bufferNum = T.sortedIndex[T.mapping[warpId]];
+    ui totalTasksWrite = T.numTasks[bufferNum];
+    ui writeOffset = ((bufferNum) * pSize) +
+                     T.taskOffset[(bufferNum) * offsetPsize + totalTasksWrite];
+    if((T.taskOffset[(bufferNum) * offsetPsize + totalTasksWrite]< (ui) (pSize*copyLimit)) && (totalTasksWrite< *T.limitTasks )){
     ui numRead = UINT_MAX;
     ui readFlag = 0;
     __syncwarp();
@@ -1339,8 +1322,8 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
       ui readEnd = B.taskOffset[numRead + 1];
       ui totalRead = readEnd - readStart;
       ui readQueryId = B.queryIndicator[numRead];
-       if(laneId==0)
-              printf("wrap %u readQueryId %u \n",warpId,readQueryId);
+       /*if(laneId==0)
+              printf("wrap %u readQueryId %u \n",warpId,readQueryId);*/
 
 
       for (ui i = laneId; i < totalRead; i += warpSize) {
@@ -1368,7 +1351,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
           }
 
         }
-        
+
         }
 
         T.degreeInC[writeOffset + i] = degC;
@@ -1377,11 +1360,11 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
       __syncwarp();
 
       if (laneId == 0) {
-        T.taskOffset[(bufferNum - 1) * offsetPsize + totalTasksWrite + 1] =
-            T.taskOffset[(bufferNum - 1) * offsetPsize + totalTasksWrite] + totalRead;
-        T.size[(bufferNum - 1) * otherPsize + totalTasksWrite] = B.size[numRead];
-        T.numTasks[bufferNum - 1]++;
-        T.queryIndicator[(bufferNum - 1) * otherPsize + totalTasksWrite] = readQueryId;
+        T.taskOffset[(bufferNum) * offsetPsize + totalTasksWrite + 1] =
+            T.taskOffset[(bufferNum) * offsetPsize + totalTasksWrite] + totalRead;
+        T.size[(bufferNum) * otherPsize + totalTasksWrite] = B.size[numRead];
+        T.numTasks[bufferNum]++;
+        T.queryIndicator[(bufferNum) * otherPsize + totalTasksWrite] = readQueryId;
         G_.numRead[readQueryId]++;
         G_.flag[readQueryId] = 1;
 
@@ -1419,7 +1402,7 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
 
   ui offsetPsize = pSize/factor;
   ui otherPsize = *T.limitTasks;
-  
+
   ui startIndex = warpId * pSize;
   ui offsetStartIndex = warpId*offsetPsize;
   ui otherStartIndex = warpId * otherPsize;
@@ -1533,7 +1516,7 @@ __global__ void RemoveCompletedTasks( deviceGraphPointers G_,deviceTaskPointers 
   int warpId = idx / 32;
   int laneId = idx % 32;
   ui otherPsize = *T.limitTasks;
-  
+
   ui otherStartIndex = warpId * otherPsize;
   ui totalTasks = T.numTasks[warpId];
   __syncwarp();
@@ -1547,5 +1530,11 @@ __global__ void RemoveCompletedTasks( deviceGraphPointers G_,deviceTaskPointers 
         T.queryIndicator[otherStartIndex + iter] = UINT_MAX;
       }
       }
+  }
+   if(laneId==0){
+     ui offsetPsize = pSize/factor;
+
+     ui offsetStartIndex = warpId*offsetPsize;
+     T.sortedIndex[warpId] = T.taskOffset[offsetStartIndex + totalTasks];
   }
 }
