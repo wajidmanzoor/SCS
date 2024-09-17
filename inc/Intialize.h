@@ -243,6 +243,19 @@ struct queryInfo
 
 };
 
+struct GlobalParams {
+    ui n;             // vertices
+    ui m;             // edges
+    ui dMAX;
+    ui partitionSize;
+    ui bufferSize;
+    double copyLimit;
+    ui readLimit;
+    ui limitQueries;
+    ui factor;
+};
+
+
 vector<queryInfo> messageQueue;
 mutex messageQueueMutex;
 

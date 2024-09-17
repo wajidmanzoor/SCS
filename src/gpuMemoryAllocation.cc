@@ -19,45 +19,55 @@ struct subtract_from {
         return x - y;
     }
 };
-void memoryAllocationGenGraph(deviceGraphGenPointers &G){
+
+void memoryAllocationGenGraph(deviceGraphGenPointers &G, int rank){
+    // Allocate memory on each GPU
     chkerr(cudaMalloc((void**)&(G.core), n * sizeof(ui)));
-    chkerr(cudaMemcpy(G.core, core, n * sizeof(ui), cudaMemcpyHostToDevice));
-
     chkerr(cudaMalloc((void**)&(G.degree), n * sizeof(ui)));
-    chkerr(cudaMemcpy(G.degree, degree, n * sizeof(ui), cudaMemcpyHostToDevice));
-
     chkerr(cudaMalloc((void**)&(G.offset), (n+1) * sizeof(ui)));
-    chkerr(cudaMemcpy(G.offset, pstart, (n+1) * sizeof(ui), cudaMemcpyHostToDevice));
-
     chkerr(cudaMalloc((void**)&(G.neighbors), (2*m) * sizeof(ui)));
-    chkerr(cudaMemcpy(G.neighbors, edges, (2*m) * sizeof(ui), cudaMemcpyHostToDevice));
 
+    // Only rank 0 copies data from host to its GPU
+    if (rank == 0) {
+        chkerr(cudaMemcpy(G.core, core, n * sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(G.degree, degree, n * sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(G.offset, pstart, (n+1) * sizeof(ui), cudaMemcpyHostToDevice));
+        chkerr(cudaMemcpy(G.neighbors, edges, (2*m) * sizeof(ui), cudaMemcpyHostToDevice));
+    }
+
+    // Broadcast data from rank 0 to all other processes
+    MPI_Bcast(G.core, n, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+    MPI_Bcast(G.degree, n, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+    MPI_Bcast(G.offset, n+1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+    MPI_Bcast(G.neighbors, 2*m, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 }
 
-void memeoryAllocationGraph(deviceGraphPointers &G, ui totalQueries){
+void memeoryAllocationGraph(deviceGraphPointers &G, ui totalQueries, int rank){
+    // Allocate memory on each GPU
+    chkerr(cudaMalloc((void**)&(G.degree), totalQueries * n * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.distance), totalQueries * n * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.lowerBoundDegree), totalQueries * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.lowerBoundSize), totalQueries * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.upperBoundSize), totalQueries * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.limitDoms), totalQueries * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.flag), totalQueries * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.numRead), totalQueries * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.numWrite), totalQueries * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.newNeighbors), totalQueries * (2 * m) * sizeof(ui)));
+    chkerr(cudaMalloc((void**)&(G.newOffset), totalQueries * (n + 1) * sizeof(ui)));
 
+    // Initialize with cudaMemset
+    chkerr(cudaMemset(G.lowerBoundDegree, 0, totalQueries * sizeof(ui)));
+    chkerr(cudaMemset(G.lowerBoundSize, 0, totalQueries * sizeof(ui)));
+    chkerr(cudaMemset(G.upperBoundSize, 0, totalQueries * sizeof(ui)));
+    chkerr(cudaMemset(G.limitDoms, 0, totalQueries * sizeof(ui)));
+    chkerr(cudaMemset(G.numRead, 0, totalQueries * sizeof(ui)));
+    chkerr(cudaMemset(G.numWrite, 0, totalQueries * sizeof(ui)));
+    chkerr(cudaMemset(G.newOffset, 0, totalQueries * (n + 1) * sizeof(ui)));
 
-    chkerr(cudaMalloc((void**)&(G.degree),totalQueries* n * sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(G.distance),totalQueries* n * sizeof(ui)));
-
-    chkerr(cudaMalloc((void**)&(G.lowerBoundDegree), totalQueries*sizeof(ui)));
-    chkerr(cudaMemset(G.lowerBoundDegree,0,totalQueries*sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(G.lowerBoundSize), totalQueries*sizeof(ui)));
-    chkerr(cudaMemset(G.lowerBoundSize,0,totalQueries*sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(G.upperBoundSize), totalQueries*sizeof(ui)));
-    chkerr(cudaMemset(G.upperBoundSize,0,totalQueries*sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(G.limitDoms), totalQueries*sizeof(ui)));
-    chkerr(cudaMemset(G.limitDoms,0,totalQueries*sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(G.flag), totalQueries*sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(G.numRead), totalQueries*sizeof(ui)));
-    chkerr(cudaMemset(G.numRead,0,totalQueries*sizeof(ui)));
-    chkerr(cudaMalloc((void**)&(G.numWrite), totalQueries*sizeof(ui)));
-    chkerr(cudaMemset(G.numWrite,0,totalQueries*sizeof(ui)));
-
-    chkerr(cudaMalloc((void **)&(G.newNeighbors), totalQueries*(2 * m) * sizeof(ui)));
-    chkerr(cudaMalloc((void **)&(G.newOffset), totalQueries*(n + 1) * sizeof(ui)));
-    chkerr(cudaMemset(G.newOffset,0, totalQueries*(n + 1) * sizeof(ui)));
+    // No need to broadcast data here as we're just initializing with zeros
 }
+
 
 void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps,ui psize){
     chkerr(cudaMalloc((void**)&(p.initialTaskList), numWraps*psize*sizeof(ui)));
