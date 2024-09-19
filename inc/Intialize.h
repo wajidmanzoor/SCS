@@ -35,6 +35,7 @@ ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
 using namespace std;
 
 
+int world_rank, world_size; 
 
 vector<ui> H;
 
@@ -253,6 +254,17 @@ struct GlobalParams {
     ui readLimit;
     ui limitQueries;
     ui factor;
+};
+
+struct QueryParams {
+    ui N1;
+    ui N2;
+    ui QID;
+    bool isHeu;
+    ui limitDoms;
+    ui kl;
+    ui ku;
+    ui ubD;
 };
 
 
