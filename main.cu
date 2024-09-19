@@ -370,6 +370,8 @@ int main(int argc, const char * argv[]) {
   tempHost = 0;
   startOffset = 0;
   endOffset = 0;
+
+  numQueriesProcessing = 0;
   thread listener(listenForMessages);
 	thread processor(processMessages);
   listener.join();
