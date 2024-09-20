@@ -26,6 +26,13 @@
 #define WARPS_EACH_BLK (BLK_DIM/32)
 #define TOTAL_WARPS (BLK_NUMS*WARPS_EACH_BLK)
 
+
+#define TAG_NQP 1
+#define TAG_MTYPE 2
+#define TAG_MSG 3
+#define TAG_RESULT 4
+
+
 ui BLK_DIM2 = 1024;
 ui BLK_NUM2 = 4;
 ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
@@ -35,7 +42,7 @@ ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
 using namespace std;
 
 
-int world_rank, world_size; 
+int worldRank, worldSize; 
 
 vector<ui> H;
 
@@ -69,6 +76,7 @@ ui startOffset;
 ui endOffset;
 
 ui totalQuerry;
+ui leastQuery;
 ui numQueriesProcessing;
 ui maxN2;
 
@@ -243,34 +251,8 @@ struct queryInfo
     }
 
 };
-
-struct GlobalParams {
-    ui n;             // vertices
-    ui m;             // edges
-    ui dMAX;
-    ui partitionSize;
-    ui bufferSize;
-    double copyLimit;
-    ui readLimit;
-    ui limitQueries;
-    ui factor;
-};
-
-struct QueryParams {
-    ui N1;
-    ui N2;
-    ui QID;
-    bool isHeu;
-    ui limitDoms;
-    ui kl;
-    ui ku;
-    ui ubD;
-};
-
-
 vector<queryInfo> messageQueue;
 mutex messageQueueMutex;
-
 queryData *queries;
 
 deviceGraphGenPointers deviceGenGraph;
@@ -290,4 +272,15 @@ void freeGraph(deviceGraphPointers &p);
 void freeInterPointer(deviceInterPointers &p);
 void freeTaskPointer(deviceTaskPointers &p);
 void freeBufferPointer(deviceBufferPointers &p);
+
+struct SystemInfo {
+    int rank;
+    int numQueriesProcessing;
+    bool flag;
+};
+
+enum MessageType {
+    PROCESS_MESSAGE = 1,
+    TERMINATE = 2
+};
 
