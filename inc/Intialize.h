@@ -30,7 +30,9 @@
 #define TAG_NQP 1
 #define TAG_MTYPE 2
 #define TAG_MSG 3
-#define TAG_RESULT 4
+#define TAG_TERMINATE 4
+#define TAG_R 5
+#define TAG_RESULT 6
 
 
 ui BLK_DIM2 = 1024;
@@ -282,5 +284,12 @@ struct SystemInfo {
 enum MessageType {
     PROCESS_MESSAGE = 1,
     TERMINATE = 2
+};
+
+enum SystemStatus {
+
+    IDLE = 0, // Query was never sent to system
+    PROCESSING = 1, // Recived atleast one query, either processing query or waiting for new queries.
+    TERMINATED = 2 // Found solution for all sent queries and program terminated
 };
 
