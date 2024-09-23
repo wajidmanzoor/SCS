@@ -8,12 +8,23 @@
 #include <map>
 #include <iomanip>
 #include <sstream>
+
 #include <thrust/device_ptr.h>
 #include <thrust/copy.h>
 #include <thrust/transform.h>
 #include <thrust/functional.h>
 #include <thread>
+
+
+#include <thrust/sequence.h>
+#include <thrust/sort.h>
+#include <thrust/gather.h>
+#include <thrust/scatter.h>
+#include <thrust/sequence.h>
+#include <thrust/device_ptr.h>
+
 #include <thrust/device_vector.h>
+#include <mpi.h>
 
 
 #include "../ipc/msgtool.h"
@@ -278,7 +289,7 @@ void freeBufferPointer(deviceBufferPointers &p);
 struct SystemInfo {
     int rank;
     int numQueriesProcessing;
-    bool flag;
+    int flag;
 };
 
 enum MessageType {

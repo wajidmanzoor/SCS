@@ -76,13 +76,13 @@ void memoryAllocationGraph(deviceGraphPointers &G, ui totalQueries) {
 }
 
 
-void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps, ,ui psize){
+void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps,ui psize){
     chkerr(cudaMalloc((void**)&(p.initialTaskList), numWraps*psize*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.globalCounter), sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.entries),numWraps* sizeof(ui)));
 }
 
-void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui numWraps, ui pSize, ui totalQueries, ui factor){
+void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui totalQueries, ui factor){
     ui taskSize = numWraps*pSize;
     ui offsetSize = (numWraps)* (pSize/factor);
     ui limitTasks = (pSize/factor) -1;

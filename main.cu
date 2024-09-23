@@ -1,7 +1,7 @@
 #include "./inc/heuristic.h"
 #include "./src/gpuMemoryAllocation.cc"
 #include "./src/helpers.cc"
-#include "./src/mpi.cpp"
+
 
 
 #define CUDA_CHECK_ERROR(kernelName) { \
@@ -11,6 +11,16 @@
         exit(EXIT_FAILURE); \
     } \
 }
+
+struct subtract_functor {
+  const ui x;
+
+  subtract_functor(ui _x): x(_x) {}
+
+  __host__ __device__ ui operator()(const ui & y) const {
+    return y - x;
+  }
+};
 
 bool isServerExit(const string & str) {
   string trimmedStr = str;
@@ -22,190 +32,7 @@ bool isServerExit(const string & str) {
   return trimmedStr == "server_exit";
 }
 
-void listenForMessages() {
-
-  msg_queue_server server('g');
-  long type = 1;
-  while (true) {
-    if (server.recv_msg(type)) {
-      string msg = server.get_msg();
-      queryInfo query(totalQuerry, msg);
-      totalQuerry++;
-      messageQueueMutex.lock();
-      messageQueue.push_back(query);
-      messageQueueMutex.unlock();
-      if (isServerExit(msg))
-        break;
-    }
-  }
-}
-
-void processMessageMasterServer() {
-  bool stopListening = false;
-
-  vector <MPI_Request> requests(worldSize);
-  vector <MPI_Status> status(worldSize);
-  
-  vector < SystemInfo > systems(worldSize);
-  vector < int > nQP(worldSize);
-
-  vector <MPI_Request> endRequests(worldSize);
-  vector <MPI_Status> endStatus(worldSize);
-  vector <bool> endFlag(worldSize);
-  vector <SystemStatus> systemStatus(worldSize);
-  for(int i = 0; i <worldSize;i++){
-    endFlag = false;
-    systemStatus[i] = IDLE;
-  }
-
-  systems[0] = {0, 0, false};
-  nQP[0] = 0;
-  for (int i = 1; i < worldSize; i++) {
-    systems[i] = { i, 0, true };
-    nQP[i] = 0;
-  }
-  while (true) {
-    if (!stopListening) {
-      messageQueueMutex.lock();
-      while ((!messageQueue.empty()) && (leastQuery < limitQueries)) {
-        queryInfo message = messageQueue.front();
-        messageQueue.erase(messageQueue.begin());
-        messageQueueMutex.unlock();
-        ui queryId = message.queryId;
-        string msg = message.queryString;
-        if (isServerExit(msg)) {
-          stopListening = true;
-          //send server quit msg to every system 
-          for (int i = 1; i < worldSize; i++) {
-            MessageType msgType = TERMINATE;
-            MPI_Send( & msgType, 1, MPI_INT, i, TAG_MTYPE, MPI_COMM_WORLD);
-          }
-        } else {
-
-          systems[0].numQueriesProcessing = numQueriesProcessing;
-
-          for (int i = 1; i < worldSize; i++) {
-           
-            if (systems.flag[i]) {
-
-              MPI_Irecv( & nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
-            }
-
-            MPI_Test( &requests[i], & systems.flag[i], & status[i]);
-            if (systems.flag[i]) {
-              systems[i].numQueriesProcessing = nQP[i];
-
-            }
-
-          }
-
-          auto leastLoadedSystem = std::min_element(systems.begin(), systems.end(),
-            [](const SystemInfo & a,
-              const SystemInfo & b) {
-              return a.numQueriesProcessing < b.numQueriesProcessing;
-            });
-          leastQuery = leastLoadedSystem.numQueriesProcessing + 1;
-          if (leastLoadedSystem.rank == 0) {
-            preprocessQuery(msg);
-
-          } else {
-
-            if(systemStatus[leastLoadedSystem.rank] == IDLE){
-              systemStatus[leastLoadedSystem.rank] = PROCESSING;
-              endFlag[leastLoadedSystem.rank] = true;
-
-            }
-            MessageType msgType = PROCESS_MESSAGE;
-            MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
-
-            MPI_Send(msg.c_str(), msg.length(), MPI_CHAR, leastLoadedSystem.rank, TAG_MSG, MPI_COMM_WORLD);
-            // Get confirmation 
-
-          }
-
-        }
-
-        messageQueueMutex.lock();
-      }
-      messageQueueMutex.unlock();
-    }
-
-    if (numQueriesProcessing != 0) {
-      processQueries();
-    }
-    
-    for(int i =0 ; i < worldSize ; i ++){
-      if(systemStatus[i]!=TERMINATED){
-        if (endFlag[i]) {
-
-              MPI_Irecv( &systemStatus[i], 1, MPI_INT, i,TAG_TERMINATE, MPI_COMM_WORLD, & endRequests[i]);
-          }
-
-        MPI_Test( &endRequests[i], &endFlag[i], & endStatus[i]);
-
-
-      }
-       
-    }
-
-    if ((numQueriesProcessing == 0) && (stopListening)){
-      bool allTerminatedOrIdle = std::all_of(systemStatus.begin(), systemStatus.end(), [](SystemStatus status) { return status == SystemStatus::TERMINATED || status == SystemStatus::IDLE; });
-      if (allTerminatedOrIdle)
-        break;
-      
-    }
-
-
-
-  }
-
-}
-
-void processMessageOtherServer() {
-  int flag = true;
-  MPI_Request request;
-  MPI_Status status;
-  bool stopListening = false;
-  MessageType msgType;
-  while (true) {
-    if (!stopListening) {
-      MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
-
-      if (flag) {
-        MPI_Irecv( & msgType, 1, MPI_INT, 0, TAG_MTYPE, MPI_COMM_WORLD, & request);
-      }
-
-      MPI_Test( & request, & flag, & status);
-      if (flag) {
-        if (msgType == TERMINATE) {
-          stopListening = true;
-
-        } else {
-          char buffer[1024];
-          MPI_Recv(buffer, 1024, MPI_CHAR, 0, TAG_MSG, MPI_COMM_WORLD, & status);
-          string msg(buffer, status.MPI_COUNT);
-          preprocessQuery(msg);
-        }
-      }
-    }
-
-    if (numQueriesProcessing != 0) {
-      processQueries();
-
-    }
-
-    if ((numQueriesProcessing == 0) && (stopListening))
-    {
-      SystemStatus = TERMINATED;
-      MPI_Send( &SystemStatus, 1, MPI_INT, 0 , TAG_TERMINATE, MPI_COMM_WORLD);
-      break;
-
-    }
-
-  }
-}
-
-inline void preprocessQuery(msg) {
+inline void preprocessQuery(string msg) {
   istringstream iss(msg);
   vector < ui > argValues;
   ui number, countArgs;
@@ -213,10 +40,6 @@ inline void preprocessQuery(msg) {
   while (iss >> number) {
     argValues.push_back(number);
     countArgs++;
-  }
-  if (countArgs != 5) {
-    cout << "Client wrong input parameters! " << msg << endl;
-    continue;
   }
   int ind = -1;
   for (ui x = 0; x < limitQueries; x++) {
@@ -434,6 +257,191 @@ inline void processQueries() {
   thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS - 1));
 
 }
+
+
+void listenForMessages() {
+
+  msg_queue_server server('g');
+  long type = 1;
+  while (true) {
+    if (server.recv_msg(type)) {
+      string msg = server.get_msg();
+      queryInfo query(totalQuerry, msg);
+      totalQuerry++;
+      messageQueueMutex.lock();
+      messageQueue.push_back(query);
+      messageQueueMutex.unlock();
+      if (isServerExit(msg))
+        break;
+    }
+  }
+}
+
+void processMessageMasterServer() {
+  bool stopListening = false;
+
+  vector <MPI_Request> requests(worldSize);
+  vector <MPI_Status> status(worldSize);
+  
+  vector < SystemInfo > systems(worldSize);
+  vector < int > nQP(worldSize);
+
+  vector <MPI_Request> endRequests(worldSize);
+  vector <MPI_Status> endStatus(worldSize);
+  vector <int> endFlag(worldSize);
+  vector <SystemStatus> systemStatus(worldSize);
+  for(int i = 0; i <worldSize;i++){
+    endFlag[i] = 0;
+    systemStatus[i] = IDLE;
+  }
+
+  systems[0] = {0, 0, 0};
+  nQP[0] = 0;
+  for (int i = 1; i < worldSize; i++) {
+    systems[i] = { i, 0, 1 };
+    nQP[i] = 0;
+  }
+  while (true) {
+    if (!stopListening) {
+      messageQueueMutex.lock();
+      while ((!messageQueue.empty()) && (leastQuery < limitQueries)) {
+        queryInfo message = messageQueue.front();
+        messageQueue.erase(messageQueue.begin());
+        messageQueueMutex.unlock();
+        ui queryId = message.queryId;
+        string msg = message.queryString;
+        if (isServerExit(msg)) {
+          stopListening = true;
+          //send server quit msg to every system 
+          for (int i = 1; i < worldSize; i++) {
+            MessageType msgType = TERMINATE;
+            MPI_Send( & msgType, 1, MPI_INT, i, TAG_MTYPE, MPI_COMM_WORLD);
+          }
+        } else {
+
+          systems[0].numQueriesProcessing = numQueriesProcessing;
+
+          for (int i = 1; i < worldSize; i++) {
+           
+            if (systems[i].flag) {
+
+              MPI_Irecv( & nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
+            }
+
+            MPI_Test( &requests[i], & systems[i].flag, & status[i]);
+            if (systems[i].flag) {
+              systems[i].numQueriesProcessing = nQP[i];
+
+            }
+
+          }
+
+          auto leastLoadedSystem = *std::min_element(systems.begin(), systems.end(),
+            [](const SystemInfo & a,
+              const SystemInfo & b) {
+              return a.numQueriesProcessing < b.numQueriesProcessing;
+            });
+          leastQuery = leastLoadedSystem.numQueriesProcessing + 1;
+          if (leastLoadedSystem.rank == 0) {
+            preprocessQuery(msg);
+
+          } else {
+
+            if(systemStatus[leastLoadedSystem.rank] == IDLE){
+              systemStatus[leastLoadedSystem.rank] = PROCESSING;
+              endFlag[leastLoadedSystem.rank] = 1;
+
+            }
+            MessageType msgType = PROCESS_MESSAGE;
+            MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
+
+            MPI_Send(msg.c_str(), msg.length(), MPI_CHAR, leastLoadedSystem.rank, TAG_MSG, MPI_COMM_WORLD);
+            // Get confirmation 
+
+          }
+
+        }
+
+        messageQueueMutex.lock();
+      }
+      messageQueueMutex.unlock();
+    }
+
+    if (numQueriesProcessing != 0) {
+      processQueries();
+    }
+    
+    for(int i =0 ; i < worldSize ; i ++){
+      if(systemStatus[i]!=TERMINATED){
+        if (endFlag[i]) {
+
+              MPI_Irecv( &systemStatus[i], 1, MPI_INT, i,TAG_TERMINATE, MPI_COMM_WORLD, & endRequests[i]);
+          }
+
+        MPI_Test( &endRequests[i], &endFlag[i], & endStatus[i]);
+
+
+      }
+       
+    }
+
+    if ((numQueriesProcessing == 0) && (stopListening)){
+      bool allTerminatedOrIdle = std::all_of(systemStatus.begin(), systemStatus.end(), [](SystemStatus status) { return status == SystemStatus::TERMINATED || status == SystemStatus::IDLE; });
+      if (allTerminatedOrIdle)
+        break;
+      
+    }
+
+
+
+  }
+
+}
+
+void processMessageOtherServer() {
+  int flag = true;
+  MPI_Request request;
+  MPI_Status status;
+  bool stopListening = false;
+  MessageType msgType;
+  while (true) {
+    if (!stopListening) {
+      MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
+
+      if (flag) {
+        MPI_Irecv( & msgType, 1, MPI_INT, 0, TAG_MTYPE, MPI_COMM_WORLD, & request);
+      }
+
+      MPI_Test( & request, & flag, & status);
+      if (flag) {
+        if (msgType == TERMINATE) {
+          stopListening = true;
+
+        } else {
+          char buffer[1024];
+          MPI_Recv(buffer, 1024, MPI_CHAR, 0, TAG_MSG, MPI_COMM_WORLD, & status);
+          string msg(buffer, status.MPI_COUNT);
+          preprocessQuery(msg);
+        }
+      }
+    }
+
+    if (numQueriesProcessing != 0) {
+      processQueries();
+
+    }
+
+    if ((numQueriesProcessing == 0) && (stopListening))
+    {
+      SystemStatus ss = TERMINATED;
+      MPI_Send( &ss, 1, MPI_INT, 0 , TAG_TERMINATE, MPI_COMM_WORLD);
+      break;
+
+    }
+
+  }
+}
+
 
 int main(int argc,const char * argv[]) {
   if (argc != 8) {
