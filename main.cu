@@ -340,6 +340,7 @@ void processMessageMasterServer() {
             MPI_Test( &requests[i], & systems[i].flag, & status[i]);
             if (systems[i].flag) {
               systems[i].numQueriesProcessing = nQP[i];
+              cout<<"system "<<i<<" data "<<systems[i].numQueriesProcessing<<endl;
 
             }
 
@@ -441,7 +442,7 @@ void processMessageOtherServer() {
 
           int count;
           MPI_Get_count(&status, MPI_CHAR, &count);
-          buffer[count] = '\0'
+          buffer[count] = '\0';
           string msg(buffer, count);
           cout<<"Rank "<<worldRank<<" recieved from  rank 0  msg "<<msg<<endl;
 
@@ -459,6 +460,7 @@ void processMessageOtherServer() {
     {
       SystemStatus ss = TERMINATED;
       MPI_Send( &ss, 1, MPI_INT, 0 , TAG_TERMINATE, MPI_COMM_WORLD);
+      cout<<"Rank "<<worldRank<<" send terminate "<<endl;
       break;
 
     }
