@@ -331,11 +331,7 @@ void processMessageMasterServer() {
     }
     
 
-    cout<<"Num processing ";
-    for(ui i=0;i<worldSize;i++){
-      cout<<systems[i].numQueriesProcessing<<" ";
-    }
-    cout<<endl;
+    
 
     if (!stopListening) {
       messageQueueMutex.lock();
@@ -356,6 +352,12 @@ void processMessageMasterServer() {
           }
 
         }
+
+        cout<<"Num processing ";
+        for(ui i=0;i<worldSize;i++){
+          cout<<systems[i].numQueriesProcessing<<" ";
+        }
+        cout<<endl;
         
         queryInfo message = messageQueue.front();
         cout<<"rank "<<worldRank<<" read "<<x<<" msg : "<<message.queryString<<endl;
@@ -471,6 +473,7 @@ void processMessageOtherServer() {
           cout<<"Rank "<<worldRank<<" recieved from  rank 0  msg "<<msg<<endl;
 
           preprocessQuery(msg);
+          cout<<"Rank "<<worldRank<<" np "<<numQueriesProcessing<<endl;
         }
       }
     }
