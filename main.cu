@@ -308,9 +308,54 @@ void processMessageMasterServer() {
   //cout<<"rank "<<worldRank<<" process here "<<endl;
   int x = 0;
   while (true) {
+
+    if(totalQuerry>0){
+      systems[0].numQueriesProcessing = numQueriesProcessing;
+
+      for (int i = 1; i < worldSize; i++) {
+        
+        if (systems[i].flag) {
+
+          MPI_Irecv( & nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
+        }
+
+        MPI_Test( &requests[i], & systems[i].flag, & status[i]);
+        if (systems[i].flag) {
+          systems[i].numQueriesProcessing = nQP[i];
+          cout<<"system "<<i<<" data "<<systems[i].numQueriesProcessing<<endl;
+
+        }
+
+    }
+
+    }
+    
+
+    cout<<"Num processing ";
+    for(ui i=0;i<worldSize;i++){
+      cout<<systems[i].numQueriesProcessing<<" ";
+    }
+    cout<<endl;
+
     if (!stopListening) {
       messageQueueMutex.lock();
       while ((!messageQueue.empty()) && (leastQuery < limitQueries)) {
+
+        for (int i = 1; i < worldSize; i++) {
+      
+          if (systems[i].flag) {
+
+            MPI_Irecv( & nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
+          }
+
+          MPI_Test( &requests[i], & systems[i].flag, & status[i]);
+          if (systems[i].flag) {
+            systems[i].numQueriesProcessing = nQP[i];
+            cout<<"system "<<i<<" data "<<systems[i].numQueriesProcessing<<endl;
+
+          }
+
+        }
         
         queryInfo message = messageQueue.front();
         cout<<"rank "<<worldRank<<" read "<<x<<" msg : "<<message.queryString<<endl;
@@ -327,30 +372,6 @@ void processMessageMasterServer() {
             MPI_Send( & msgType, 1, MPI_INT, i, TAG_MTYPE, MPI_COMM_WORLD);
           }
         } else {
-
-          systems[0].numQueriesProcessing = numQueriesProcessing;
-
-          for (int i = 1; i < worldSize; i++) {
-           
-            if (systems[i].flag) {
-
-              MPI_Irecv( & nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
-            }
-
-            MPI_Test( &requests[i], & systems[i].flag, & status[i]);
-            if (systems[i].flag) {
-              systems[i].numQueriesProcessing = nQP[i];
-              cout<<"system "<<i<<" data "<<systems[i].numQueriesProcessing<<endl;
-
-            }
-
-          }
-
-          cout<<"Num processing ";
-          for(ui i=0;i<worldSize;i++){
-            cout<<systems[i].numQueriesProcessing<<" ";
-          }
-          cout<<endl;
 
           auto leastLoadedSystem = *std::min_element(systems.begin(), systems.end(),
             [](const SystemInfo & a,
@@ -423,10 +444,13 @@ void processMessageOtherServer() {
   MPI_Status status;
   bool stopListening = false;
   MessageType msgType;
+  int old = 0;
   while (true) {
+    if(old<numQueriesProcessing){
+    MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
+    old = numQueriesProcessing;
+    }
     if (!stopListening) {
-      MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
-
       if (flag) {
         MPI_Irecv( & msgType, 1, MPI_INT, 0, TAG_MTYPE, MPI_COMM_WORLD, & request);
       }
