@@ -646,9 +646,9 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
           if (sharedDegree[threadIdx.x / warpSize] != UINT_MAX) {
 
             ui old = atomicMax( & G_.lowerBoundDegree[queryId],sharedDegree[threadIdx.x / warpSize]);
-            if(old<G_.lowerBoundDegree[queryId]){
+            /*if(old<G_.lowerBoundDegree[queryId]){
               printf(" solution query %u warp %u iter %u old %u new %u cmd %u ub2 %u ub1 %u  \n", queryId,warpId,iter,old,G_.lowerBoundDegree[queryId],justCMD,sharedC_[(threadIdx.x / warpSize) * maxN2],sharedUBDegree[threadIdx.x / warpSize]);
-            }
+            }*/
 
 
           }
