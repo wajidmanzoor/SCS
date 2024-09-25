@@ -52,66 +52,68 @@ inline void preprocessQuery(string msg) {
   totalQuerry++;
   if (queries[ind].isHeu)
     CSSC_heu(ind);
-  cout << "Processing : " << queries[ind] << endl;
+  cout <<"rank "<<worldRank<< " Processing : " << queries[ind] << endl;
   if (queries[ind].kl == queries[ind].ku) {
-    cout << "heuristic find the OPT!" << endl;
-    cout << "Found Solution : " << queries[ind] << endl;
+    cout <<"rank "<<worldRank<< " heuristic find the OPT!" << endl;
+    cout <<"rank "<<worldRank<< " Found Solution : " << queries[ind] << endl;
     queries[ind].solFlag = 1;
-    continue;
-  }
-  cal_query_dist(queries[ind].QID);
-  chkerr(cudaMemcpy(deviceGraph.degree + (ind * n), degree, n * sizeof(ui), cudaMemcpyHostToDevice));
-  chkerr(cudaMemcpy(deviceGraph.distance + (ind * n), q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
-  chkerr(cudaMemcpy(deviceGraph.lowerBoundDegree + ind, & (queries[ind].kl), sizeof(ui), cudaMemcpyHostToDevice));
-  chkerr(cudaMemcpy(deviceGraph.lowerBoundSize + ind, & (queries[ind].N1), sizeof(ui), cudaMemcpyHostToDevice));
-  chkerr(cudaMemcpy(deviceGraph.upperBoundSize + ind, & (queries[ind].N2), sizeof(ui), cudaMemcpyHostToDevice));
-  chkerr(cudaMemcpy(deviceGraph.limitDoms + ind, & (queries[ind].limitDoms), sizeof(ui), cudaMemcpyHostToDevice));
+    
+  }else{
+    cal_query_dist(queries[ind].QID);
+    chkerr(cudaMemcpy(deviceGraph.degree + (ind * n), degree, n * sizeof(ui), cudaMemcpyHostToDevice));
+    chkerr(cudaMemcpy(deviceGraph.distance + (ind * n), q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
+    chkerr(cudaMemcpy(deviceGraph.lowerBoundDegree + ind, & (queries[ind].kl), sizeof(ui), cudaMemcpyHostToDevice));
+    chkerr(cudaMemcpy(deviceGraph.lowerBoundSize + ind, & (queries[ind].N1), sizeof(ui), cudaMemcpyHostToDevice));
+    chkerr(cudaMemcpy(deviceGraph.upperBoundSize + ind, & (queries[ind].N2), sizeof(ui), cudaMemcpyHostToDevice));
+    chkerr(cudaMemcpy(deviceGraph.limitDoms + ind, & (queries[ind].limitDoms), sizeof(ui), cudaMemcpyHostToDevice));
 
-  chkerr(cudaMemset(initialTask.globalCounter, 0, sizeof(ui)));
-  chkerr(cudaMemset(initialTask.entries, 0, INTOTAL_WARPS * sizeof(ui)));
-  chkerr(cudaMemset(deviceGraph.newOffset + ((n + 1) * ind), 0, (n + 1) * sizeof(ui)));
+    chkerr(cudaMemset(initialTask.globalCounter, 0, sizeof(ui)));
+    chkerr(cudaMemset(initialTask.entries, 0, INTOTAL_WARPS * sizeof(ui)));
+    chkerr(cudaMemset(deviceGraph.newOffset + ((n + 1) * ind), 0, (n + 1) * sizeof(ui)));
 
-  if (queries[ind].kl <= 1)
-    queries[ind].ubD = queries[ind].N2 - 1;
-  else {
-    for (ui d = 1; d <= queries[ind].N2; d++) {
-      if (d == 1 || d == 2) {
-        if (queries[ind].kl + d > queries[ind].N2) {
-          queries[ind].ubD = d - 1;
-          break;
-        }
-      } else {
-        ui min_n = queries[ind].kl + d + 1 + floor(d / 3) * (queries[ind].kl - 2);
-        if (queries[ind].N2 < min_n) {
-          queries[ind].ubD = d - 1;
-          break;
+    if (queries[ind].kl <= 1)
+      queries[ind].ubD = queries[ind].N2 - 1;
+    else {
+      for (ui d = 1; d <= queries[ind].N2; d++) {
+        if (d == 1 || d == 2) {
+          if (queries[ind].kl + d > queries[ind].N2) {
+            queries[ind].ubD = d - 1;
+            break;
+          }
+        } else {
+          ui min_n = queries[ind].kl + d + 1 + floor(d / 3) * (queries[ind].kl - 2);
+          if (queries[ind].N2 < min_n) {
+            queries[ind].ubD = d - 1;
+            break;
+          }
         }
       }
     }
+    maxN2 = mav(maxN2, queries[ind].N2);
+
+    queries[ind].receiveTimer.restart();
+
+    initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[ind].ubD, initialPartitionSize, ind);
+    cudaDeviceSynchronize();
+    CUDA_CHECK_ERROR("Intial Reduction ");
+
+    ui globalCounter;
+    chkerr(cudaMemcpy( & globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
+
+    CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, ind, n, partitionSize, TOTAL_WARPS, factor);
+    cudaDeviceSynchronize();
+    CUDA_CHECK_ERROR("Compress ");
+
+    thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (ind + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)));
+    cudaDeviceSynchronize();
+
+    numQueriesProcessing++;
+
+    NeighborUpdate << < BLK_NUMS, BLK_DIM, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, TOTAL_WARPS, ind, n, m);
+    cudaDeviceSynchronize();
+    CUDA_CHECK_ERROR("Neighbor  ");
   }
-  maxN2 = mav(maxN2, queries[ind].N2);
-
-  queries[ind].receiveTimer.restart();
-
-  initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[ind].ubD, initialPartitionSize, ind);
-  cudaDeviceSynchronize();
-  CUDA_CHECK_ERROR("Intial Reduction ");
-
-  ui globalCounter;
-  chkerr(cudaMemcpy( & globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
-
-  CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, ind, n, partitionSize, TOTAL_WARPS, factor);
-  cudaDeviceSynchronize();
-  CUDA_CHECK_ERROR("Compress ");
-
-  thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (ind + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)));
-  cudaDeviceSynchronize();
-
-  numQueriesProcessing++;
-
-  NeighborUpdate << < BLK_NUMS, BLK_DIM, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, TOTAL_WARPS, ind, n, m);
-  cudaDeviceSynchronize();
-  CUDA_CHECK_ERROR("Neighbor  ");
+  
 }
 
 inline void processQueries() {
@@ -152,7 +154,7 @@ inline void processQueries() {
 
   chkerr(cudaMemcpy( & (outMemFlag), deviceBuffer.outOfMemoryFlag, sizeof(ui), cudaMemcpyDeviceToHost));
   if (outMemFlag)
-    cout << " Warning !!!!! buffer out of memory answers will be approx." << outMemFlag << endl;
+    cout <<"rank "<<worldRank<< " Warning !!!!! buffer out of memory answers will be approx." << outMemFlag << endl;
 
   chkerr(cudaMemcpy( & tempHost, deviceBuffer.temp, sizeof(ui),
     cudaMemcpyDeviceToHost));
@@ -169,7 +171,7 @@ inline void processQueries() {
       chkerr(cudaMemcpy( & (queries[i].numWrite), deviceGraph.numWrite + i, sizeof(ui), cudaMemcpyDeviceToHost));
       if ((queries[i].numRead == queries[i].numWrite)) {
         chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
-        cout << "Found Solution : " << queries[i] << endl;
+        cout <<"rank "<<worldRank<<"Found Solution : " << queries[i] << endl;
         //Send result Data to Rank 0 system 
         queries[i].solFlag = 1;
         numQueriesProcessing--;
@@ -189,7 +191,7 @@ inline void processQueries() {
 
   // If the number of tasks written to the buffer exceeds the number read at this level, left shift the tasks that were written but not read to the start of the array.
   if ((numReadHost < numTaskHost) && (numReadHost > 0)) {
-    cout << "Num read " << numReadHost << " num Task " << numTaskHost << endl;
+    //cout << "Num read " << numReadHost << " num Task " << numTaskHost << endl;
     chkerr(cudaMemcpy( & startOffset, deviceBuffer.taskOffset + numReadHost,
       sizeof(ui), cudaMemcpyDeviceToHost));
     chkerr(cudaMemcpy( & endOffset, deviceBuffer.taskOffset + numTaskHost, sizeof(ui),
@@ -263,6 +265,8 @@ void listenForMessages() {
 
   msg_queue_server server('g');
   long type = 1;
+  //cout<<"rank "<<worldRank<<" listen here "<<endl;
+
   while (true) {
     if (server.recv_msg(type)) {
       string msg = server.get_msg();
@@ -301,11 +305,16 @@ void processMessageMasterServer() {
     systems[i] = { i, 0, 1 };
     nQP[i] = 0;
   }
+  //cout<<"rank "<<worldRank<<" process here "<<endl;
+  int x = 0;
   while (true) {
     if (!stopListening) {
       messageQueueMutex.lock();
       while ((!messageQueue.empty()) && (leastQuery < limitQueries)) {
+        
         queryInfo message = messageQueue.front();
+        cout<<"rank "<<worldRank<<" read "<<x<<" msg : "<<message.queryString<<endl;
+        x++;
         messageQueue.erase(messageQueue.begin());
         messageQueueMutex.unlock();
         ui queryId = message.queryId;
@@ -336,6 +345,12 @@ void processMessageMasterServer() {
 
           }
 
+          cout<<"Num processing ";
+          for(ui i=0;i<worldSize;i++){
+            cout<<systems[i].numQueriesProcessing<<" ";
+          }
+          cout<<endl;
+
           auto leastLoadedSystem = *std::min_element(systems.begin(), systems.end(),
             [](const SystemInfo & a,
               const SystemInfo & b) {
@@ -343,6 +358,7 @@ void processMessageMasterServer() {
             });
           leastQuery = leastLoadedSystem.numQueriesProcessing + 1;
           if (leastLoadedSystem.rank == 0) {
+            cout<<"self 0 got msg "<<msg<<endl;
             preprocessQuery(msg);
 
           } else {
@@ -352,10 +368,12 @@ void processMessageMasterServer() {
               endFlag[leastLoadedSystem.rank] = 1;
 
             }
+            cout<<"Rank 0 sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
             MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
 
             MPI_Send(msg.c_str(), msg.length(), MPI_CHAR, leastLoadedSystem.rank, TAG_MSG, MPI_COMM_WORLD);
+
             // Get confirmation 
 
           }
@@ -371,8 +389,8 @@ void processMessageMasterServer() {
       processQueries();
     }
     
-    for(int i =0 ; i < worldSize ; i ++){
-      if(systemStatus[i]!=TERMINATED){
+    for(int i =1 ; i < worldSize ; i ++){
+      if(systemStatus[i]==PROCESSING){
         if (endFlag[i]) {
 
               MPI_Irecv( &systemStatus[i], 1, MPI_INT, i,TAG_TERMINATE, MPI_COMM_WORLD, & endRequests[i]);
@@ -420,7 +438,13 @@ void processMessageOtherServer() {
         } else {
           char buffer[1024];
           MPI_Recv(buffer, 1024, MPI_CHAR, 0, TAG_MSG, MPI_COMM_WORLD, & status);
-          string msg(buffer, status.MPI_COUNT);
+
+          int count;
+          MPI_Get_count(&status, MPI_CHAR, &count);
+          buffer[count] = '\0'
+          string msg(buffer, count);
+          cout<<"Rank "<<worldRank<<" recieved from  rank 0  msg "<<msg<<endl;
+
           preprocessQuery(msg);
         }
       }
@@ -449,7 +473,12 @@ int main(int argc,const char * argv[]) {
     exit(1);
   }
 
-  int mpi_init_result = MPI_Init( & argc, & argv);
+  char** new_argv = new char*[argc];
+  for (int i = 0; i < argc; i++) {
+      new_argv[i] = const_cast<char*>(argv[i]);
+  }
+
+  int mpi_init_result = MPI_Init( & argc, & new_argv);
   if (mpi_init_result != MPI_SUCCESS) {
     cerr << "Error initializing MPI." << endl;
     return 1;
@@ -457,6 +486,8 @@ int main(int argc,const char * argv[]) {
 
   MPI_Comm_size(MPI_COMM_WORLD, & worldSize);
   MPI_Comm_rank(MPI_COMM_WORLD, & worldRank);
+  
+  cout<<"rank "<<worldRank<<" Size "<<worldSize<<endl;
 
   const char * filepath = argv[1]; // Path to the graph file. The graph should be represented as an edge list with tab (\t) separators
   partitionSize = atoi(argv[2]); // Defines the partition size, in number of elements, that a single warp will read from and write to.
@@ -477,7 +508,7 @@ int main(int argc,const char * argv[]) {
   core_decomposition_linear_list();
 
   memoryAllocationGenGraph(deviceGenGraph);
-  memeoryAllocationGraph(deviceGraph, limitQueries);
+  memoryAllocationGraph(deviceGraph, limitQueries);
 
   totalQuerry = 0;
   q_dist = new ui[n];
@@ -486,6 +517,7 @@ int main(int argc,const char * argv[]) {
   maxN2 = 0;
 
   initialPartitionSize = (n / INTOTAL_WARPS) + 1;
+
   memoryAllocationinitialTask(initialTask, INTOTAL_WARPS, initialPartitionSize);
   memoryAllocationTask(deviceTask, TOTAL_WARPS, partitionSize, limitQueries, factor);
   memoryAllocationBuffer(deviceBuffer, bufferSize, limitQueries, factor);
@@ -506,16 +538,17 @@ int main(int argc,const char * argv[]) {
   startOffset = 0;
   endOffset = 0;
   numQueriesProcessing = 0;
-  worldMsgCount = 0;
-
+  
   if (worldRank == 0) {
     leastQuery = 0;
     thread listener(listenForMessages);
     thread processor(processMessageMasterServer);
     listener.join();
     processor.join();
+    MPI_Finalize();
   } else {
     processMessageOtherServer();
+    MPI_Finalize();
   }
 
   cudaDeviceSynchronize();

@@ -275,7 +275,7 @@ deviceTaskPointers deviceTask;
 deviceBufferPointers deviceBuffer;
 
 void memoryAllocationGenGraph(deviceGraphGenPointers &G);
-void memeoryAllocationGraph(deviceGraphPointers &G,ui totalQueries);
+void memoryAllocationGraph(deviceGraphPointers &G,ui totalQueries);
 void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps, ui psize);
 void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui totalQueries, ui factor);
 void memoryAllocationBuffer(deviceBufferPointers &p, ui bufferSize,ui totalQueries, ui factor);
