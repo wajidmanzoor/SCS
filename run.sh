@@ -1,50 +1,54 @@
 #!/bin/bash
-
-args=(
-    "../../../data/100.txt 3 6 2 10000000 1 2 1000000 0.5"
-    "../../../data/100.txt 6 9 2 10000000 1 2 1000000 0.5"
-    "../../../data/100.txt 9 12 2 10000000 1 2 1000000 0.5"
-    "../../../data/100.txt 12 15 2 10000000 1 2 1000000 0.5"
-    "../../../data/100.txt 15 18 2 10000000 1 2 1000000 0.5"
-    "../../../data/100.txt 18 21 2 10000000 1 2 1000000 0.5"
-    "../../../data/100.txt 21 23 2 10000000 1 2 1000000 0.5"
-    "../../../data/hepPH_SCS 3 6 2 10000000 1 2 1000000 0.5"
-    "../../../data/hepPH_SCS 6 9 2 10000000 1 2 1000000 0.5"
-    "../../../data/hepPH_SCS 9 12 2 10000000 1 2 1000000 0.5"
-    "../../../data/hepPH_SCS 12 15 2 10000000 1 2 1000000 0.5"
-    "../../../data/hepPH_SCS 15 18 2 10000000 1 2 1000000 0.5"
-    "../../../data/hepPH_SCS 18 21 2 10000000 1 2 1000000 0.5"
-    "../../../data/hepPH_SCS 21 23 2 10000000 1 2 1000000 0.5"
+datasets=('fat200' 'GSE1730_q' 'GSE10158_q')
 
 
+#Change these values
+fixed_args="200000 1000000 0.5 1 10 100"
 
-)
+timestamp=$(date +"%Y%m%d_%H%M%S")
+log_file="log_${timestamp}.txt"
 
-output_file="results.txt"
+# Create log file if it doesn't exist
+: > "$log_file"  # This creates/empties the log file
 
-if [ ! -e "$output_file" ]; then
-    touch "$output_file"
-fi
-
-total=${#args[@]}
-current=0
-
-show_progress() {
-    local progress=$((current * 100 / total))
-    local done=$((progress / 2))
-    local left=$((50 - done))
-    printf "\rProgress: ["
-    printf "%${done}s" | tr ' ' '='
-    printf "%${left}s" | tr ' ' ' '
-    printf "] %d%%" $progress
+# Function to log messages
+log_message() {
+    echo "$1" >> "$log_file"  # Append message to the log file
 }
 
-for arg in "${args[@]}"
-do
-    ./SCS $arg >> $output_file 2>&1
-    current=$((current + 1))
-    show_progress
+server_path = "./SCS"
+client_path = "./client/batchClient.cpp"
+client_args = "/client/query/"
+
+
+for dataset_index in "${!datasets[@]}"; do
+    dataset="${datasets[dataset_index]}"
+    server_arg="../../data/edgeList/$dataset $fixed_args"
+    client_args = "$client_args ${datasets[dataset_index]}"
+    echo "$server_arg"
+    echo "Started $datasets"
+    log_message ">>>>>>>>>"
+        log_message "Dataset: $dataset"
+        log_message "Full argument: $server_arg"
+        
+        {
+            date
+            # Redirect the output of the time command to the log file
+            { time $server_path $server_arg; } 2>> "$log_file"  # Append stderr to log file
+            $SERVER_PID = $!
+            sleep 5
+            $client_path $client_args
+
+            wait $!
+
+            wait $SERVER_PID
+
+            date
+        } >> "$log_file"  # Append stdout to log file
+        
+        log_message "<<<<<<<<<<"
+    done
 done
 
-printf "\nDone!\n"
-
+log_message "Done!"
+echo "Yay :) done!"
