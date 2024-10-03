@@ -3,7 +3,6 @@
 #include "Timer.h"
 #include <limits.h>
 #include <cuda_runtime.h>
-#include <string>
 #include <mutex>
 #include <map>
 #include <iomanip>
@@ -29,14 +28,11 @@
 #define WARPS_EACH_BLK (BLK_DIM/32)
 #define TOTAL_WARPS (BLK_NUMS*WARPS_EACH_BLK)
 
-ui BLK_DIM2 = 1024;
-ui BLK_NUM2 = 4;
-ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
-
-
-
 using namespace std;
 
+int BLK_DIM2 ;
+int BLK_NUM2;
+int INTOTAL_WARPS;
 
 
 vector<ui> H;
@@ -52,10 +48,12 @@ ui * degree;
 ui * core;
 ui * q_dist;
 
+string graphPath;
+string fileName;
+
 ui initialPartitionSize;
 ui outMemFlag;
 ui *queryStopFlag;
-ui jump;
 
 ui partitionSize;
 ui bufferSize;

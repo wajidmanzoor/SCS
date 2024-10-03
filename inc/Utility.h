@@ -21,6 +21,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <sys/stat.h>
+
 using namespace std;
 
 typedef unsigned int ui;

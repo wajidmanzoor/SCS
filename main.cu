@@ -13,7 +13,31 @@
 int c =0;
 bool serverQuit = false;
 
+bool fileExists(const string& filename) {
+    struct stat buffer;
+    return (stat(filename.c_str(), &buffer) == 0);
+}
 
+// Function to write or append data to the file
+void writeOrAppend(const string& filename, const string& data) {
+    ofstream file;
+    
+    // Check if the file exists
+    if (fileExists(filename)) {
+        // Open the file in append mode if it exists
+        file.open(filename, ios::app);
+    } else {
+        // Open the file in write mode if it doesn't exist
+        file.open(filename);
+    }
+    
+    if (file.is_open()) {
+        file << data << endl;
+        file.close();
+    } else {
+        cerr << "Unable to open the file." << endl;
+    }
+}
 struct subtract_functor {
   const ui x;
 
@@ -55,7 +79,6 @@ void listenForMessages() {
 }
 
 void processMessages() {
-  cout<<"start processing"<<endl;
   while (true) {
     messageQueueMutex.lock();
     while ( (!messageQueue.empty()) && (numQueriesProcessing < limitQueries)) {
@@ -67,7 +90,6 @@ void processMessages() {
         string queryText = message.queryString;
 
         istringstream iss(queryText);
-        cout<<"Recieved: query id "<<queryId<<" message "<<queryText<<endl;
         vector<ui> argValues;
         ui number, countArgs;
         countArgs = 0;
@@ -96,8 +118,10 @@ void processMessages() {
         queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4],queryId,ind);
         if (queries[ind].isHeu)
           CSSC_heu(ind);
-        cout << "Processing : " << queries[ind] << endl;
         if (queries[ind].kl == queries[ind].ku) {
+          stringstream ss;
+          ss <<queries[ind].N1<< "|" << queries[ind].N2 << "|"<< queries[ind].QID << "|"<< integer_to_string(queries[ind].receiveTimer.elapsed()).c_str() << "|"<< queries[ind].kl << "|"<<"0"<< "|"<<"1";
+          writeOrAppend(fileName,ss.str());
           cout << "heuristic find the OPT!" << endl;
           cout << "Found Solution : " << queries[ind] << endl;
           queries[ind].solFlag = 1;
@@ -146,6 +170,13 @@ void processMessages() {
         ui globalCounter;
         chkerr(cudaMemcpy( &globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
 
+        if(globalCounter>partitionSize){
+          cout << "Intial Task > partition Size " << message << endl;
+          continue;
+
+        }
+
+
         CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, ind, n,partitionSize,TOTAL_WARPS,factor);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERROR("Compress ");
@@ -172,13 +203,6 @@ void processMessages() {
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Process Task");
 
-      // Indicates the partition offset each warp will use to write new tasks.
-      jump = jump >> 1;
-      if (jump == 1) {
-        jump = TOTAL_WARPS >> 1;
-      }
-
-
       // This kernel identifies vertices dominated by ustar and sorts them in decreasing order of their connection score.
       FindDoms << < BLK_NUMS, BLK_DIM, sharedMemorySizeDoms >>> (
         deviceGenGraph, deviceGraph, deviceTask, partitionSize,factor, n, m,dMAX);
@@ -191,8 +215,7 @@ void processMessages() {
       //ui flag = 1 ;
       //chkerr(cudaMemcpy( &flag, &deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
       Expand << < BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (
-        deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,factor,
-        jump, copyLimit, bufferSize, numTaskHost-numReadHost, readLimit, n, m, dMAX);
+        deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,factor, copyLimit, bufferSize, numTaskHost-numReadHost, readLimit, n, m, dMAX);
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Expand ");
       RemoveCompletedTasks<<<BLK_NUMS, BLK_DIM>>>( deviceGraph,deviceTask, partitionSize,factor);
@@ -201,8 +224,7 @@ void processMessages() {
 
 
       chkerr(cudaMemcpy(&(outMemFlag), deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
-      if(outMemFlag)
-      cout<<" Warning !!!!! buffer out of memory answers will be approx."<<outMemFlag<<endl;
+     
       
       chkerr(cudaMemcpy( &tempHost, deviceBuffer.temp, sizeof(ui),
         cudaMemcpyDeviceToHost));
@@ -220,6 +242,10 @@ void processMessages() {
             chkerr(cudaMemcpy( & (queries[i].numWrite), deviceGraph.numWrite + i, sizeof(ui), cudaMemcpyDeviceToHost));
             if ((queries[i].numRead == queries[i].numWrite)) {
               chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
+              
+              stringstream ss;
+              ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"0"<< "|"<<"0";
+              writeOrAppend(fileName,ss.str());
               cout << "Found Solution : " << queries[i] << endl;
               queries[i].solFlag = 1;
               numQueriesProcessing--;
@@ -228,6 +254,25 @@ void processMessages() {
 
 
       }
+       if(outMemFlag){
+        for (ui i = 0; i < limitQueries; i++) {
+          if ( queries[i].solFlag==0) {
+          chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
+          
+          stringstream ss;
+          ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"2"<< "|"<<"0";
+          writeOrAppend(fileName,ss.str());
+          cout <<"Buffer out of memory !"<<endl;
+          cout << "Found Solution : " << queries[i] << endl;
+          queries[i].solFlag = 1;
+          numQueriesProcessing--;
+            
+          }
+       }
+       break;
+        
+      }
+      
 
       if (numTaskHost == numReadHost) {
         chkerr(cudaMemset(deviceBuffer.numTask, 0, sizeof(ui)));
@@ -240,7 +285,6 @@ void processMessages() {
 
       // If the number of tasks written to the buffer exceeds the number read at this level, left shift the tasks that were written but not read to the start of the array.
       if ((numReadHost < numTaskHost) && (numReadHost > 0)) {
-        cout<<"Num read "<<numReadHost<<" num Task "<<numTaskHost<<endl;
         chkerr(cudaMemcpy( & startOffset, deviceBuffer.taskOffset + numReadHost,
           sizeof(ui), cudaMemcpyDeviceToHost));
         chkerr(cudaMemcpy( & endOffset, deviceBuffer.taskOffset + numTaskHost, sizeof(ui),
@@ -310,6 +354,25 @@ void processMessages() {
 
     }
 
+    if(c==500){
+        for (ui i = 0; i < limitQueries; i++) {
+          if ( queries[i].solFlag==0) {
+          chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
+          
+          stringstream ss;
+          ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"1"<< "|"<<"0";
+          writeOrAppend(fileName,ss.str());
+          cout <<"Levels > 200 !"<<endl;
+          cout << "Found Solution : " << queries[i] << endl;
+          queries[i].solFlag = 1;
+          numQueriesProcessing--;
+            
+          }
+       }
+       break;
+        
+    }
+
     if(serverQuit && (numQueriesProcessing==0))
     break;
 
@@ -329,6 +392,22 @@ int main(int argc, const char * argv[]) {
   readLimit = atoi(argv[5]); // Maximum number of tasks a warp with an empty partition can read from the buffer.
   limitQueries = atoi(argv[6]);
   factor = atoi(argv[7]); 
+  
+  graphPath = argv[1];
+  size_t pos = graphPath.find_last_of("/\\");
+  fileName = (pos != string::npos) ? graphPath.substr(pos + 1) : graphPath;
+
+  fileName = "./results/maxdeg/" + fileName;
+
+  if (!fileExists(fileName)) {
+      string header = "N1|N2|QID|Time|Degree|Overtime|Heu";
+      ofstream file;
+      file.open(fileName, ios::app);
+          if (file.is_open()) {
+              file << header << endl;
+              file.close();
+          }
+  }
 
   queries = new queryData[limitQueries];
   for(ui i =0; i < limitQueries;i ++ ){
@@ -337,6 +416,10 @@ int main(int argc, const char * argv[]) {
   }
 
   load_graph(filepath);
+
+
+
+
   core_decomposition_linear_list();
 
   memoryAllocationGenGraph(deviceGenGraph);
@@ -346,10 +429,21 @@ int main(int argc, const char * argv[]) {
   q_dist = new ui[n];
   outMemFlag = 0;
 
-  jump = TOTAL_WARPS;
   maxN2 = 0;
+  if (n <= WARPSIZE) {
+        BLK_DIM2 = WARPSIZE;
+        BLK_NUM2 = 1;
+  } else if (n <= BLK_NUMS) {
+      BLK_DIM2 = std::ceil(static_cast<float>(n) / WARPSIZE) * WARPSIZE;
+      BLK_NUM2 = 1;
+  } else {
+      BLK_DIM2 = BLK_DIM;
+      BLK_NUM2 = std::min(BLK_NUMS, static_cast<int>(std::ceil(static_cast<float>(n) / BLK_DIM2)));
+  }
 
-  initialPartitionSize = (n / INTOTAL_WARPS) + 1;
+  INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / WARPSIZE;
+
+  initialPartitionSize = static_cast<ui>(std::ceil(static_cast<float>(n) / INTOTAL_WARPS));
   memoryAllocationinitialTask(initialTask, INTOTAL_WARPS, initialPartitionSize);
   memoryAllocationTask(deviceTask, TOTAL_WARPS, partitionSize, limitQueries,factor);
   memoryAllocationBuffer(deviceBuffer, bufferSize,limitQueries,factor);
