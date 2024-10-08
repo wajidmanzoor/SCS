@@ -260,7 +260,6 @@ __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, d
     T.taskOffset[offsetPsize * (writeWarp) + numTasks + 1] = T.taskOffset[offsetPsize * (writeWarp) + numTasks] + * P.globalCounter;
     T.ustar[otherPsize * (writeWarp) + numTasks] = -1;
     T.numTasks[writeWarp]++;
-    printf("write wrap %u \n",writeWarp);
 
   }
   __syncwarp();
