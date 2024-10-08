@@ -425,7 +425,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
     }
 
     ui maskGen = total;
-    if ((T.ustar[otherStartIndex + iter] != INT_MAX) && (queryId != UINT_MAX) && (T.size[otherStartIndex + iter] <= upperBoundSize)) {
+    if ((T.ustar[otherStartIndex + iter] != INT_MAX) && (queryId != UINT_MAX) && (T.size[otherStartIndex + iter] <= upperBoundSize) && (queryId != limitQueries)) {
       for (ui i = laneId; i < total; i += warpSize)
 
       {
@@ -753,7 +753,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
 }
 __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T,
   deviceBufferPointers B, ui pSize, ui factor, double copyLimit,
-  ui bufferSize, ui lastWritten, ui readLimit, ui size, ui totalEdges, ui dmax) {
+  ui bufferSize, ui lastWritten, ui readLimit, ui size, ui totalEdges, ui dmax, ui limitQueries) {
 
   extern __shared__ char sharedMemory[];
   size_t sizeOffset = 0;
@@ -794,7 +794,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
 
     if ((T.ustar[otherStartIndex + iter] != INT_MAX) &&
       (T.ustar[otherStartIndex + iter] != -1) &&
-      (T.size[otherStartIndex + iter] <= upperBoundSize) && (queryId != UINT_MAX)) {
+      (T.size[otherStartIndex + iter] <= upperBoundSize) && (queryId != UINT_MAX) &&  (queryId != limitQueries)) {
       ui bufferNum = T.sortedIndex[T.mapping[warpId]];
       ui totalTasksWrite = T.numTasks[bufferNum];
       ui writeOffset = ((bufferNum) * pSize) +
@@ -917,6 +917,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
               T.size[warpId * otherPsize + iter];
             T.size[warpId * otherPsize + iter] += 1;
             T.queryIndicator[(bufferNum) * otherPsize + totalTasksWrite] = queryId;
+            T.ustar[(bufferNum) * otherPsize + totalTasksWrite] = -1;
           }
         }
         __syncwarp();
@@ -1005,6 +1006,8 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
               T.numTasks[bufferNum]++;
               T.doms[startIndex + end - 1] = 0;
               T.queryIndicator[(bufferNum) * otherPsize + newTotalTasksWrite + domIndex] = queryId;
+              T.ustar[(bufferNum) * otherPsize + newTotalTasksWrite + domIndex] = -1;
+
 
             }
           }
@@ -1185,6 +1188,8 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
                   T.size[(bufferNum) * otherPsize + totalTasksWrite] = B.size[numRead1];
                   T.numTasks[bufferNum]++;
                   T.queryIndicator[(bufferNum) * otherPsize + totalTasksWrite] = readQueryId1;
+                  T.ustar[(bufferNum) * otherPsize + totalTasksWrite] = -1;
+                  
                   G_.numRead[readQueryId1]++;
                   G_.flag[readQueryId1] = 1;
 
@@ -1350,6 +1355,8 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
             T.size[(bufferNum) * otherPsize + totalTasksWrite] = B.size[numRead];
             T.numTasks[bufferNum]++;
             T.queryIndicator[(bufferNum) * otherPsize + totalTasksWrite] = readQueryId;
+            T.ustar[(bufferNum) * otherPsize + totalTasksWrite] = -1;
+
             G_.numRead[readQueryId]++;
             G_.flag[readQueryId] = 1;
 
@@ -1360,7 +1367,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
   }
 }
 
-__global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T, ui pSize, ui factor, ui size, ui totalEdges, ui dmax) {
+__global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T, ui pSize, ui factor, ui size, ui totalEdges, ui dmax,ui limitQueries) {
   /**
    * This kernel iterates through tasks assigned to each warp, and finds the verticies that are dominated by the ustar of that task.
    * Vertex v' is dominated by ustar if all of its neighbors are either neighbors of ustar or ustar itself.
@@ -1409,7 +1416,7 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
       limitDoms = G_.limitDoms[queryId];
 
     if ((T.ustar[otherStartIndex + iter] != INT_MAX) &&
-      (T.ustar[otherStartIndex + iter] != -1) && (queryId != UINT_MAX) && (limitDoms > 0)) {
+      (T.ustar[otherStartIndex + iter] != -1) && (queryId != UINT_MAX) && (limitDoms > 0) && (queryId != limitQueries)) {
       ui ustar = T.taskList[T.ustar[otherStartIndex + iter]];
       for (ui i = laneId; i < total; i += 32) {
         ui ind = startIndex + start + i;

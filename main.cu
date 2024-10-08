@@ -226,7 +226,7 @@ void processMessages() {
 
       // This kernel identifies vertices dominated by ustar and sorts them in decreasing order of their connection score.
       FindDoms << < BLK_NUMS, BLK_DIM, sharedMemorySizeDoms >>> (
-        deviceGenGraph, deviceGraph, deviceTask, partitionSize,factor, n, m,dMAX);
+        deviceGenGraph, deviceGraph, deviceTask, partitionSize,factor, n, m,dMAX,limitQueries);
       cudaDeviceSynchronize();
      CUDA_CHECK_ERROR("Find Doms");
 
@@ -236,7 +236,7 @@ void processMessages() {
       //ui flag = 1 ;
       //chkerr(cudaMemcpy( &flag, &deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
       Expand << < BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (
-        deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,factor, copyLimit, bufferSize, numTaskHost-numReadHost, readLimit, n, m, dMAX);
+        deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,factor, copyLimit, bufferSize, numTaskHost-numReadHost, readLimit, n, m, dMAX,limitQueries);
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Expand ");
       RemoveCompletedTasks<<<BLK_NUMS, BLK_DIM>>>( deviceGraph,deviceTask, partitionSize,factor);
