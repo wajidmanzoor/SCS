@@ -496,6 +496,9 @@ int main(int argc, const char * argv[]) {
   freeInterPointer(initialTask);
   freeTaskPointer(deviceTask);
   freeBufferPointer(deviceBuffer);
+  cudaDeviceSynchronize();
+  cudaDeviceReset();
+
 
   return 0;
 }

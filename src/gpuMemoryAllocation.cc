@@ -31,6 +31,7 @@ void memoryAllocationGenGraph(deviceGraphGenPointers &G){
 
     chkerr(cudaMalloc((void**)&(G.neighbors), (2*m) * sizeof(ui)));
     chkerr(cudaMemcpy(G.neighbors, edges, (2*m) * sizeof(ui), cudaMemcpyHostToDevice));
+    cudaDeviceSynchronize();
 
 }
 
@@ -57,12 +58,16 @@ void memeoryAllocationGraph(deviceGraphPointers &G, ui totalQueries){
     chkerr(cudaMalloc((void **)&(G.newNeighbors), totalQueries*(2 * m) * sizeof(ui)));
     chkerr(cudaMalloc((void **)&(G.newOffset), totalQueries*(n + 1) * sizeof(ui)));
     chkerr(cudaMemset(G.newOffset,0, totalQueries*(n + 1) * sizeof(ui)));
+    cudaDeviceSynchronize();
+
 }
 
 void memoryAllocationinitialTask(deviceInterPointers &p, ui numWraps,ui psize){
     chkerr(cudaMalloc((void**)&(p.initialTaskList), numWraps*psize*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.globalCounter), sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.entries),numWraps* sizeof(ui)));
+    cudaDeviceSynchronize();
+
 }
 
 void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui totalQueries, ui factor){
@@ -108,6 +113,8 @@ void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui total
 
     chkerr(cudaMalloc((void**)&(p.doms), taskSize*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.cons), taskSize*sizeof(double)));
+    cudaDeviceSynchronize();
+
 
 
 
@@ -152,6 +159,8 @@ void memoryAllocationBuffer(deviceBufferPointers &p,ui bufferSize, ui totalQueri
 
     chkerr(cudaMalloc((void**)&(p.outOfMemoryFlag), sizeof(ui)));
     chkerr(cudaMemset(p.outOfMemoryFlag,0,sizeof(ui)));
+    cudaDeviceSynchronize();
+
 
 }
 
@@ -201,6 +210,12 @@ void freeTaskPointer(deviceTaskPointers &p){
     chkerr(cudaFree(p.cons));
     chkerr(cudaFree(p.queryIndicator));
 
+    chkerr(cudaFree(p.numTasks));
+    chkerr(cudaFree(p.limitTasks));
+    chkerr(cudaFree(p.sortedIndex));
+    chkerr(cudaFree(p.mapping));
+
+
 
 }
 
@@ -216,6 +231,8 @@ void freeBufferPointer(deviceBufferPointers &p){
     chkerr(cudaFree(p.readMutex));
     chkerr(cudaFree(p.queryIndicator));
     chkerr(cudaFree(p.outOfMemoryFlag));
+    chkerr(cudaFree(p.limitTasks));
+
 
 
 }
