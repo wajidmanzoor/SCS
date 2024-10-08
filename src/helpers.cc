@@ -642,7 +642,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
       __syncwarp();
       ui upperBoundDegreeLimit = minn(sharedC_[(threadIdx.x / warpSize) * maxN2], sharedUBDegree[threadIdx.x / warpSize]);
       ui kl = G_.lowerBoundDegree[queryId];
-      if (upperBoundDegreeLimit > kl) {
+      if ((upperBoundDegreeLimit > kl) && (currentSize< upperBoundSize )) {
 
         maskGen = total;
         for (ui i = laneId; i < total; i += warpSize) {
@@ -718,7 +718,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
         int writeOffset = warpId * otherPsize;
         if ((sharedScore[threadIdx.x / warpSize] > 0) &&
           (sharedUBDegree[threadIdx.x / warpSize] != UINT_MAX) &&
-          (total >= lowerBoundSize) && (upperBoundDegreeLimit > G_.lowerBoundDegree[queryId])) {
+          (total >= lowerBoundSize) && (upperBoundDegreeLimit > G_.lowerBoundDegree[queryId]) && (currentSize< upperBoundSize )) {
           T.ustar[writeOffset + iter] = sharedUstar[threadIdx.x / warpSize];
 
         } else {
@@ -766,7 +766,7 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
   int laneId = idx % warpSize;
 
   ui offsetPsize = pSize / factor;
-  ui otherPsize = * T.limitTasks;
+  ui otherPsize = *T.limitTasks;
 
   ui startIndex = warpId * pSize;
   ui offsetStartIndex = warpId * offsetPsize;
@@ -903,8 +903,6 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
         __syncwarp();
         ui totalDoms = T.doms[startIndex + end - 1];
         if (laneId == 0) {
-          if ((T.size[otherStartIndex + iter] <= upperBoundSize) &&
-            (T.ustar[otherStartIndex + iter] != -1)) {
             G_.flag[queryId] = 1;
             T.statusList[T.ustar[otherStartIndex + iter]] = 1;
 
@@ -918,7 +916,8 @@ __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceT
             T.size[warpId * otherPsize + iter] += 1;
             T.queryIndicator[(bufferNum) * otherPsize + totalTasksWrite] = queryId;
             T.ustar[(bufferNum) * otherPsize + totalTasksWrite] = -1;
-          }
+            T.ustar[warpId * otherPsize + iter] = -1;
+          
         }
         __syncwarp();
 
