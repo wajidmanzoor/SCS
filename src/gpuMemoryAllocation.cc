@@ -79,12 +79,13 @@ void memoryAllocationTask(deviceTaskPointers &p, ui numWraps, ui pSize, ui total
 
     chkerr(cudaMalloc((void**)&(p.sortedIndex), numWraps*sizeof(ui)));
     chkerr(cudaMalloc((void**)&(p.mapping), numWraps*sizeof(ui)));
+    cudaMemset(deviceTask.sortedIndex,0,numWraps*sizeof(ui));
 
-    thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
-    thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
+    //thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
+    //thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
 
-    thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
-    thrust::transform(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
+    //thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+    //thrust::transform(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
 
     chkerr(cudaMalloc((void**)&(p.taskOffset), (offsetSize)*sizeof(ui)));
     chkerr(cudaMemset(p.taskOffset,0, (offsetSize)*sizeof(ui)));

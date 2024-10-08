@@ -170,7 +170,7 @@ void processMessages() {
         ui globalCounter;
         chkerr(cudaMemcpy( &globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
 
-        if(globalCounter>partitionSize){
+        if(globalCounter>=partitionSize){
           cout << "Intial Task > partition Size " << message << endl;
           continue;
 
@@ -189,13 +189,34 @@ void processMessages() {
         NeighborUpdate << < BLK_NUMS, BLK_DIM , sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, TOTAL_WARPS, ind, n, m);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERROR("Neighbor  ");
+        thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
+        thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
+
+        thrust::device_vector<ui> d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+
+        thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+
+        thrust::sort_by_key(thrust::device,
+                            d_temp_input.begin(), d_temp_input.end(),
+                            d_sortedIndex_ptr,
+                            thrust::less<ui>());
+
+        thrust::scatter(thrust::device,
+                        thrust::make_counting_iterator<ui>(0),
+                        thrust::make_counting_iterator<ui>(TOTAL_WARPS),
+                        d_sortedIndex_ptr,
+                        d_mapping_ptr);
+
+
+        thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
       messageQueueMutex.lock();
     }
     messageQueueMutex.unlock();
 
     if (numQueriesProcessing != 0) {
       chkerr(cudaMemset(deviceGraph.flag,0, limitQueries * sizeof(ui)));
-
+      chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
+      
       sharedMemorySizeTask = 2 * WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + maxN2 * WARPS_EACH_BLK * sizeof(ui);
 
       ProcessTask << < BLK_NUMS, BLK_DIM, sharedMemorySizeTask >>> (
@@ -328,9 +349,7 @@ void processMessages() {
 
         chkerr(cudaMemset(deviceBuffer.readMutex, 0, sizeof(ui)));
       }
-      chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
       c++;
-      thrust::device_ptr<ui> d_input_ptr(deviceTask.numTasks);
       thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
       thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
 
@@ -362,7 +381,7 @@ void processMessages() {
           stringstream ss;
           ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"1"<< "|"<<"0";
           writeOrAppend(fileName,ss.str());
-          cout <<"Levels > 200 !"<<endl;
+          cout <<"Levels > 500 !"<<endl;
           cout << "Found Solution : " << queries[i] << endl;
           queries[i].solFlag = 1;
           numQueriesProcessing--;
