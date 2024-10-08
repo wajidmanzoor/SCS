@@ -251,7 +251,6 @@ __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, d
   //ui spaceLeft;
   ui numTasks;
 
-  __syncwarp();
   numTasks = T.numTasks[writeWarp];
   ui writeOffset = taskPSize * writeWarp + T.taskOffset[offsetPsize * writeWarp + numTasks];
 
@@ -261,9 +260,11 @@ __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, d
     T.taskOffset[offsetPsize * (writeWarp) + numTasks + 1] = T.taskOffset[offsetPsize * (writeWarp) + numTasks] + * P.globalCounter;
     T.ustar[otherPsize * (writeWarp) + numTasks] = -1;
     T.numTasks[writeWarp]++;
-    T.sortedIndex[0] = * P.globalCounter;
+    printf("write wrap %u \n",writeWarp);
 
   }
+  __syncwarp();
+
 
   for (ui i = laneId; i < total; i += warpSize) {
     while (temp >= 0) {
@@ -295,9 +296,12 @@ __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, d
     T.degreeInR[writeOffset + i] = degInR;
     T.degreeInC[writeOffset + i] = degInc;
   }
+
 }
 
-__global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_, ui INTOTAL_WARPS, ui queryId, ui size, ui totalEdges) {
+
+
+__global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_,deviceTaskPointers T, ui totalWarps, ui queryId, ui size, ui totalEdges, ui pSize, ui factor) {
 
   extern __shared__ ui sharedMem[];
   ui * localCounter = sharedMem;
@@ -306,7 +310,7 @@ __global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_,
   int warpId = idx / warpSize;
   int laneId = idx % warpSize;
 
-  for (ui i = warpId; i < size; i += INTOTAL_WARPS) {
+  for (ui i = warpId; i < size; i += totalWarps) {
     if (laneId == 0) {
       localCounter[threadIdx.x / warpSize] = 0;
     }
@@ -339,6 +343,15 @@ __global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_,
     }
     __syncwarp();
   }
+
+  __syncwarp();
+  if (laneId == 0) {
+      ui offsetPsize = pSize / factor;
+      ui totalTasks = T.numTasks[warpId];
+      ui offsetStartIndex = warpId * offsetPsize;
+      T.sortedIndex[warpId] = T.taskOffset[offsetStartIndex + totalTasks];
+    }
+
 }
 
 __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T,

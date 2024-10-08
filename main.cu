@@ -169,8 +169,18 @@ void processMessages() {
 
         ui globalCounter;
         chkerr(cudaMemcpy( &globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
-
-        if(globalCounter>=partitionSize){
+        
+        ui writeWarp, ntasks, space;
+        chkerr(cudaMemcpy( &writeWarp, deviceTask.sortedIndex, sizeof(ui), cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy( &ntasks, deviceTask.numTasks + writeWarp, sizeof(ui), cudaMemcpyDeviceToHost));
+        ui offsetPsize = partitionSize/factor;
+        chkerr(cudaMemcpy( &space, deviceTask.taskOffset + (writeWarp*offsetPsize + ntasks) , sizeof(ui), cudaMemcpyDeviceToHost));
+        
+        cout <<"write Warp "<<writeWarp<<endl;
+        cout <<"ntasks "<<ntasks<<endl;
+        cout <<"space "<<space<<endl;
+        cout <<"globalCounter "<<globalCounter<<endl;
+        if(globalCounter>=(partitionSize-space)){
           cout << "Intial Task > partition Size " << message << endl;
           continue;
 
@@ -186,7 +196,7 @@ void processMessages() {
 
         numQueriesProcessing++;
 
-        NeighborUpdate << < BLK_NUMS, BLK_DIM , sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, TOTAL_WARPS, ind, n, m);
+        NeighborUpdate << < BLK_NUMS, BLK_DIM , sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, TOTAL_WARPS, ind, n, m,,partitionSize,factor);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERROR("Neighbor  ");
         thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
