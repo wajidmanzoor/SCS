@@ -228,7 +228,7 @@ void processMessages() {
         deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor,maxN2, n, m,dMAX,limitQueries);
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Process Task");
-
+      chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
       // This kernel identifies vertices dominated by ustar and sorts them in decreasing order of their connection score.
       FindDoms << < BLK_NUMS, BLK_DIM, sharedMemorySizeDoms >>> (
         deviceGenGraph, deviceGraph, deviceTask, partitionSize,factor, n, m,dMAX,limitQueries);

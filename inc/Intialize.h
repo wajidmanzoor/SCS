@@ -21,8 +21,8 @@
 #include "../ipc/msgtool.h"
 
 
-#define BLK_NUMS 216
-#define BLK_DIM 1024
+#define BLK_NUMS 432
+#define BLK_DIM 512
 #define TOTAL_THREAD (BLK_NUMS*BLK_DIM)
 #define WARPSIZE 32
 #define WARPS_EACH_BLK (BLK_DIM/32)
