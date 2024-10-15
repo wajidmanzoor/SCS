@@ -639,24 +639,22 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
 
         }
       }
-    }
+    
     __syncwarp();
 
-    if ((sharedCounter[threadIdx.x / 32] > 1) &&
-      (T.ustar[otherStartIndex + iter] != INT_MAX) &&
-      (T.ustar[otherStartIndex + iter] != -1) && (queryId != UINT_MAX) && (limitDoms > 0)) {
+    if (sharedCounter[threadIdx.x / 32] > 1) {
       warpSelectionSort(T.cons, T.doms, startIndex + start,
         startIndex + start + sharedCounter[threadIdx.x / 32],
         laneId);
     }
     __syncwarp();
-    if ((laneId == 0) && (T.ustar[otherStartIndex + iter] != INT_MAX) &&
-      (T.ustar[otherStartIndex + iter] != -1) && (queryId != UINT_MAX) && (limitDoms > 0)) {
+    if (laneId == 0) {
       T.doms[startIndex + end - 1] =
         (sharedCounter[threadIdx.x / 32] > limitDoms) ?
         limitDoms :
         sharedCounter[threadIdx.x / 32];
       sharedCounter[threadIdx.x / 32] = 0;
+    }
     }
   }
 }
@@ -704,7 +702,7 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
 
     if ((T.ustar[otherStartIndex + iter] != INT_MAX) &&
       (T.ustar[otherStartIndex + iter] != -1) &&
-      (T.size[otherStartIndex + iter] <= upperBoundSize) && (queryId != UINT_MAX) &&  (queryId != limitQueries)) {
+      (T.size[otherStartIndex + iter] < upperBoundSize) && (queryId != UINT_MAX) &&  (queryId != limitQueries)) {
       ui writePartition = T.sortedIndex[T.mapping[warpId]];
       ui totalTasksWrite = T.numTasks[writePartition];
       ui writeOffset = ((writePartition) * pSize) +
@@ -712,7 +710,7 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
       ui ustar = T.taskList[T.ustar[otherStartIndex + iter]];
       ui totalWrite;
 
-      if (((writeOffset + total) < ((writePartition + 1) * pSize - 1)) && (totalTasksWrite < * T.limitTasks)) {
+      if (((T.taskOffset[(writePartition) * offsetPsize + totalTasksWrite] + total) < (pSize - 1)) && (totalTasksWrite < * T.limitTasks)) {
         writeTasks( G,  G_,  T,sharedCounter,  ustar,  writePartition, writeOffset,totalTasksWrite,  startIndex,start, end,  otherStartIndex, pSize,offsetPsize, otherPsize,  size,  totalEdges, queryId, total,  iter, warpId, laneId);
         
         ui totalDoms = T.doms[startIndex + end - 1];
@@ -734,8 +732,8 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
           int leftSpace;
           int overFlow;
           int leftTasks = * T.limitTasks - newTotalTasksWrite;
-          leftSpace = ((writePartition + 1) * pSize) - (domsWriteOffset + totalWrite);
-          leftSpace = max(leftSpace, 0);
+          leftSpace = pSize - T.taskOffset[(writePartition) * offsetPsize + newTotalTasksWrite] -1 ;
+          leftSpace = max(leftSpace, 0); // not required as it will be alway positive
           overFlow = leftSpace / totalWrite;
           overFlow = min(leftTasks, overFlow);
           overFlow = min(overFlow, totalDoms);
@@ -1380,7 +1378,7 @@ __device__ __forceinline__ void writeDomsBuffer(deviceGraphGenPointers G, device
                     atomicExch(B.writeMutex, 0);
                     break;
                   } else {
-                    * B.outOfMemoryFlag = 1;
+                    *B.outOfMemoryFlag = 1;
                     atomicExch(B.writeMutex, 0);
                     break;
 
