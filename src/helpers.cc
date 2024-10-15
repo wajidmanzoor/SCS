@@ -515,18 +515,18 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
   __syncwarp();
 
   for (int iter = totalTasks - 1; iter >= 0; iter--) {
-    bool shouldDecrement = (T.queryIndicator[warpId * otherPsize + iter] == UINT_MAX) ||
-      (T.ustar[warpId * otherPsize + iter] == INT_MAX);
-    shouldDecrement = __all_sync(0xFFFFFFFF, shouldDecrement);
-
-    if (!shouldDecrement) {
-      break;
-    }
 
     if (laneId == 0) {
+    bool shouldDecrement = (T.queryIndicator[warpId * otherPsize + iter] == UINT_MAX) ||
+      (T.ustar[warpId * otherPsize + iter] == INT_MAX);
+
+    if (shouldDecrement) {
       T.numTasks[warpId]--;
       T.ustar[warpId * otherPsize + iter] = -1;
       T.queryIndicator[warpId * otherPsize + iter] = limitQueries;
+      
+    }
+      
     }
   }
 }
