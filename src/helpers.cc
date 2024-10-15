@@ -442,7 +442,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
 
   if ((T.ustar[otherStartIndex + iter] != INT_MAX) && (queryId != UINT_MAX) && (T.size[otherStartIndex + iter] <= upperBoundSize) && (queryId != limitQueries)) {
       
-      ui currentSize = T.size[otherStartIndex + iter]
+      ui currentSize = T.size[otherStartIndex + iter];
       if (lowerBoundSize <= currentSize ) {
         calculateMinimumDegree(G, G_, T, sharedDegree, startIndex, start, total, laneId);
         if (laneId == 0) {
