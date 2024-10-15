@@ -378,7 +378,7 @@ void processMessages() {
 
     }
 
-    if(c==500){
+    if(c==200){
         for (ui i = 0; i < limitQueries; i++) {
           if ( queries[i].solFlag==0) {
           chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
@@ -386,7 +386,7 @@ void processMessages() {
           stringstream ss;
           ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"1"<< "|"<<"0";
           writeOrAppend(fileName,ss.str());
-          cout <<"Levels > 500 !"<<endl;
+          cout <<"Levels > 200 !"<<endl;
           cout << "Found Solution : " << queries[i] << endl;
           queries[i].solFlag = 1;
           numQueriesProcessing--;
