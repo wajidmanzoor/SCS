@@ -441,7 +441,9 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
     }
 
   if ((T.ustar[otherStartIndex + iter] != INT_MAX) && (queryId != UINT_MAX) && (T.size[otherStartIndex + iter] <= upperBoundSize) && (queryId != limitQueries)) {
-      if (lowerBoundSize <= T.size[otherStartIndex + iter]) {
+      
+      ui currentSize = T.size[otherStartIndex + iter]
+      if (lowerBoundSize <= currentSize ) {
         calculateMinimumDegree(G, G_, T, sharedDegree, startIndex, start, total, laneId);
         if (laneId == 0) {
             if (sharedDegree[threadIdx.x / warpSize] != UINT_MAX) {
@@ -454,7 +456,7 @@ __global__ void ProcessTask(deviceGraphGenPointers G, deviceGraphPointers G_, de
 
       reductionRule3(G, G_, T, size, totalEdges, startIndex, otherStartIndex, start, end,total , queryId, iter, laneId);
 
-      if ((lowerBoundSize <= T.size[otherStartIndex + iter]) && (T.size[otherStartIndex + iter] <= upperBoundSize)) {
+      if ((lowerBoundSize <= T.size[otherStartIndex + iter]) && (T.size[otherStartIndex + iter] <= upperBoundSize) && (currentSize!=T.size[otherStartIndex + iter])) {
         calculateMinimumDegree(G, G_, T, sharedDegree, startIndex, start, total, laneId);
         if (laneId == 0) {
             if (sharedDegree[threadIdx.x / warpSize] != UINT_MAX) {
