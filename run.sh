@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e  # Exit immediately if a command exits with a non-zero status
 
-datasets=('fat200' 'GSE1730_q' 'GSE10158_q' 'orani' 'ego-facebook' 'grqc_q')
-fixed_args="1000 1000 0.5 1 10 100"
+datasets=( 'ego-facebook' 'grqc_q' 'uc64' 'government' 'wiki-elec' 'lastfm' 'hepPh' 'astroPh' 'condmat' 'Enron_q' 'fb-pages' 'brightkite' 'livemocha' 'gowalla' 'citeseer' 'com-dblp' 'amazon_q' 'youtube_q' 'hyves_q' 'skitter' 'flixster' 'patent_q' 'soc-livejournal' 'dblp-author')
+fixed_args="400000 100000 0.5 1 8 100"
 timestamp=$(date +"%Y%m%d_%H%M%S")
 log_file="./logs/log_${timestamp}.txt"
 
