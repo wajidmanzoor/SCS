@@ -214,6 +214,19 @@ void processMessages() {
 
 
         thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
+        ui *neighboroffset, *neighborList;
+        neighboroffset = new ui[n];
+        neighborList = new ui [2*m];
+
+
+        chkerr(cudaMemcpy(neighboroffset,deviceGraph.newOffset + (ind * (n+1)), (n+1) * sizeof(ui), cudaMemcpyDeviceToHost));
+        chkerr(cudaMemcpy(neighborList,deviceGraph.newNeighbors + (ind * (2*m)), (2*m) * sizeof(ui), cudaMemcpyDeviceToHost));
+        distance_after_reduction(queries[ind].QID,n, neighboroffset, neighborList);
+
+        chkerr(cudaMemcpy(deviceGraph.distance + (ind * n), q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
+        delete[] neighboroffset;
+        delete[] neighborList;
+
       messageQueueMutex.lock();
     }
     messageQueueMutex.unlock();
