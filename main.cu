@@ -73,7 +73,7 @@ inline void preprocessQuery(string msg) {
   totalQuerry++;
   if (queries[ind].isHeu)
     CSSC_heu(ind);
-  cout <<"Rank "<<worldRank<< " : Processing : " << queries[ind] << endl;
+  //cout <<"Rank "<<worldRank<< " : Processing : " << queries[ind] << endl;
   if (queries[ind].kl == queries[ind].ku) {
     cout <<"Rank "<<worldRank<< " : heuristic find the OPT!" << endl;
     cout <<"Rank "<<worldRank<< " : Found Solution : " << queries[ind] << endl;
@@ -127,7 +127,7 @@ inline void preprocessQuery(string msg) {
     ui offsetPsize = partitionSize/factor;
     chkerr(cudaMemcpy( &space, deviceTask.taskOffset + (writeWarp*offsetPsize + ntasks) , sizeof(ui), cudaMemcpyDeviceToHost));
     if(globalCounter>=(partitionSize-space)){
-      cout << "Intial Task > partition Size " << msg << endl;
+      cout <<"Rank "<<worldRank<<" : "<< "Intial Task > partition Size " << msg << endl;
       
 
     }else{
@@ -361,7 +361,7 @@ void processMessageMasterServer() {
         MPI_Test( &requests[i], & systems[i].flag, & status[i]);
         if (systems[i].flag) {
           systems[i].numQueriesProcessing = nQP[i];
-          cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
+          //cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
 
         }
 
@@ -378,11 +378,11 @@ void processMessageMasterServer() {
 
         
 
-        cout<<"Rank "<<worldRank<<" : Num processing ";
+        /*cout<<"Rank "<<worldRank<<" : Num processing ";
         for(ui i=0;i<worldSize;i++){
           cout<<systems[i].numQueriesProcessing<<" ";
         }
-        cout<<endl;
+        cout<<endl;*/
         
         queryInfo message = messageQueue.front();
        // cout<<"rank "<<worldRank<<" read "<<x<<" msg : "<<message.queryString<<endl;
@@ -410,7 +410,7 @@ void processMessageMasterServer() {
             MPI_Test( &requests[i], & systems[i].flag, & status[i]);
             if (systems[i].flag) {
               systems[i].numQueriesProcessing = nQP[i];
-              cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
+              //cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
 
             }
 
@@ -423,9 +423,9 @@ void processMessageMasterServer() {
               return a.numQueriesProcessing < b.numQueriesProcessing;
             });
           leastQuery = leastLoadedSystem.numQueriesProcessing + 1;
-          cout<<"Rank "<<worldRank<<" : System with min np "<<leastLoadedSystem.rank<<endl;
+          //cout<<"Rank "<<worldRank<<" : System with min np "<<leastLoadedSystem.rank<<endl;
           if (leastLoadedSystem.rank == 0) {
-            cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
+            //cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
             preprocessQuery(msg);
 
           } else {
@@ -435,7 +435,7 @@ void processMessageMasterServer() {
               endFlag[leastLoadedSystem.rank] = 1;
 
             }
-            cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
+            //cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
             MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
 
@@ -464,7 +464,7 @@ void processMessageMasterServer() {
         if (endFlag[i]) {
 
               MPI_Irecv( &systemStatus[i], 1, MPI_INT, i,TAG_TERMINATE, MPI_COMM_WORLD, & endRequests[i]);
-              cout<<"Rank "<<worldRank<<" : Recieved terminate from system "<<i<<endl;
+              //cout<<"Rank "<<worldRank<<" : Recieved terminate from system "<<i<<endl;
           }
 
         MPI_Test( &endRequests[i], &endFlag[i], & endStatus[i]);
@@ -513,13 +513,13 @@ void processMessageOtherServer() {
           MPI_Get_count(&status, MPI_CHAR, &count);
           buffer[count] = '\0';
           string msg(buffer, count);
-          cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
+          //cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
 
           preprocessQuery(msg);
           if(old != numQueriesProcessing){
             MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
             old = numQueriesProcessing;
-            cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
+            //cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
           }
         }
       }
@@ -534,7 +534,7 @@ void processMessageOtherServer() {
     {
       SystemStatus ss = TERMINATED;
       MPI_Send( &ss, 1, MPI_INT, 0 , TAG_TERMINATE, MPI_COMM_WORLD);
-      cout<<"Rank "<<worldRank<<" : Send terminate "<<endl;
+      //cout<<"Rank "<<worldRank<<" : Send terminate "<<endl;
       break;
 
     }
@@ -544,7 +544,7 @@ void processMessageOtherServer() {
 
 
 int main(int argc,const char * argv[]) {
-  if (argc != 11) {
+  if (argc != 13) {
     cerr << "Server wrong input parameters!" << endl;
     exit(1);
   }
@@ -646,7 +646,6 @@ int main(int argc,const char * argv[]) {
   }
 
   cudaDeviceSynchronize();
-  cout <<"Rank "<<worldRank<<" : End" << endl;
   freeGenGraph(deviceGenGraph);
   freeGraph(deviceGraph);
   freeInterPointer(initialTask);
