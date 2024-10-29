@@ -165,4 +165,3 @@ void distance_after_reduction(ui QID, ui size, ui *neighboroffset, ui *neighborL
     }
   }
 }
-
