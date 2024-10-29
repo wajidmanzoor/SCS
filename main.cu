@@ -160,8 +160,8 @@ void processMessages() {
           }
         }
         maxN2 = mav(maxN2,queries[ind].N2);
-
-        queries[ind].receiveTimer.restart();
+        
+        //queries[ind].receiveTimer.restart();
 
         initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[ind].ubD, initialPartitionSize, ind);
         cudaDeviceSynchronize();
@@ -214,31 +214,32 @@ void processMessages() {
 
 
         thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
-        ui *neighboroffset, *neighborList;
-        neighboroffset = new ui[n];
-        neighborList = new ui [2*m];
+       // ui *neighboroffset, *neighborList;
+        //neighboroffset = new ui[n];
+        //neighborList = new ui [2*m];
 
 
-        chkerr(cudaMemcpy(neighboroffset,deviceGraph.newOffset + (ind * (n+1)), (n+1) * sizeof(ui), cudaMemcpyDeviceToHost));
-        chkerr(cudaMemcpy(neighborList,deviceGraph.newNeighbors + (ind * (2*m)), (2*m) * sizeof(ui), cudaMemcpyDeviceToHost));
-        distance_after_reduction(queries[ind].QID,n, neighboroffset, neighborList);
+//        chkerr(cudaMemcpy(neighboroffset,deviceGraph.newOffset + (ind * (n+1)), (n+1) * sizeof(ui), cudaMemcpyDeviceToHost));
+  //      chkerr(cudaMemcpy(neighborList,deviceGraph.newNeighbors + (ind * (2*m)), (2*m) * sizeof(ui), cudaMemcpyDeviceToHost));
+    //    distance_after_reduction(queries[ind].QID,n, neighboroffset, neighborList);
 
-        chkerr(cudaMemcpy(deviceGraph.distance + (ind * n), q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
-        delete[] neighboroffset;
-        delete[] neighborList;
+      //  chkerr(cudaMemcpy(deviceGraph.distance + (ind * n), q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
+       // delete[] neighboroffset;
+       // delete[] neighborList;
 
       messageQueueMutex.lock();
     }
     messageQueueMutex.unlock();
 
     if (numQueriesProcessing != 0) {
+     // cout<<"Level "<<c<<endl;
       chkerr(cudaMemset(deviceGraph.flag,0, limitQueries * sizeof(ui)));
       chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
       
       sharedMemorySizeTask = 2 * WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + maxN2 * WARPS_EACH_BLK * sizeof(ui);
 
       ProcessTask << < BLK_NUMS, BLK_DIM, sharedMemorySizeTask >>> (
-        deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor,maxN2, n, m,dMAX,limitQueries);
+        deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor,maxN2, n, m,dMAX,limitQueries, red1, red2, red3 , prun1, prun2);
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Process Task");
       chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
@@ -391,7 +392,7 @@ void processMessages() {
 
     }
 
-    if(c==200){
+    if(c==4000){
         for (ui i = 0; i < limitQueries; i++) {
           if ( queries[i].solFlag==0) {
           chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
@@ -417,7 +418,7 @@ void processMessages() {
 }
 
 int main(int argc, const char * argv[]) {
-  if (argc != 8) {
+  if (argc != 11) {
     cout << "Server wrong input parameters!" << endl;
     exit(1);
   }
@@ -429,12 +430,18 @@ int main(int argc, const char * argv[]) {
   readLimit = atoi(argv[5]); // Maximum number of tasks a warp with an empty partition can read from the buffer.
   limitQueries = atoi(argv[6]);
   factor = atoi(argv[7]); 
+  red1 = atoi(argv[8]);
+  red2 = atoi(argv[9]);
+  red3 = atoi(argv[10]);
+  prun1 = atoi(argv[11]);
+  prun2 = atoi(argv[12]);
+
   
   graphPath = argv[1];
   size_t pos = graphPath.find_last_of("/\\");
   fileName = (pos != string::npos) ? graphPath.substr(pos + 1) : graphPath;
 
-  fileName = "./results/maxdeg/" + fileName;
+  fileName = "./results/exp10/" + fileName+"/"+to_string(limitQueries)+".txt";
 
   if (!fileExists(fileName)) {
       string header = "N1|N2|QID|Time|Degree|Overtime|Heu";
@@ -454,7 +461,8 @@ int main(int argc, const char * argv[]) {
 
   load_graph(filepath);
 
-
+ // neighboroffset = new ui[n];
+   //neighborList = new ui [2*m];
 
 
   core_decomposition_linear_list();

@@ -48,6 +48,8 @@ ui * degree;
 ui * core;
 ui * q_dist;
 
+ui *neighboroffset, *neighborList;
+
 string graphPath;
 string fileName;
 
@@ -71,6 +73,12 @@ ui endOffset;
 ui totalQuerry;
 ui numQueriesProcessing;
 ui maxN2;
+
+ui red1;
+ui red2;
+ui red3;
+ui prun1;
+ui prun2;
 
 
 size_t sharedMemorySizeinitial;
