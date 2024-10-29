@@ -38,12 +38,14 @@ void listenForMessages() {
   msg_queue_server server('g');
   long type = 1;
   //cout<<"rank "<<worldRank<<" listen here "<<endl;
-
+  int id =0;
   while (true) {
     if (server.recv_msg(type)) {
+
       string msg = server.get_msg();
-      queryInfo query(totalQuerry, msg);
-      totalQuerry++;
+      queryInfo query(id, msg);
+      //totalQuerry++;
+      id++;
       messageQueueMutex.lock();
       messageQueue.push_back(query);
       messageQueueMutex.unlock();
@@ -348,7 +350,6 @@ void processMessageMasterServer() {
  // int x = 0;
   while (true) {
 
-    if(totalQuerry>0){
       systems[0].numQueriesProcessing = numQueriesProcessing;
 
       for (int i = 1; i < worldSize; i++) {
@@ -366,8 +367,13 @@ void processMessageMasterServer() {
         }
 
     }
+    auto leastLoadedSystem = *std::min_element(systems.begin(), systems.end(),
+      [](const SystemInfo & a,
+        const SystemInfo & b) {
+        return a.numQueriesProcessing < b.numQueriesProcessing;
+      });
+    leastQuery = leastLoadedSystem.numQueriesProcessing + 1;
 
-    }
     
 
     
