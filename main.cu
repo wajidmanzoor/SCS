@@ -372,7 +372,7 @@ void processMessageMasterServer() {
         const SystemInfo & b) {
         return a.numQueriesProcessing < b.numQueriesProcessing;
       });
-    leastQuery = leastLoadedSystem.numQueriesProcessing + 1;
+    leastQuery = leastLoadedSystem.numQueriesProcessing;
 
     
 
@@ -384,22 +384,16 @@ void processMessageMasterServer() {
 
         
 
-        /*cout<<"Rank "<<worldRank<<" : Num processing ";
-        for(ui i=0;i<worldSize;i++){
-          cout<<systems[i].numQueriesProcessing<<" ";
-        }
-        cout<<endl;*/
+
         
         queryInfo message = messageQueue.front();
-       // cout<<"rank "<<worldRank<<" read "<<x<<" msg : "<<message.queryString<<endl;
-       // x++;
+
         messageQueue.erase(messageQueue.begin());
         messageQueueMutex.unlock();
         ui queryId = message.queryId;
         string msg = message.queryString;
         if (isServerExit(msg)) {
           stopListening = true;
-          //send server quit msg to every system 
           for (int i = 1; i < worldSize; i++) {
             MessageType msgType = TERMINATE;
             MPI_Send( & msgType, 1, MPI_INT, i, TAG_MTYPE, MPI_COMM_WORLD);
@@ -416,7 +410,6 @@ void processMessageMasterServer() {
             MPI_Test( &requests[i], & systems[i].flag, & status[i]);
             if (systems[i].flag) {
               systems[i].numQueriesProcessing = nQP[i];
-              //cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
 
             }
 
@@ -428,7 +421,6 @@ void processMessageMasterServer() {
               const SystemInfo & b) {
               return a.numQueriesProcessing < b.numQueriesProcessing;
             });
-          leastQuery = leastLoadedSystem.numQueriesProcessing + 1;
           //cout<<"Rank "<<worldRank<<" : System with min np "<<leastLoadedSystem.rank<<endl;
           if (leastLoadedSystem.rank == 0) {
             //cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
@@ -454,8 +446,31 @@ void processMessageMasterServer() {
 
         }
 
+        systems[0].numQueriesProcessing = numQueriesProcessing;
 
-       //usleep(1000000);
+      for (int i = 1; i < worldSize; i++) {
+        
+        if (systems[i].flag) {
+
+          MPI_Irecv( & nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
+        }
+
+        MPI_Test( &requests[i], & systems[i].flag, & status[i]);
+        if (systems[i].flag) {
+          systems[i].numQueriesProcessing = nQP[i];
+          //cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
+
+        }
+
+    }
+    auto leastLoadedSystem = *std::min_element(systems.begin(), systems.end(),
+      [](const SystemInfo & a,
+        const SystemInfo & b) {
+        return a.numQueriesProcessing < b.numQueriesProcessing;
+      });
+    leastQuery = leastLoadedSystem.numQueriesProcessing;
+
+
         messageQueueMutex.lock();
       }
       messageQueueMutex.unlock();
