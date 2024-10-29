@@ -127,7 +127,7 @@ inline void preprocessQuery(string msg) {
     ui offsetPsize = partitionSize/factor;
     chkerr(cudaMemcpy( &space, deviceTask.taskOffset + (writeWarp*offsetPsize + ntasks) , sizeof(ui), cudaMemcpyDeviceToHost));
     if(globalCounter>=(partitionSize-space)){
-      cout << "Intial Task > partition Size " << message << endl;
+      cout << "Intial Task > partition Size " << msg << endl;
       
 
     }else{
@@ -228,15 +228,12 @@ inline void processQueries() {
       for (ui i = 0; i < limitQueries; i++) {
         if ( queries[i].solFlag==0) {
         chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
-        cout <<"Buffer out of memory !"<<endl;
-        cout << "Found Solution : " << queries[i] << endl;
+        cout <<"Rank "<<worldRank<<" : Buffer out of memory ! Found Solution : " << queries[i] << endl;
         queries[i].solFlag = 1;
         numQueriesProcessing--;
           
         }
       }
-      break;
-      
     }
 
   if (numTaskHost == numReadHost) {
