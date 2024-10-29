@@ -8,30 +8,26 @@
 #include <map>
 #include <iomanip>
 #include <sstream>
-
 #include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
 #include <thrust/copy.h>
 #include <thrust/transform.h>
 #include <thrust/functional.h>
-#include <thread>
-
-
 #include <thrust/sequence.h>
 #include <thrust/sort.h>
 #include <thrust/gather.h>
 #include <thrust/scatter.h>
-#include <thrust/sequence.h>
-#include <thrust/device_ptr.h>
 
-#include <thrust/device_vector.h>
+#include <thread>
+#include "../ipc/msgtool.h"
+
 #include <mpi.h>
 
 
-#include "../ipc/msgtool.h"
 
 
-#define BLK_NUMS 64
-#define BLK_DIM 1024
+#define BLK_NUMS 432
+#define BLK_DIM 512
 #define TOTAL_THREAD (BLK_NUMS*BLK_DIM)
 #define WARPSIZE 32
 #define WARPS_EACH_BLK (BLK_DIM/32)
@@ -45,14 +41,15 @@
 #define TAG_R 5
 #define TAG_RESULT 6
 
-
-ui BLK_DIM2 = 1024;
-ui BLK_NUM2 = 4;
-ui INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / 32;
-
-
-
 using namespace std;
+
+
+int BLK_DIM2 ;
+int BLK_NUM2;
+int INTOTAL_WARPS;
+
+
+
 
 
 int worldRank, worldSize; 
@@ -92,6 +89,12 @@ ui totalQuerry;
 ui leastQuery;
 int numQueriesProcessing;
 ui maxN2;
+
+ui red1;
+ui red2;
+ui red3;
+ui prun1;
+ui prun2;
 
 
 size_t sharedMemorySizeinitial;

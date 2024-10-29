@@ -140,3 +140,28 @@ void cal_query_dist(ui QID) {
     }
   }
 }
+
+void distance_after_reduction(ui QID, ui size, ui *neighboroffset, ui *neighborList) {
+  for (ui i = 0; i < size; i++) q_dist[i] = INF;
+
+  queue<ui> Q;
+
+  q_dist[QID] = 0;
+
+  Q.push(QID);
+
+  while (!Q.empty()) {
+    ui v = Q.front();
+    Q.pop();
+
+    for (ui i = neighboroffset[v]; i < neighboroffset[v + 1]; i++) {
+      ui w = neighborList[i];
+
+
+      if (q_dist[w] == INF) {
+        q_dist[w] = q_dist[v] + 1;
+        Q.push(w);
+      }
+    }
+  }
+}

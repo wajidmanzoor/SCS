@@ -33,6 +33,26 @@ bool isServerExit(const string & str) {
   return trimmedStr == "server_exit";
 }
 
+void listenForMessages() {
+
+  msg_queue_server server('g');
+  long type = 1;
+  //cout<<"rank "<<worldRank<<" listen here "<<endl;
+
+  while (true) {
+    if (server.recv_msg(type)) {
+      string msg = server.get_msg();
+      queryInfo query(totalQuerry, msg);
+      totalQuerry++;
+      messageQueueMutex.lock();
+      messageQueue.push_back(query);
+      messageQueueMutex.unlock();
+      if (isServerExit(msg))
+        break;
+    }
+  }
+}
+
 inline void preprocessQuery(string msg) {
   istringstream iss(msg);
   vector < ui > argValues;
@@ -92,7 +112,7 @@ inline void preprocessQuery(string msg) {
     }
     maxN2 = mav(maxN2, queries[ind].N2);
 
-    queries[ind].receiveTimer.restart();
+    //queries[ind].receiveTimer.restart();
 
     initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[ind].ubD, initialPartitionSize, ind);
     cudaDeviceSynchronize();
@@ -101,6 +121,16 @@ inline void preprocessQuery(string msg) {
     ui globalCounter;
     chkerr(cudaMemcpy( & globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
 
+    ui writeWarp, ntasks, space;
+    chkerr(cudaMemcpy( &writeWarp, deviceTask.sortedIndex, sizeof(ui), cudaMemcpyDeviceToHost));
+    chkerr(cudaMemcpy( &ntasks, deviceTask.numTasks + writeWarp, sizeof(ui), cudaMemcpyDeviceToHost));
+    ui offsetPsize = partitionSize/factor;
+    chkerr(cudaMemcpy( &space, deviceTask.taskOffset + (writeWarp*offsetPsize + ntasks) , sizeof(ui), cudaMemcpyDeviceToHost));
+    if(globalCounter>=(partitionSize-space)){
+      cout << "Intial Task > partition Size " << message << endl;
+      continue;
+
+    }
     CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, ind, n, partitionSize, TOTAL_WARPS, factor);
     cudaDeviceSynchronize();
     CUDA_CHECK_ERROR("Compress ");
@@ -113,30 +143,44 @@ inline void preprocessQuery(string msg) {
     NeighborUpdate << < BLK_NUMS, BLK_DIM, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, TOTAL_WARPS, ind, n, m);
     cudaDeviceSynchronize();
     CUDA_CHECK_ERROR("Neighbor  ");
+    thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
+    thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
+
+    thrust::device_vector<ui> d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+
+    thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+
+    thrust::sort_by_key(thrust::device,
+                        d_temp_input.begin(), d_temp_input.end(),
+                        d_sortedIndex_ptr,
+                        thrust::less<ui>());
+
+    thrust::scatter(thrust::device,
+                    thrust::make_counting_iterator<ui>(0),
+                    thrust::make_counting_iterator<ui>(TOTAL_WARPS),
+                    d_sortedIndex_ptr,
+                    d_mapping_ptr);
+
+
+    thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
   }
   
 }
 
 inline void processQueries() {
   chkerr(cudaMemset(deviceGraph.flag, 0, limitQueries * sizeof(ui)));
-
+  chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
+  
   sharedMemorySizeTask = 2 * WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + maxN2 * WARPS_EACH_BLK * sizeof(ui);
 
   ProcessTask << < BLK_NUMS, BLK_DIM, sharedMemorySizeTask >>> (
-    deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor, maxN2, n, m, dMAX, limitQueries);
+        deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor,maxN2, n, m,dMAX,limitQueries, red1, red2, red3 , prun1, prun2);
   cudaDeviceSynchronize();
   CUDA_CHECK_ERROR("Process Task");
-
-  // Indicates the partition offset each warp will use to write new tasks.
-  int jump = 0;
-  jump = jump >> 1;
-  if (jump == 1) {
-    jump = TOTAL_WARPS >> 1;
-  }
-
+  chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
   // This kernel identifies vertices dominated by ustar and sorts them in decreasing order of their connection score.
   FindDoms << < BLK_NUMS, BLK_DIM, sharedMemorySizeDoms >>> (
-    deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor, n, m, dMAX);
+    deviceGenGraph, deviceGraph, deviceTask, partitionSize,factor, n, m,dMAX,limitQueries);
   cudaDeviceSynchronize();
   CUDA_CHECK_ERROR("Find Doms");
 
@@ -145,18 +189,16 @@ inline void processQueries() {
   //chkerr(cudaMemcpy( &flag, &deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
 
   Expand << < BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (
-    deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize, factor,
-    jump, copyLimit, bufferSize, numTaskHost - numReadHost, readLimit, n, m, dMAX);
+        deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,factor, copyLimit, bufferSize, numTaskHost-numReadHost, readLimit, n, m, dMAX,limitQueries);
   cudaDeviceSynchronize();
   CUDA_CHECK_ERROR("Expand ");
-  RemoveCompletedTasks << < BLK_NUMS, BLK_DIM >>> (deviceGraph, deviceTask, partitionSize, factor);
+  RemoveCompletedTasks<<<BLK_NUMS, BLK_DIM>>>( deviceGraph,deviceTask, partitionSize,factor);
   cudaDeviceSynchronize();
   CUDA_CHECK_ERROR("Remove Completed ");
 
-  chkerr(cudaMemcpy( & (outMemFlag), deviceBuffer.outOfMemoryFlag, sizeof(ui), cudaMemcpyDeviceToHost));
-  if (outMemFlag)
-    cout <<"Rank "<<worldRank<< " : Warning !!!!! buffer out of memory answers will be approx." << outMemFlag << endl;
 
+  chkerr(cudaMemcpy(&(outMemFlag), deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
+    
   chkerr(cudaMemcpy( & tempHost, deviceBuffer.temp, sizeof(ui),
     cudaMemcpyDeviceToHost));
   chkerr(cudaMemcpy( & numReadHost, deviceBuffer.numReadTasks, sizeof(ui),
@@ -180,6 +222,24 @@ inline void processQueries() {
     }
 
   }
+   if(outMemFlag){
+      for (ui i = 0; i < limitQueries; i++) {
+        if ( queries[i].solFlag==0) {
+        chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
+        
+        stringstream ss;
+        ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"2"<< "|"<<"0";
+        writeOrAppend(fileName,ss.str());
+        cout <<"Buffer out of memory !"<<endl;
+        cout << "Found Solution : " << queries[i] << endl;
+        queries[i].solFlag = 1;
+        numQueriesProcessing--;
+          
+        }
+      }
+      break;
+      
+    }
 
   if (numTaskHost == numReadHost) {
     chkerr(cudaMemset(deviceBuffer.numTask, 0, sizeof(ui)));
@@ -238,49 +298,32 @@ inline void processQueries() {
   }
   chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
 
-  thrust::device_ptr < ui > d_input_ptr(deviceTask.numTasks);
-  thrust::device_ptr < ui > d_sortedIndex_ptr(deviceTask.sortedIndex);
-  thrust::device_ptr < ui > d_mapping_ptr(deviceTask.mapping);
+   thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
+    thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
 
-  thrust::device_vector < ui > d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+    thrust::device_vector<ui> d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
 
-  thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+    thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
 
-  thrust::sort_by_key(thrust::device,
-    d_temp_input.begin(), d_temp_input.end(),
-    d_sortedIndex_ptr,
-    thrust::less < ui > ());
+    thrust::sort_by_key(thrust::device,
+                        d_temp_input.begin(), d_temp_input.end(),
+                        d_sortedIndex_ptr,
+                        thrust::less<ui>());
 
-  thrust::scatter(thrust::device,
-    thrust::make_counting_iterator < ui > (0),
-    thrust::make_counting_iterator < ui > (TOTAL_WARPS),
-    d_sortedIndex_ptr,
-    d_mapping_ptr);
+    thrust::scatter(thrust::device,
+                    thrust::make_counting_iterator<ui>(0),
+                    thrust::make_counting_iterator<ui>(TOTAL_WARPS),
+                    d_sortedIndex_ptr,
+                    d_mapping_ptr);
 
-  thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS - 1));
+
+    thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
+
 
 }
 
 
-void listenForMessages() {
 
-  msg_queue_server server('g');
-  long type = 1;
-  //cout<<"rank "<<worldRank<<" listen here "<<endl;
-
-  while (true) {
-    if (server.recv_msg(type)) {
-      string msg = server.get_msg();
-      queryInfo query(totalQuerry, msg);
-      totalQuerry++;
-      messageQueueMutex.lock();
-      messageQueue.push_back(query);
-      messageQueueMutex.unlock();
-      if (isServerExit(msg))
-        break;
-    }
-  }
-}
 
 void processMessageMasterServer() {
   bool stopListening = false;
@@ -506,7 +549,7 @@ void processMessageOtherServer() {
 
 
 int main(int argc,const char * argv[]) {
-  if (argc != 8) {
+  if (argc != 11) {
     cerr << "Server wrong input parameters!" << endl;
     exit(1);
   }
@@ -534,6 +577,11 @@ int main(int argc,const char * argv[]) {
   readLimit = atoi(argv[5]); // Maximum number of tasks a warp with an empty partition can read from the buffer.
   limitQueries = atoi(argv[6]);
   factor = atoi(argv[7]);
+  red1 = atoi(argv[8]);
+  red2 = atoi(argv[9]);
+  red3 = atoi(argv[10]);
+  prun1 = atoi(argv[11]);
+  prun2 = atoi(argv[12]);
 
   queries = new queryData[limitQueries];
 
@@ -553,8 +601,21 @@ int main(int argc,const char * argv[]) {
   outMemFlag = 0;
 
   maxN2 = 0;
+  
+  if (n <= WARPSIZE) {
+        BLK_DIM2 = WARPSIZE;
+        BLK_NUM2 = 1;
+  } else if (n <= BLK_NUMS) {
+      BLK_DIM2 = std::ceil(static_cast<float>(n) / WARPSIZE) * WARPSIZE;
+      BLK_NUM2 = 1;
+  } else {
+      BLK_DIM2 = BLK_DIM;
+      BLK_NUM2 = std::min(BLK_NUMS, static_cast<int>(std::ceil(static_cast<float>(n) / BLK_DIM2)));
+  }
 
-  initialPartitionSize = (n / INTOTAL_WARPS) + 1;
+  INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / WARPSIZE;
+
+  initialPartitionSize = static_cast<ui>(std::ceil(static_cast<float>(n) / INTOTAL_WARPS));
 
   memoryAllocationinitialTask(initialTask, INTOTAL_WARPS, initialPartitionSize);
   memoryAllocationTask(deviceTask, TOTAL_WARPS, partitionSize, limitQueries, factor);
