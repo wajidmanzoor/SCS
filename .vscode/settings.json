@@ -29,6 +29,10 @@
         "mutex": "cpp",
         "ostream": "cpp",
         "iosfwd": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "unordered_map": "cpp",
+        "iomanip": "cpp",
+        "sstream": "cpp",
+        "asd": "c"
     }
 }
