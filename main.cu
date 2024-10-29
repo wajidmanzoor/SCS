@@ -128,41 +128,43 @@ inline void preprocessQuery(string msg) {
     chkerr(cudaMemcpy( &space, deviceTask.taskOffset + (writeWarp*offsetPsize + ntasks) , sizeof(ui), cudaMemcpyDeviceToHost));
     if(globalCounter>=(partitionSize-space)){
       cout << "Intial Task > partition Size " << message << endl;
-      continue;
+      
 
+    }else{
+      CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, ind, n, partitionSize, TOTAL_WARPS, factor);
+      cudaDeviceSynchronize();
+      CUDA_CHECK_ERROR("Compress ");
+
+      thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (ind + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)));
+      cudaDeviceSynchronize();
+
+      numQueriesProcessing++;
+
+      NeighborUpdate << < BLK_NUMS, BLK_DIM , sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph,deviceTask, TOTAL_WARPS, ind, n, m,partitionSize,factor);
+      cudaDeviceSynchronize();
+      CUDA_CHECK_ERROR("Neighbor  ");
+      thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
+      thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
+
+      thrust::device_vector<ui> d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+
+      thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+
+      thrust::sort_by_key(thrust::device,
+                          d_temp_input.begin(), d_temp_input.end(),
+                          d_sortedIndex_ptr,
+                          thrust::less<ui>());
+
+      thrust::scatter(thrust::device,
+                      thrust::make_counting_iterator<ui>(0),
+                      thrust::make_counting_iterator<ui>(TOTAL_WARPS),
+                      d_sortedIndex_ptr,
+                      d_mapping_ptr);
+
+
+      thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
     }
-    CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, ind, n, partitionSize, TOTAL_WARPS, factor);
-    cudaDeviceSynchronize();
-    CUDA_CHECK_ERROR("Compress ");
-
-    thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (ind + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)));
-    cudaDeviceSynchronize();
-
-    numQueriesProcessing++;
-
-    NeighborUpdate << < BLK_NUMS, BLK_DIM, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, TOTAL_WARPS, ind, n, m);
-    cudaDeviceSynchronize();
-    CUDA_CHECK_ERROR("Neighbor  ");
-    thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
-    thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
-
-    thrust::device_vector<ui> d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
-
-    thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
-
-    thrust::sort_by_key(thrust::device,
-                        d_temp_input.begin(), d_temp_input.end(),
-                        d_sortedIndex_ptr,
-                        thrust::less<ui>());
-
-    thrust::scatter(thrust::device,
-                    thrust::make_counting_iterator<ui>(0),
-                    thrust::make_counting_iterator<ui>(TOTAL_WARPS),
-                    d_sortedIndex_ptr,
-                    d_mapping_ptr);
-
-
-    thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
+    
   }
   
 }
@@ -226,10 +228,6 @@ inline void processQueries() {
       for (ui i = 0; i < limitQueries; i++) {
         if ( queries[i].solFlag==0) {
         chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
-        
-        stringstream ss;
-        ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"2"<< "|"<<"0";
-        writeOrAppend(fileName,ss.str());
         cout <<"Buffer out of memory !"<<endl;
         cout << "Found Solution : " << queries[i] << endl;
         queries[i].solFlag = 1;
