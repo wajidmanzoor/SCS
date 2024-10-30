@@ -383,9 +383,7 @@ void processMessageMasterServer() {
       messageQueueMutex.lock();
       while ((!messageQueue.empty()) && (leastQuery < limitQueries)) {
 
-        
-
-
+        cout<<"Rank with : "<<leastLoadedSystem.rank<<" Least "<<leastQuery<<" limit "<<limitQueries<<endl;
         
         queryInfo message = messageQueue.front();
 
@@ -436,7 +434,7 @@ void processMessageMasterServer() {
             }
             msg.erase(std::remove(msg.begin(), msg.end(), '\n'), msg.end());
 
-            msg += " " + std::to_string(queryId)+'\n';
+            msg += " " + std::to_string(queryId);
             cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
             MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
