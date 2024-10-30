@@ -55,7 +55,7 @@ void listenForMessages() {
   }
 }
 
-inline void preprocessQuery(string msg) {
+inline void preprocessQuery(string msg, ui queryId) {
   istringstream iss(msg);
   vector < ui > argValues;
   ui number, countArgs;
@@ -71,8 +71,7 @@ inline void preprocessQuery(string msg) {
       break;
     }
   }
-  queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4], totalQuerry, ind);
-  totalQuerry++;
+  queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4],queryId, ind);
   if (queries[ind].isHeu)
     CSSC_heu(ind);
   //cout <<"Rank "<<worldRank<< " : Processing : " << queries[ind] << endl;
@@ -424,7 +423,7 @@ void processMessageMasterServer() {
           //cout<<"Rank "<<worldRank<<" : System with min np "<<leastLoadedSystem.rank<<endl;
           if (leastLoadedSystem.rank == 0) {
             //cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
-            preprocessQuery(msg);
+            preprocessQuery(msg,queryId);
 
           } else {
 
@@ -436,7 +435,7 @@ void processMessageMasterServer() {
             //cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
             MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
-
+            msg = msg +" "+to_string(queryId);
             MPI_Send(msg.c_str(), msg.length(), MPI_CHAR, leastLoadedSystem.rank, TAG_MSG, MPI_COMM_WORLD);
             systems[leastLoadedSystem.rank].numQueriesProcessing++;
 
@@ -535,8 +534,17 @@ void processMessageOtherServer() {
           buffer[count] = '\0';
           string msg(buffer, count);
           //cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
+           size_t pos = msg.find_last_of(' ');
+          std::string firstPart;
+          ui lastPartInt;
 
-          preprocessQuery(msg);
+          
+          firstPart = msg.substr(0, pos);    // Everything before the last space
+          
+          // Convert the last part to an integer
+          lastPartInt = std::stoi(msg.substr(pos + 1));
+          
+          preprocessQuery(firstPart,lastPartInt);
           if(old != numQueriesProcessing){
             MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
             old = numQueriesProcessing;
