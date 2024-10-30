@@ -72,7 +72,7 @@ inline void preprocessQuery(string msg, ui queryId) {
     }
   }
 
-  cout<<"Ind "<<ind<<endl;
+  cout<<"Rank: "<<worldRank<<"Ind "<<ind<<" msg "<<msg<<endl;
   queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4],queryId, ind);
   if (queries[ind].isHeu)
     CSSC_heu(ind);
