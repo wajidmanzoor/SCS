@@ -106,7 +106,7 @@ inline void preprocessQuery(string msg, ui queryId) {
   //cout <<"Rank "<<worldRank<< " : Processing : " << queries[ind] << endl;
   if (queries[ind].kl == queries[ind].ku) {
     stringstream ss;
-    ss <<queries[ind].N1<< "|" << queries[ind].N2 << "|"<< queries[ind].QID << "|"<< integer_to_string(queries[ind].receiveTimer.elapsed()).c_str() << "|"<< queries[ind].kl << "|"<<"0"<< "|"<<"1\n";
+    ss <<queries[ind].N1<< "|" << queries[ind].N2 << "|"<< queries[ind].QID << "|"<< integer_to_string(queries[ind].receiveTimer.elapsed()).c_str() << "|"<< queries[ind].kl << "|"<<"0"<< "|"<<"1";
     writeOrAppend(fileName,ss.str());
     queries[ind].solFlag = 1;
     numQueriesProcessing--;
@@ -248,7 +248,7 @@ inline void processQueries() {
       if ((queries[i].numRead == queries[i].numWrite)) {
         chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
         stringstream ss;
-        ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"0"<< "|"<<"0\n";
+        ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"0"<< "|"<<"0";
         writeOrAppend(fileName,ss.str());
         //Send result Data to Rank 0 system 
         queries[i].solFlag = 1;
@@ -262,7 +262,7 @@ inline void processQueries() {
         if ( queries[i].solFlag==0) {
         chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
         stringstream ss;
-        ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"1"<< "|"<<"0\n";
+        ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"1"<< "|"<<"0";
 
         writeOrAppend(fileName,ss.str());
         
