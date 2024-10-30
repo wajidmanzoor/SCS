@@ -37,7 +37,7 @@ void listenForMessages() {
 
   msg_queue_server server('g');
   long type = 1;
-  //cout<<"rank "<<worldRank<<" listen here "<<endl;
+  cout<<"rank "<<worldRank<<" listen here "<<endl;
   ui id =0;
   while (true) {
     if (server.recv_msg(type)) {
@@ -72,7 +72,7 @@ inline void preprocessQuery(string msg, ui queryId) {
     }
   }
 
-  cout<<"Rank: "<<worldRank<<"Ind "<<ind<<" msg "<<msg<<endl;
+  cout<<"Rank: "<<worldRank<<" Ind "<<ind<<" msg "<<msg<<endl;
   queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4],queryId, ind);
   if (queries[ind].isHeu)
     CSSC_heu(ind);
@@ -381,7 +381,7 @@ void processMessageMasterServer() {
 
     if (!stopListening) {
       messageQueueMutex.lock();
-      while ((!messageQueue.empty()) && (leastQuery < limitQueries)) {
+      while ((!messageQueue.empty()) && (leastQuery < (limitQueries-1))) {
 
         cout<<"Rank with : "<<leastLoadedSystem.rank<<" Least "<<leastQuery<<" limit "<<limitQueries<<endl;
         
@@ -435,6 +435,7 @@ void processMessageMasterServer() {
             //msg.erase(std::remove(msg.begin(), msg.end(), '\n'), msg.end());
 
             msg = msg + " " + std::to_string(queryId);
+
             cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
             MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
@@ -535,15 +536,16 @@ void processMessageOtherServer() {
           MPI_Get_count(&status, MPI_CHAR, &count);
           buffer[count] = '\0';
           string msg(buffer, count);
+
           cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
-           size_t pos = msg.find_last_of(' ');
+          
+          size_t pos = msg.find_last_of(' ');
           std::string firstPart;
           ui lastPartInt;
 
           
           firstPart = msg.substr(0, pos);    // Everything before the last space
           
-          // Convert the last part to an integer
           lastPartInt = std::stoi(msg.substr(pos + 1));
           
           preprocessQuery(firstPart,lastPartInt);
