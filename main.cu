@@ -432,36 +432,16 @@ void processMessageMasterServer() {
             MPI_Send( & msgType, 1, MPI_INT, i, TAG_MTYPE, MPI_COMM_WORLD);
           }
         } else {
-          systems[0].numQueriesProcessing = numQueriesProcessing;
-          nQP[0] = numQueriesProcessing;
-          for (int i = 1; i < worldSize; i++) {
-        
-            if (systems[i].flag) {
-
-              MPI_Irecv( & nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
-            }
-
-            MPI_Test( &requests[i], & systems[i].flag, & status[i]);
-            if (systems[i].flag) {
-              systems[i].numQueriesProcessing = nQP[i];
-
-            }
-
-
-          }
-
-          auto leastLoadedSystem = *std::min_element(systems.begin(), systems.end(),
-            [](const SystemInfo & a,
-              const SystemInfo & b) {
-              return a.numQueriesProcessing < b.numQueriesProcessing;
-            });
           //cout<<"Rank "<<worldRank<<" : System with min np "<<leastLoadedSystem.rank<<endl;
           if (leastLoadedSystem.rank == 0) {
             //cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
-            numQueriesProcessing++;
+            if(numQueriesProcessing < limitQueries){
+               numQueriesProcessing++;
 
-            preprocessQuery(msg,id);
-            id++;
+              preprocessQuery(msg,id);
+              id++;
+
+            }
 
           } else {
 
@@ -484,7 +464,6 @@ void processMessageMasterServer() {
 
         }
 
-        systems[0].numQueriesProcessing = numQueriesProcessing;
 
       for (int i = 1; i < worldSize; i++) {
         
@@ -500,7 +479,11 @@ void processMessageMasterServer() {
 
         }
 
-    }
+     }
+     systems[0].numQueriesProcessing = numQueriesProcessing;
+
+
+    
     auto leastLoadedSystem = *std::min_element(systems.begin(), systems.end(),
       [](const SystemInfo & a,
         const SystemInfo & b) {
@@ -596,6 +579,11 @@ void processMessageOtherServer() {
     if (numQueriesProcessing != 0) {
       processQueries();
 
+    }
+    if(old != numQueriesProcessing){
+            MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
+            old = numQueriesProcessing;
+            //cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
     }
 
     if ((numQueriesProcessing == 0) && (stopListening))
