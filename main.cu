@@ -348,7 +348,6 @@ void processMessageMasterServer() {
     nQP[i] = 0;
   }
   cout<<"rank "<<worldRank<<" process here "<<endl;
- int x = 0;
   while (true) {
 
       systems[0].numQueriesProcessing = numQueriesProcessing;
@@ -381,7 +380,7 @@ void processMessageMasterServer() {
 
     if (!stopListening) {
       messageQueueMutex.lock();
-      while ((!messageQueue.empty()) && (leastQuery < (limitQueries-1))) {
+      while ((!messageQueue.empty()) && (leastQuery < limitQueries)) {
 
         cout<<"Rank with : "<<leastLoadedSystem.rank<<" Least "<<leastQuery<<" limit "<<limitQueries<<endl;
         
@@ -399,6 +398,7 @@ void processMessageMasterServer() {
           }
         } else {
           systems[0].numQueriesProcessing = numQueriesProcessing;
+          nQP[0] = numQueriesProcessing;
           for (int i = 1; i < worldSize; i++) {
         
             if (systems[i].flag) {
@@ -434,8 +434,7 @@ void processMessageMasterServer() {
             }
             //msg.erase(std::remove(msg.begin(), msg.end(), '\n'), msg.end());
 
-            msg = msg + " " + std::to_string(queryId);
-
+            msg.append(" ").append(to_string(queryId));
             cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
             MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
@@ -535,7 +534,7 @@ void processMessageOtherServer() {
           int count;
           MPI_Get_count(&status, MPI_CHAR, &count);
           buffer[count] = '\0';
-          string msg(buffer, count);
+          string msg(buffer);
 
           cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
           
