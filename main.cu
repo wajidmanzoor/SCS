@@ -432,14 +432,12 @@ void processMessageMasterServer() {
               endFlag[leastLoadedSystem.rank] = 1;
 
             }
-            msg.erase(std::remove(msg.begin(), msg.end(), '\n'), msg.end());
+            //msg.erase(std::remove(msg.begin(), msg.end(), '\n'), msg.end());
 
-            msg += " " + std::to_string(queryId);
+            msg = msg + " " + std::to_string(queryId);
             cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
             MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
-            
-            cout<<"Sending "<<msg<<endl;
             MPI_Send(msg.c_str(), msg.length(), MPI_CHAR, leastLoadedSystem.rank, TAG_MSG, MPI_COMM_WORLD);
             systems[leastLoadedSystem.rank].numQueriesProcessing++;
 
