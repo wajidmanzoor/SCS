@@ -616,7 +616,7 @@ int main(int argc,const char * argv[]) {
 
   fileName = "./results/exp9/" + fileName+"/"+to_string(worldSize)+".txt";
 
-  MPI_File_open(MPI_COMM_WORLD, fileName, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+  MPI_File_open(MPI_COMM_WORLD, fileName.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
   if(worldRank==0){
     string header = "N1|N2|QID|Time|Degree|Overtime|Heu\n";
     MPI_File_write(fh, header.c_str(), header.length(), MPI_BYTE, &fstatus);
