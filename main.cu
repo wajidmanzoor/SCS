@@ -415,8 +415,10 @@ void processMessageMasterServer() {
     
 
     if (!stopListening) {
-      messageQueueMutex.lock();
-      while ((!messageQueue.empty()) && (leastQuery < limitQueries)) {
+
+      if(!messageQueue.empty() && (leastQuery < limitQueries)) {
+        messageQueueMutex.lock();
+      //while ((!messageQueue.empty()) && (leastQuery < limitQueries)) {
 
         //cout<<"Rank with : "<<leastLoadedSystem.rank<<" Least "<<leastQuery<<" limit "<<limitQueries<<endl;
         
@@ -436,13 +438,13 @@ void processMessageMasterServer() {
           //cout<<"Rank "<<worldRank<<" : System with min np "<<leastLoadedSystem.rank<<endl;
           if (leastRank == 0) {
             //cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
-            if(numQueriesProcessing < limitQueries){
-               numQueriesProcessing++;
+           
+            numQueriesProcessing++;
 
-              preprocessQuery(msg,id);
-              id++;
+            preprocessQuery(msg,id);
+            id++;
 
-            }
+            
 
           } else {
 
@@ -492,12 +494,13 @@ void processMessageMasterServer() {
       });
     leastQuery = leastLoadedSystem.numQueriesProcessing;
     leastRank = leastLoadedSystem.rank;
+    cout<<"Rank "<<worldRank<<" : System with min np "<<leastRank<<endl;
 
 
 
-        messageQueueMutex.lock();
+        //messageQueueMutex.lock();
       }
-      messageQueueMutex.unlock();
+      //messageQueueMutex.unlock();
     }
 
     if (numQueriesProcessing != 0) {
