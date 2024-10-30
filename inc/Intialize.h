@@ -90,6 +90,7 @@ ui endOffset;
 
 ui totalQuerry;
 ui leastQuery;
+ui leastRank;
 int numQueriesProcessing;
 ui maxN2;
 

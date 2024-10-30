@@ -408,6 +408,7 @@ void processMessageMasterServer() {
         return a.numQueriesProcessing < b.numQueriesProcessing;
       });
     leastQuery = leastLoadedSystem.numQueriesProcessing;
+    leastRank = leastLoadedSystem.rank;
 
     
 
@@ -433,7 +434,7 @@ void processMessageMasterServer() {
           }
         } else {
           //cout<<"Rank "<<worldRank<<" : System with min np "<<leastLoadedSystem.rank<<endl;
-          if (leastLoadedSystem.rank == 0) {
+          if (leastRank == 0) {
             //cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
             if(numQueriesProcessing < limitQueries){
                numQueriesProcessing++;
@@ -445,18 +446,18 @@ void processMessageMasterServer() {
 
           } else {
 
-            if(systemStatus[leastLoadedSystem.rank] == IDLE){
-              systemStatus[leastLoadedSystem.rank] = PROCESSING;
-              endFlag[leastLoadedSystem.rank] = 1;
+            if(systemStatus[leastRank] == IDLE){
+              systemStatus[leastRank] = PROCESSING;
+              endFlag[leastRank] = 1;
 
             }
             //msg.erase(std::remove(msg.begin(), msg.end(), '\n'), msg.end());
 
             //cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
-            MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
-            MPI_Send(msg.c_str(), msg.length(), MPI_CHAR, leastLoadedSystem.rank, TAG_MSG, MPI_COMM_WORLD);
-            systems[leastLoadedSystem.rank].numQueriesProcessing++;
+            MPI_Send( & msgType, 1, MPI_INT, leastRank, TAG_MTYPE, MPI_COMM_WORLD);
+            MPI_Send(msg.c_str(), msg.length(), MPI_CHAR, leastRank, TAG_MSG, MPI_COMM_WORLD);
+            systems[leastRank].numQueriesProcessing++;
 
             // Get confirmation 
 
@@ -490,6 +491,8 @@ void processMessageMasterServer() {
         return a.numQueriesProcessing < b.numQueriesProcessing;
       });
     leastQuery = leastLoadedSystem.numQueriesProcessing;
+    leastRank = leastLoadedSystem.rank;
+
 
 
         messageQueueMutex.lock();
