@@ -43,8 +43,7 @@
 
 using namespace std;
 
-MPI_File fh;
-MPI_Status fstatus;
+
 string graphPath;
 string fileName;
 

@@ -13,6 +13,32 @@
     } \
 }
 
+bool fileExists(const string& filename) {
+    struct stat buffer;
+    return (stat(filename.c_str(), &buffer) == 0);
+}
+
+// Function to write or append data to the file
+void writeOrAppend(const string& filename, const string& data) {
+    ofstream file;
+    
+    // Check if the file exists
+    if (fileExists(filename)) {
+        // Open the file in append mode if it exists
+        file.open(filename, ios::app);
+    } else {
+        // Open the file in write mode if it doesn't exist
+        file.open(filename);
+    }
+    
+    if (file.is_open()) {
+        file << data << endl;
+        file.close();
+    } else {
+        cerr << "Unable to open the file." << endl;
+    }
+}
+
 struct subtract_functor {
   const ui x;
 
@@ -83,8 +109,7 @@ inline void preprocessQuery(string msg, ui queryId) {
     cout <<"Rank "<<worldRank<< " : Found Solution : " << queries[ind] << endl;
     stringstream ss;
     ss <<queries[ind].N1<< "|" << queries[ind].N2 << "|"<< queries[ind].QID << "|"<< integer_to_string(queries[ind].receiveTimer.elapsed()).c_str() << "|"<< queries[ind].kl << "|"<<"0"<< "|"<<"1\n";
-    string output = ss.str();
-    MPI_File_write(fh, output.c_str(), output.length(), MPI_BYTE, &fstatus);
+    writeOrAppend(fileName,ss.str());
     queries[ind].solFlag = 1;
     numQueriesProcessing--;
     
@@ -227,8 +252,7 @@ inline void processQueries() {
         cout <<"Rank "<<worldRank<<" : Found Solution : " << queries[i] << endl;
         stringstream ss;
         ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"0"<< "|"<<"0\n";
-        string output = ss.str();
-        MPI_File_write(fh, output.c_str(), output.length(), MPI_BYTE, &fstatus);
+        writeOrAppend(fileName,ss.str());
         //Send result Data to Rank 0 system 
         queries[i].solFlag = 1;
         numQueriesProcessing--;
@@ -244,8 +268,8 @@ inline void processQueries() {
         stringstream ss;
         ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"1"<< "|"<<"0\n";
 
-        string output = ss.str();
-        MPI_File_write(fh, output.c_str(), output.length(), MPI_BYTE, &fstatus);
+        writeOrAppend(fileName,ss.str());
+        
         queries[i].solFlag = 1;
         numQueriesProcessing--;
           
@@ -614,12 +638,15 @@ int main(int argc,const char * argv[]) {
   size_t pos = graphPath.find_last_of("/\\");
   fileName = (pos != string::npos) ? graphPath.substr(pos + 1) : graphPath;
 
-  fileName = "./results/exp9/" + fileName+"/"+to_string(worldSize)+".txt";
-
-  MPI_File_open(MPI_COMM_WORLD, fileName.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
-  if(worldRank==0){
-    string header = "N1|N2|QID|Time|Degree|Overtime|Heu\n";
-    MPI_File_write(fh, header.c_str(), header.length(), MPI_BYTE, &fstatus);
+  fileName = "./results/exp9/" + fileName+"/"+to_string(worldSize)+"/Rank_"+to_string(worldRank)+".txt";
+  if (!fileExists(fileName)) {
+      string header = "N1|N2|QID|Time|Degree|Overtime|Heu";
+      ofstream file;
+      file.open(fileName, ios::app);
+          if (file.is_open()) {
+              file << header << endl;
+              file.close();
+          }
   }
   
   cout<<"rank "<<worldRank<<" Size "<<worldSize<<endl;
