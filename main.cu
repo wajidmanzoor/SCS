@@ -538,13 +538,13 @@ void processMessageOtherServer() {
           buffer[count] = '\0';
           string msg(buffer);
 
-          cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
+          //cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
           preprocessQuery(msg,id);
           id ++;
           if(old != numQueriesProcessing){
             MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
             old = numQueriesProcessing;
-            cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
+            //cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
           }
         }
       }
