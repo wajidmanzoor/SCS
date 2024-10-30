@@ -73,6 +73,8 @@ inline void preprocessQuery(string msg, ui queryId) {
   }
 
   cout<<"Rank: "<<worldRank<<" Ind "<<ind<<" msg "<<msg<<endl;
+  numQueriesProcessing++;
+
   queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4],queryId, ind);
   if (queries[ind].isHeu)
     CSSC_heu(ind);
@@ -81,6 +83,7 @@ inline void preprocessQuery(string msg, ui queryId) {
     cout <<"Rank "<<worldRank<< " : heuristic find the OPT!" << endl;
     cout <<"Rank "<<worldRank<< " : Found Solution : " << queries[ind] << endl;
     queries[ind].solFlag = 1;
+      numQueriesProcessing--;
     
   }else{
     cal_query_dist(queries[ind].QID);
@@ -141,7 +144,6 @@ inline void preprocessQuery(string msg, ui queryId) {
       thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (ind + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)));
       cudaDeviceSynchronize();
 
-      numQueriesProcessing++;
 
       NeighborUpdate << < BLK_NUMS, BLK_DIM , sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph,deviceTask, TOTAL_WARPS, ind, n, m,partitionSize,factor);
       cudaDeviceSynchronize();
@@ -434,7 +436,6 @@ void processMessageMasterServer() {
             }
             //msg.erase(std::remove(msg.begin(), msg.end(), '\n'), msg.end());
 
-            msg.append(" ").append(to_string(queryId));
             cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
             MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
@@ -516,6 +517,7 @@ void processMessageOtherServer() {
   bool stopListening = false;
   MessageType msgType;
   int old = 0;
+  ui id = 0;
   while (true) {
     if (!stopListening) {
       if (flag) {
@@ -537,17 +539,8 @@ void processMessageOtherServer() {
           string msg(buffer);
 
           cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
-          
-          size_t pos = msg.find_last_of(' ');
-          std::string firstPart;
-          ui lastPartInt;
-
-          
-          firstPart = msg.substr(0, pos);    // Everything before the last space
-          
-          lastPartInt = std::stoi(msg.substr(pos + 1));
-          
-          preprocessQuery(firstPart,lastPartInt);
+          preprocessQuery(msg,id);
+          id ++;
           if(old != numQueriesProcessing){
             MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
             old = numQueriesProcessing;
