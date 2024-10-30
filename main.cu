@@ -73,7 +73,6 @@ inline void preprocessQuery(string msg, ui queryId) {
   }
 
   //cout<<"Rank: "<<worldRank<<" Ind "<<ind<<" msg "<<msg<<endl;
-  numQueriesProcessing++;
 
   queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4],queryId, ind);
   if (queries[ind].isHeu)
@@ -425,6 +424,8 @@ void processMessageMasterServer() {
           //cout<<"Rank "<<worldRank<<" : System with min np "<<leastLoadedSystem.rank<<endl;
           if (leastLoadedSystem.rank == 0) {
             //cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
+            numQueriesProcessing++;
+
             preprocessQuery(msg,queryId);
 
           } else {
@@ -539,6 +540,13 @@ void processMessageOtherServer() {
           string msg(buffer);
 
           //cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
+          numQueriesProcessing++;
+
+          if(old != numQueriesProcessing){
+            MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
+            old = numQueriesProcessing;
+            //cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
+          }
           preprocessQuery(msg,id);
           id ++;
           if(old != numQueriesProcessing){
