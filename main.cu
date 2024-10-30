@@ -74,7 +74,7 @@ inline void preprocessQuery(string msg, ui queryId) {
   queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4],queryId, ind);
   if (queries[ind].isHeu)
     CSSC_heu(ind);
-  //cout <<"Rank "<<worldRank<< " : Processing : " << queries[ind] << endl;
+  cout <<"Rank "<<worldRank<< " : Processing : " << queries[ind] << endl;
   if (queries[ind].kl == queries[ind].ku) {
     cout <<"Rank "<<worldRank<< " : heuristic find the OPT!" << endl;
     cout <<"Rank "<<worldRank<< " : Found Solution : " << queries[ind] << endl;
@@ -248,7 +248,7 @@ inline void processQueries() {
 
   // If the number of tasks written to the buffer exceeds the number read at this level, left shift the tasks that were written but not read to the start of the array.
   if ((numReadHost < numTaskHost) && (numReadHost > 0)) {
-    //cout << "Num read " << numReadHost << " num Task " << numTaskHost << endl;
+    cout << "Num read " << numReadHost << " num Task " << numTaskHost << endl;
     chkerr(cudaMemcpy( & startOffset, deviceBuffer.taskOffset + numReadHost,
       sizeof(ui), cudaMemcpyDeviceToHost));
     chkerr(cudaMemcpy( & endOffset, deviceBuffer.taskOffset + numTaskHost, sizeof(ui),
@@ -345,8 +345,8 @@ void processMessageMasterServer() {
     systems[i] = { i, 0, 1 };
     nQP[i] = 0;
   }
-  //cout<<"rank "<<worldRank<<" process here "<<endl;
- // int x = 0;
+  cout<<"rank "<<worldRank<<" process here "<<endl;
+ int x = 0;
   while (true) {
 
       systems[0].numQueriesProcessing = numQueriesProcessing;
@@ -361,7 +361,7 @@ void processMessageMasterServer() {
         MPI_Test( &requests[i], & systems[i].flag, & status[i]);
         if (systems[i].flag) {
           systems[i].numQueriesProcessing = nQP[i];
-          //cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
+          cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
 
         }
 
@@ -420,9 +420,9 @@ void processMessageMasterServer() {
               const SystemInfo & b) {
               return a.numQueriesProcessing < b.numQueriesProcessing;
             });
-          //cout<<"Rank "<<worldRank<<" : System with min np "<<leastLoadedSystem.rank<<endl;
+          cout<<"Rank "<<worldRank<<" : System with min np "<<leastLoadedSystem.rank<<endl;
           if (leastLoadedSystem.rank == 0) {
-            //cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
+            cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
             preprocessQuery(msg,queryId);
 
           } else {
@@ -432,7 +432,7 @@ void processMessageMasterServer() {
               endFlag[leastLoadedSystem.rank] = 1;
 
             }
-            //cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
+            cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
             MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
             msg = msg +" "+to_string(queryId);
@@ -457,7 +457,7 @@ void processMessageMasterServer() {
         MPI_Test( &requests[i], & systems[i].flag, & status[i]);
         if (systems[i].flag) {
           systems[i].numQueriesProcessing = nQP[i];
-          //cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
+          cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
 
         }
 
@@ -484,7 +484,7 @@ void processMessageMasterServer() {
         if (endFlag[i]) {
 
               MPI_Irecv( &systemStatus[i], 1, MPI_INT, i,TAG_TERMINATE, MPI_COMM_WORLD, & endRequests[i]);
-              //cout<<"Rank "<<worldRank<<" : Recieved terminate from system "<<i<<endl;
+              cout<<"Rank "<<worldRank<<" : Recieved terminate from system "<<i<<endl;
           }
 
         MPI_Test( &endRequests[i], &endFlag[i], & endStatus[i]);
@@ -533,7 +533,7 @@ void processMessageOtherServer() {
           MPI_Get_count(&status, MPI_CHAR, &count);
           buffer[count] = '\0';
           string msg(buffer, count);
-          //cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
+          cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
            size_t pos = msg.find_last_of(' ');
           std::string firstPart;
           ui lastPartInt;
@@ -548,7 +548,7 @@ void processMessageOtherServer() {
           if(old != numQueriesProcessing){
             MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
             old = numQueriesProcessing;
-            //cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
+            cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
           }
         }
       }
@@ -563,7 +563,7 @@ void processMessageOtherServer() {
     {
       SystemStatus ss = TERMINATED;
       MPI_Send( &ss, 1, MPI_INT, 0 , TAG_TERMINATE, MPI_COMM_WORLD);
-      //cout<<"Rank "<<worldRank<<" : Send terminate "<<endl;
+      cout<<"Rank "<<worldRank<<" : Send terminate "<<endl;
       break;
 
     }
