@@ -519,7 +519,7 @@ void processMessageOtherServer() {
   int old = 0;
   ui id = 0;
   while (true) {
-    if (!stopListening) {
+    if ((!stopListening) && (numQueriesProcessing < limitQueries)){
       if (flag) {
         MPI_Irecv( & msgType, 1, MPI_INT, 0, TAG_MTYPE, MPI_COMM_WORLD, & request);
       }
