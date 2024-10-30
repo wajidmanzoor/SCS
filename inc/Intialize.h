@@ -247,7 +247,7 @@ struct queryData
 
 struct queryInfo
 {
-	int queryId;
+	ui queryId;
 	string queryString;
 
 

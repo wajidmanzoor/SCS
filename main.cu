@@ -38,7 +38,7 @@ void listenForMessages() {
   msg_queue_server server('g');
   long type = 1;
   //cout<<"rank "<<worldRank<<" listen here "<<endl;
-  int id =0;
+  ui id =0;
   while (true) {
     if (server.recv_msg(type)) {
 
@@ -65,12 +65,14 @@ inline void preprocessQuery(string msg, ui queryId) {
     countArgs++;
   }
   int ind = -1;
-  for (ui x = 0; x < limitQueries; x++) {
+  for (int x = 0; x < limitQueries; x++) {
     if (queries[x].solFlag != 0) {
       ind = x;
       break;
     }
   }
+
+  cout<<"Ind "<<ind<<endl;
   queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4],queryId, ind);
   if (queries[ind].isHeu)
     CSSC_heu(ind);
@@ -432,10 +434,14 @@ void processMessageMasterServer() {
               endFlag[leastLoadedSystem.rank] = 1;
 
             }
+            msg.erase(std::remove(msg.begin(), msg.end(), '\n'), msg.end());
+
+            msg += " " + std::to_string(queryId)+'\n';
             cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
             MPI_Send( & msgType, 1, MPI_INT, leastLoadedSystem.rank, TAG_MTYPE, MPI_COMM_WORLD);
-            msg = msg +" "+to_string(queryId);
+            
+            cout<<"Sending "<<msg<<endl;
             MPI_Send(msg.c_str(), msg.length(), MPI_CHAR, leastLoadedSystem.rank, TAG_MSG, MPI_COMM_WORLD);
             systems[leastLoadedSystem.rank].numQueriesProcessing++;
 
