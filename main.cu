@@ -384,8 +384,8 @@ void processMessageMasterServer() {
   ui id =0;
   //cout<<"rank "<<worldRank<<" process here "<<endl;
   while (true) {
+    if (!stopListening) {
 
-      systems[0].numQueriesProcessing = numQueriesProcessing;
 
       for (int i = 1; i < worldSize; i++) {
         
@@ -402,6 +402,8 @@ void processMessageMasterServer() {
         }
 
     }
+    systems[0].numQueriesProcessing = numQueriesProcessing;
+
     auto leastLoadedSystem = *std::min_element(systems.begin(), systems.end(),
       [](const SystemInfo & a,
         const SystemInfo & b) {
@@ -410,11 +412,6 @@ void processMessageMasterServer() {
     leastQuery = leastLoadedSystem.numQueriesProcessing;
     leastRank = leastLoadedSystem.rank;
 
-    
-
-    
-
-    if (!stopListening) {
 
       if(!messageQueue.empty() && (leastQuery < limitQueries)) {
         messageQueueMutex.lock();
@@ -494,7 +491,7 @@ void processMessageMasterServer() {
       });
     leastQuery = leastLoadedSystem.numQueriesProcessing;
     leastRank = leastLoadedSystem.rank;
-    cout<<"Rank "<<worldRank<<" : System with min np "<<leastRank<<endl;
+    //cout<<"Rank "<<worldRank<<" : System with min np "<<leastRank<<endl;
 
 
 
@@ -506,21 +503,26 @@ void processMessageMasterServer() {
     if (numQueriesProcessing != 0) {
       processQueries();
     }
-    
+
+   
     for(int i =1 ; i < worldSize ; i ++){
-      if(systemStatus[i]==PROCESSING){
-        if (endFlag[i]) {
+        if(systemStatus[i]==PROCESSING){
+          if (endFlag[i]) {
 
-              MPI_Irecv( &systemStatus[i], 1, MPI_INT, i,TAG_TERMINATE, MPI_COMM_WORLD, & endRequests[i]);
-              //cout<<"Rank "<<worldRank<<" : Recieved terminate from system "<<i<<endl;
-          }
+                MPI_Irecv( &systemStatus[i], 1, MPI_INT, i,TAG_TERMINATE, MPI_COMM_WORLD, & endRequests[i]);
+                //cout<<"Rank "<<worldRank<<" : Recieved terminate from system "<<i<<endl;
+            }
 
-        MPI_Test( &endRequests[i], &endFlag[i], & endStatus[i]);
+          MPI_Test( &endRequests[i], &endFlag[i], & endStatus[i]);
 
 
-      }
+        }
        
     }
+
+    
+    
+    
 
     if ((numQueriesProcessing == 0) && (stopListening)){
       bool allTerminatedOrIdle = std::all_of(systemStatus.begin(), systemStatus.end(), [](SystemStatus status) { return status == SystemStatus::TERMINATED || status == SystemStatus::IDLE; });
@@ -583,8 +585,11 @@ void processMessageOtherServer() {
       processQueries();
 
     }
+
+    if(!stopListening){
+      MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
+    }
     
-    MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
 
     if ((numQueriesProcessing == 0) && (stopListening))
     {
