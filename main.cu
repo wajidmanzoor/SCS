@@ -81,8 +81,12 @@ inline void preprocessQuery(string msg, ui queryId) {
   if (queries[ind].kl == queries[ind].ku) {
     cout <<"Rank "<<worldRank<< " : heuristic find the OPT!" << endl;
     cout <<"Rank "<<worldRank<< " : Found Solution : " << queries[ind] << endl;
+    stringstream ss;
+    ss <<queries[ind].N1<< "|" << queries[ind].N2 << "|"<< queries[ind].QID << "|"<< integer_to_string(queries[ind].receiveTimer.elapsed()).c_str() << "|"<< queries[ind].kl << "|"<<"0"<< "|"<<"1\n";
+    string output = ss.str();
+    MPI_File_write(fh, output.c_str(), output.length(), MPI_BYTE, &status);
     queries[ind].solFlag = 1;
-      numQueriesProcessing--;
+    numQueriesProcessing--;
     
   }else{
     cal_query_dist(queries[ind].QID);
@@ -221,6 +225,10 @@ inline void processQueries() {
       if ((queries[i].numRead == queries[i].numWrite)) {
         chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
         cout <<"Rank "<<worldRank<<" : Found Solution : " << queries[i] << endl;
+        stringstream ss;
+        ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"0"<< "|"<<"0\n";
+        string output = ss.str();
+        MPI_File_write(fh, output.c_str(), output.length(), MPI_BYTE, &status);
         //Send result Data to Rank 0 system 
         queries[i].solFlag = 1;
         numQueriesProcessing--;
@@ -233,6 +241,11 @@ inline void processQueries() {
         if ( queries[i].solFlag==0) {
         chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
         cout <<"Rank "<<worldRank<<" : Buffer out of memory ! Found Solution : " << queries[i] << endl;
+        stringstream ss;
+        ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"1"<< "|"<<"0\n";
+
+        string output = ss.str();
+        MPI_File_write(fh, output.c_str(), output.length(), MPI_BYTE, &status);
         queries[i].solFlag = 1;
         numQueriesProcessing--;
           
@@ -348,6 +361,7 @@ void processMessageMasterServer() {
     systems[i] = { i, 0, 1 };
     nQP[i] = 0;
   }
+  ui id =0;
   //cout<<"rank "<<worldRank<<" process here "<<endl;
   while (true) {
 
@@ -426,7 +440,8 @@ void processMessageMasterServer() {
             //cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
             numQueriesProcessing++;
 
-            preprocessQuery(msg,queryId);
+            preprocessQuery(msg,id);
+            id++;
 
           } else {
 
@@ -595,6 +610,18 @@ int main(int argc,const char * argv[]) {
 
   MPI_Comm_size(MPI_COMM_WORLD, & worldSize);
   MPI_Comm_rank(MPI_COMM_WORLD, & worldRank);
+  graphPath = argv[1];
+  size_t pos = graphPath.find_last_of("/\\");
+  fileName = (pos != string::npos) ? graphPath.substr(pos + 1) : graphPath;
+
+  fileName = "./results/exp9/" + fileName+"/"+to_string(worldSize)+".txt";
+
+  MPI_File fh;
+  MPI_File_open(MPI_COMM_WORLD, fileName, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
+  if(worldRank==0){
+    string header = "N1|N2|QID|Time|Degree|Overtime|Heu\n";
+    MPI_File_write(fh, header.c_str(), header.length(), MPI_BYTE, &status);
+  }
   
   cout<<"rank "<<worldRank<<" Size "<<worldSize<<endl;
 
@@ -678,6 +705,7 @@ int main(int argc,const char * argv[]) {
     MPI_Finalize();
   }
 
+  MPI_File_close(&fh);
   cudaDeviceSynchronize();
   freeGenGraph(deviceGenGraph);
   freeGraph(deviceGraph);

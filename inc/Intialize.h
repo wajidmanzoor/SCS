@@ -43,6 +43,9 @@
 
 using namespace std;
 
+MPI_File fh;
+string graphPath;
+string fileName;
 
 int BLK_DIM2 ;
 int BLK_NUM2;
