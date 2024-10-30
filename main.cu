@@ -470,7 +470,7 @@ void processMessageMasterServer() {
         
         if (systems[i].flag) {
 
-          MPI_Irecv( & nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
+          MPI_Irecv( &nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
         }
 
         MPI_Test( &requests[i], & systems[i].flag, & status[i]);
@@ -538,7 +538,6 @@ void processMessageOtherServer() {
   MPI_Status status;
   bool stopListening = false;
   MessageType msgType;
-  int old = 0;
   ui id = 0;
   while (true) {
     if ((!stopListening) && (numQueriesProcessing < limitQueries)){
@@ -563,18 +562,16 @@ void processMessageOtherServer() {
           //cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
           numQueriesProcessing++;
 
-          if(old != numQueriesProcessing){
-            MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
-            old = numQueriesProcessing;
+         
+          MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
             //cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
-          }
+          
           preprocessQuery(msg,id);
           id ++;
-          if(old != numQueriesProcessing){
-            MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
-            old = numQueriesProcessing;
+          
+          MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
             //cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
-          }
+          
         }
       }
     }
@@ -583,11 +580,8 @@ void processMessageOtherServer() {
       processQueries();
 
     }
-    if(old != numQueriesProcessing){
-            MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
-            old = numQueriesProcessing;
-            //cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
-    }
+    
+    MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
 
     if ((numQueriesProcessing == 0) && (stopListening))
     {
