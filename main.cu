@@ -105,8 +105,6 @@ inline void preprocessQuery(string msg, ui queryId) {
     CSSC_heu(ind);
   //cout <<"Rank "<<worldRank<< " : Processing : " << queries[ind] << endl;
   if (queries[ind].kl == queries[ind].ku) {
-    cout <<"Rank "<<worldRank<< " : heuristic find the OPT!" << endl;
-    cout <<"Rank "<<worldRank<< " : Found Solution : " << queries[ind] << endl;
     stringstream ss;
     ss <<queries[ind].N1<< "|" << queries[ind].N2 << "|"<< queries[ind].QID << "|"<< integer_to_string(queries[ind].receiveTimer.elapsed()).c_str() << "|"<< queries[ind].kl << "|"<<"0"<< "|"<<"1\n";
     writeOrAppend(fileName,ss.str());
@@ -249,7 +247,6 @@ inline void processQueries() {
       chkerr(cudaMemcpy( & (queries[i].numWrite), deviceGraph.numWrite + i, sizeof(ui), cudaMemcpyDeviceToHost));
       if ((queries[i].numRead == queries[i].numWrite)) {
         chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
-        cout <<"Rank "<<worldRank<<" : Found Solution : " << queries[i] << endl;
         stringstream ss;
         ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"0"<< "|"<<"0\n";
         writeOrAppend(fileName,ss.str());
@@ -264,7 +261,6 @@ inline void processQueries() {
       for (ui i = 0; i < limitQueries; i++) {
         if ( queries[i].solFlag==0) {
         chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
-        cout <<"Rank "<<worldRank<<" : Buffer out of memory ! Found Solution : " << queries[i] << endl;
         stringstream ss;
         ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"1"<< "|"<<"0\n";
 
@@ -731,7 +727,6 @@ int main(int argc,const char * argv[]) {
     MPI_Finalize();
   }
 
-  MPI_File_close(&fh);
   cudaDeviceSynchronize();
   freeGenGraph(deviceGenGraph);
   freeGraph(deviceGraph);
