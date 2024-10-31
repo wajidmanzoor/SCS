@@ -48,6 +48,8 @@ ui * degree;
 ui * core;
 ui * q_dist;
 
+ui jump;
+
 ui *neighboroffset, *neighborList;
 
 string graphPath;
