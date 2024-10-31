@@ -194,26 +194,19 @@ void processMessages() {
         NeighborUpdate << < BLK_NUMS, BLK_DIM , sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph,deviceTask, TOTAL_WARPS, ind, n, m,partitionSize,factor);
         cudaDeviceSynchronize();
         CUDA_CHECK_ERROR("Neighbor  ");
-        thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
-        thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
+        thrust::device_ptr < ui > d_input_ptr(deviceTask.numTasks);
+        thrust::device_ptr < ui > d_sortedIndex_ptr(deviceTask.sortedIndex);
+        thrust::device_ptr < ui > d_mapping_ptr(deviceTask.mapping);
 
-        thrust::device_vector<ui> d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
-
+        thrust::device_vector < ui > d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+      
         thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
 
-        thrust::sort_by_key(thrust::device,
-                            d_temp_input.begin(), d_temp_input.end(),
-                            d_sortedIndex_ptr,
-                            thrust::less<ui>());
+        thrust::sort_by_key(thrust::device,d_temp_input.begin(), d_temp_input.end(),d_sortedIndex_ptr,thrust::less < ui > ());
 
-        thrust::scatter(thrust::device,
-                        thrust::make_counting_iterator<ui>(0),
-                        thrust::make_counting_iterator<ui>(TOTAL_WARPS),
-                        d_sortedIndex_ptr,
-                        d_mapping_ptr);
+        thrust::scatter(thrust::device,thrust::make_counting_iterator < ui > (0),thrust::make_counting_iterator < ui > (TOTAL_WARPS),d_sortedIndex_ptr,d_mapping_ptr);
 
-
-        thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
+        thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS - 1));
        // ui *neighboroffset, *neighborList;
         //neighboroffset = new ui[n];
         //neighborList = new ui [2*m];
@@ -369,27 +362,19 @@ void processMessages() {
         chkerr(cudaMemset(deviceBuffer.readMutex, 0, sizeof(ui)));
       }
       c++;
-      thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
-      thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
+      thrust::device_ptr < ui > d_input_ptr(deviceTask.numTasks);
+      thrust::device_ptr < ui > d_sortedIndex_ptr(deviceTask.sortedIndex);
+      thrust::device_ptr < ui > d_mapping_ptr(deviceTask.mapping);
 
-      thrust::device_vector<ui> d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+      thrust::device_vector < ui > d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+      
+     thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
 
-      thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+    thrust::sort_by_key(thrust::device,d_temp_input.begin(), d_temp_input.end(),d_sortedIndex_ptr,thrust::less < ui > ());
 
-      thrust::sort_by_key(thrust::device,
-                          d_temp_input.begin(), d_temp_input.end(),
-                          d_sortedIndex_ptr,
-                          thrust::less<ui>());
+    thrust::scatter(thrust::device,thrust::make_counting_iterator < ui > (0),thrust::make_counting_iterator < ui > (TOTAL_WARPS),d_sortedIndex_ptr,d_mapping_ptr);
 
-      thrust::scatter(thrust::device,
-                      thrust::make_counting_iterator<ui>(0),
-                      thrust::make_counting_iterator<ui>(TOTAL_WARPS),
-                      d_sortedIndex_ptr,
-                      d_mapping_ptr);
-
-
-      thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
-
+    thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS - 1));
     }
 
     if(c==4000){

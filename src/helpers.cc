@@ -357,14 +357,6 @@ __global__ void NeighborUpdate(deviceGraphGenPointers G, deviceGraphPointers G_,
     __syncwarp();
   }
 
-  __syncwarp();
-  if (laneId == 0) {
-      ui offsetPsize = pSize / factor;
-      ui totalTasks = T.numTasks[warpId];
-      ui offsetStartIndex = warpId * offsetPsize;
-      T.sortedIndex[warpId] = T.taskOffset[offsetStartIndex + totalTasks];
-    }
-
 }
 
 
@@ -879,12 +871,6 @@ __global__ void RemoveCompletedTasks(deviceGraphPointers G_, deviceTaskPointers 
         T.queryIndicator[otherStartIndex + iter] = UINT_MAX;
       }
     }
-  }
-  if (laneId == 0) {
-    ui offsetPsize = pSize / factor;
-
-    ui offsetStartIndex = warpId * offsetPsize;
-    T.sortedIndex[warpId] = T.taskOffset[offsetStartIndex + totalTasks];
   }
 }
 
