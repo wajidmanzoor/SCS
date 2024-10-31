@@ -423,7 +423,7 @@ void processMessages() {
 }
 
 int main(int argc, const char * argv[]) {
-  if (argc != 11) {
+  if (argc != 15) {
     cout << "Server wrong input parameters!" << endl;
     exit(1);
   }
@@ -440,13 +440,15 @@ int main(int argc, const char * argv[]) {
   red3 = atoi(argv[10]);
   prun1 = atoi(argv[11]);
   prun2 = atoi(argv[12]);
+  ui prefix = argv[13];
+  ui postfix = argv[14];
 
   
   graphPath = argv[1];
   size_t pos = graphPath.find_last_of("/\\");
   fileName = (pos != string::npos) ? graphPath.substr(pos + 1) : graphPath;
 
-  fileName = "./results/exp10/" + fileName+"/"+to_string(limitQueries)+".txt";
+  fileName = prefix + fileName + postfix;
 
   if (!fileExists(fileName)) {
       string header = "N1|N2|QID|Time|Degree|Overtime|Heu|TotalTime";
