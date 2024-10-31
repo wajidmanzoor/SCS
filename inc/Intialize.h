@@ -34,6 +34,8 @@ int BLK_DIM2 ;
 int BLK_NUM2;
 int INTOTAL_WARPS;
 
+Timer totalTimer;
+
 
 vector<ui> H;
 
