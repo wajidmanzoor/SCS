@@ -253,10 +253,6 @@ void processMessages() {
       // This kernel writes new tasks, based on ustar and the dominating set, into the task array or buffer. It reads from the buffer and writes to the task array.
       //ui flag = 1 ;
       //chkerr(cudaMemcpy( &flag, &deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
-      jump = jump >> 1;
-      if (jump == 1) {
-        jump = TOTAL_WARPS >> 1;
-      }
 
       Expand << < BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (
         deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,factor, copyLimit, bufferSize, numTaskHost-numReadHost, readLimit, n, m, dMAX,limitQueries,jump);
@@ -433,7 +429,7 @@ int main(int argc, const char * argv[]) {
 
   fileName = prefix + fileName + postfix;
 
-  jump = TOTAL_WARPS;
+  jump = 1;
 
   if (!fileExists(fileName)) {
       string header = "N1|N2|QID|Time|Degree|Overtime|Heu|TotalTime";
