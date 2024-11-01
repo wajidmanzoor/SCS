@@ -183,7 +183,7 @@ void processMessages() {
 
         ui writeWarp, ntasks, space;
 
-        thrust::device_vector<int> deviceNumTasks(deviceTask.numTasks.begin(), deviceTask.numTasks.end());
+        thrust::device_vector<ui> deviceNumTasks(deviceTask.numTasks.begin(), deviceTask.numTasks.end());
         auto minElementIter = thrust::min_element(thrust::device, deviceNumTasks.begin(), deviceNumTasks.end());
         writeWarp = minElementIter - deviceNumTasks.begin();
 
