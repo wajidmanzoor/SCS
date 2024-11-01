@@ -62,23 +62,33 @@ bool isServerExit(const std::string& str) {
 
 void listenForMessages() {
 
-  msg_queue_server server('g');
-  long type = 1;
-  while (true) {
-    if (server.recv_msg(type)) {
-      string msg = server.get_msg();
-      queryInfo query(totalQuerry, msg);
-      totalQuerry++;
-      messageQueueMutex.lock();
-      messageQueue.push_back(query);
-      messageQueueMutex.unlock();
-      if(isServerExit(msg))
-      break;
+    ifstream fin(queryPath, ios::in);
+    int MAX_LINE_LENGTH=1000;
+    char line[MAX_LINE_LENGTH];
+    vector<string> quer;
+    while(fin.getline(line, MAX_LINE_LENGTH))
+    {
+        string q=line;
+        quer.push_back(q);
     }
-  }
+    fin.close();
+
+    int query_num=0;
+    while(query_num < quer.size())
+    {
+        queryInfo query(query_num, quer[query_num].c_str());
+        query_num++;
+        messageQueueMutex.lock();
+        messageQueue.push_back(query);
+        messageQueueMutex.unlock();
+
+    }
+      
+  
 }
 
 void processMessages() {
+  totalTimer.restart();
   while (true) {
     messageQueueMutex.lock();
     while ( (!messageQueue.empty()) && (numQueriesProcessing < limitQueries)) {
@@ -120,7 +130,7 @@ void processMessages() {
           CSSC_heu(ind);
         if (queries[ind].kl == queries[ind].ku) {
           stringstream ss;
-          ss <<queries[ind].N1<< "|" << queries[ind].N2 << "|"<< queries[ind].QID << "|"<< integer_to_string(queries[ind].receiveTimer.elapsed()).c_str() << "|"<< queries[ind].kl << "|"<<"0"<< "|"<<"1";
+          ss <<queries[ind].N1<< "|" << queries[ind].N2 << "|"<< queries[ind].QID << "|"<< integer_to_string(queries[ind].receiveTimer.elapsed()).c_str() << "|"<< queries[ind].kl << "|"<<"0"<< "|"<<"1|0";
           writeOrAppend(fileName,ss.str());
           cout << "heuristic find the OPT!" << endl;
           cout << "Found Solution : " << queries[ind] << endl;
@@ -277,7 +287,7 @@ void processMessages() {
               chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
               
               stringstream ss;
-              ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"0"<< "|"<<"0";
+              ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"0"<< "|"<<"0|0";
               writeOrAppend(fileName,ss.str());
               cout << "Found Solution : " << queries[i] << endl;
               queries[i].solFlag = 1;
@@ -293,7 +303,7 @@ void processMessages() {
           chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
           
           stringstream ss;
-          ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"2"<< "|"<<"0";
+          ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"2"<< "|"<<"0|0";
           writeOrAppend(fileName,ss.str());
           cout <<"Buffer out of memory !"<<endl;
           cout << "Found Solution : " << queries[i] << endl;
@@ -383,7 +393,7 @@ void processMessages() {
           chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
           
           stringstream ss;
-          ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"1"<< "|"<<"0";
+          ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"1"<< "|"<<"0|0";
           writeOrAppend(fileName,ss.str());
           cout <<"Levels > 200 !"<<endl;
           cout << "Found Solution : " << queries[i] << endl;
@@ -400,10 +410,13 @@ void processMessages() {
     break;
 
   }
+  stringstream ss;
+  ss <<"-1|-1|-1|-1|-1|-1|-1|"<<integer_to_string(totalTimer.elapsed()).c_str();
+  writeOrAppend(fileName,ss.str());  
 }
 
 int main(int argc, const char * argv[]) {
-  if (argc != 11) {
+  if (argc != 16) {
     cout << "Server wrong input parameters!" << endl;
     exit(1);
   }
@@ -420,16 +433,19 @@ int main(int argc, const char * argv[]) {
   red3 = atoi(argv[10]);
   prun1 = atoi(argv[11]);
   prun2 = atoi(argv[12]);
+  const char * prefix = argv[13];
+  const char * postfix = argv[14];
+  queryPath = argv[15];
 
   
   graphPath = argv[1];
   size_t pos = graphPath.find_last_of("/\\");
   fileName = (pos != string::npos) ? graphPath.substr(pos + 1) : graphPath;
 
-  fileName = "./results/exp10/" + fileName+"/"+to_string(limitQueries)+".txt";
+  fileName = prefix + fileName + postfix;
 
   if (!fileExists(fileName)) {
-      string header = "N1|N2|QID|Time|Degree|Overtime|Heu";
+      string header = "N1|N2|QID|Time|Degree|Overtime|Heu|TotalTime";
       ofstream file;
       file.open(fileName, ios::app);
           if (file.is_open()) {

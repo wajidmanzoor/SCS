@@ -19,6 +19,8 @@
 
 #include <thread>
 #include "../ipc/msgtool.h"
+#include <sys/stat.h>
+
 
 
 #define BLK_NUMS 432
@@ -33,6 +35,9 @@ using namespace std;
 int BLK_DIM2 ;
 int BLK_NUM2;
 int INTOTAL_WARPS;
+
+Timer totalTimer;
+
 
 
 vector<ui> H;
@@ -52,6 +57,7 @@ ui *neighboroffset, *neighborList;
 
 string graphPath;
 string fileName;
+string queryPath;
 
 ui initialPartitionSize;
 ui outMemFlag;
