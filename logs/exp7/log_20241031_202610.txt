@@ -1,0 +1,1 @@
+2024-10-31 20:26:10 - Error: Server executable './SCS' not found or not executable

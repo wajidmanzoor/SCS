@@ -1,0 +1,13 @@
+2024-10-31 20:28:12 - Processing dataset: ego-facebook with reduction rule 1 1 1
+2024-10-31 20:28:12 - Starting server with arguments: ../../../data/edgeList/ego-facebook 300000 100000 0.5 1 10 100 1 1 1 1 1 ./results/exp7/ /all.txt ./client/query/exp7/ego-facebook
+2024-10-31 20:28:12 - Successfully completed processing for ego-facebook with  reduction rule 1 1 1
+2024-10-31 20:28:12 - Processing dataset: ego-facebook with reduction rule 1 1 0
+2024-10-31 20:28:12 - Starting server with arguments: ../../../data/edgeList/ego-facebook 300000 100000 0.5 1 10 100 1 1 0 1 1 ./results/exp7/ /r3.txt ./client/query/exp7/ego-facebook
+2024-10-31 20:28:12 - Successfully completed processing for ego-facebook with  reduction rule 1 1 0
+2024-10-31 20:28:12 - Processing dataset: ego-facebook with reduction rule 1 0 1
+2024-10-31 20:28:12 - Starting server with arguments: ../../../data/edgeList/ego-facebook 300000 100000 0.5 1 10 100 1 0 1 1 1 ./results/exp7/ /r2.txt ./client/query/exp7/ego-facebook
+2024-10-31 20:28:12 - Successfully completed processing for ego-facebook with  reduction rule 1 0 1
+2024-10-31 20:28:12 - Processing dataset: ego-facebook with reduction rule 0 1 1
+2024-10-31 20:28:13 - Starting server with arguments: ../../../data/edgeList/ego-facebook 300000 100000 0.5 1 10 100 0 1 1 1 1 ./results/exp7/ /r1.txt ./client/query/exp7/ego-facebook
+2024-10-31 20:28:13 - Successfully completed processing for ego-facebook with  reduction rule 0 1 1
+2024-10-31 20:28:13 - Script completed successfully

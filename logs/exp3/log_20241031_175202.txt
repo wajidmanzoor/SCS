@@ -1,0 +1,1321 @@
+2024-10-31 17:52:02 - Processing dataset: ego-facebook limit 1 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/ego-facebook 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/ego-facebook/1.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: ego-facebook limit 1
+2024-10-31 17:52:02 - Processing dataset: ego-facebook limit 10 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/ego-facebook 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/ego-facebook/10.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: ego-facebook limit 10
+2024-10-31 17:52:02 - Processing dataset: ego-facebook limit 20 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/ego-facebook 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/ego-facebook/20.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: ego-facebook limit 20
+2024-10-31 17:52:02 - Processing dataset: ego-facebook limit 30 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/ego-facebook 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/ego-facebook/30.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: ego-facebook limit 30
+2024-10-31 17:52:02 - Processing dataset: ego-facebook limit 40 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/ego-facebook 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/ego-facebook/40.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: ego-facebook limit 40
+2024-10-31 17:52:02 - Processing dataset: ego-facebook limit 50 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/ego-facebook 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/ego-facebook/50.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: ego-facebook limit 50
+2024-10-31 17:52:02 - Processing dataset: ego-facebook limit 60 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/ego-facebook 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/ego-facebook/60.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: ego-facebook limit 60
+2024-10-31 17:52:02 - Processing dataset: ego-facebook limit 70 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/ego-facebook 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/ego-facebook/70.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: ego-facebook limit 70
+2024-10-31 17:52:02 - Processing dataset: ego-facebook limit 80 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/ego-facebook 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/ego-facebook/80.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: ego-facebook limit 80
+2024-10-31 17:52:02 - Processing dataset: ego-facebook limit 90 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/ego-facebook 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/ego-facebook/90.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: ego-facebook limit 90
+2024-10-31 17:52:02 - Processing dataset: ego-facebook limit 100 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/ego-facebook 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/ego-facebook/100.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: ego-facebook limit 100
+2024-10-31 17:52:02 - Processing dataset: grqc_q limit 1 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/grqc_q 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/grqc_q/1.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: grqc_q limit 1
+2024-10-31 17:52:02 - Processing dataset: grqc_q limit 10 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/grqc_q 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/grqc_q/10.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: grqc_q limit 10
+2024-10-31 17:52:02 - Processing dataset: grqc_q limit 20 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/grqc_q 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/grqc_q/20.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: grqc_q limit 20
+2024-10-31 17:52:02 - Processing dataset: grqc_q limit 30 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/grqc_q 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/grqc_q/30.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: grqc_q limit 30
+2024-10-31 17:52:02 - Processing dataset: grqc_q limit 40 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/grqc_q 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/grqc_q/40.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: grqc_q limit 40
+2024-10-31 17:52:02 - Processing dataset: grqc_q limit 50 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/grqc_q 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/grqc_q/50.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: grqc_q limit 50
+2024-10-31 17:52:02 - Processing dataset: grqc_q limit 60 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/grqc_q 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/grqc_q/60.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: grqc_q limit 60
+2024-10-31 17:52:02 - Processing dataset: grqc_q limit 70 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/grqc_q 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/grqc_q/70.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: grqc_q limit 70
+2024-10-31 17:52:02 - Processing dataset: grqc_q limit 80 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/grqc_q 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/grqc_q/80.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:02 - Finished processing dataset: grqc_q limit 80
+2024-10-31 17:52:02 - Processing dataset: grqc_q limit 90 
+2024-10-31 17:52:02 - Starting server
+2024-10-31 17:52:02 - ../../data/edgeList/grqc_q 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/grqc_q/90.txt
+2024-10-31 17:52:02 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: grqc_q limit 90
+2024-10-31 17:52:03 - Processing dataset: grqc_q limit 100 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/grqc_q 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/grqc_q/100.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: grqc_q limit 100
+2024-10-31 17:52:03 - Processing dataset: uc64 limit 1 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/uc64 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/uc64/1.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: uc64 limit 1
+2024-10-31 17:52:03 - Processing dataset: uc64 limit 10 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/uc64 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/uc64/10.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: uc64 limit 10
+2024-10-31 17:52:03 - Processing dataset: uc64 limit 20 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/uc64 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/uc64/20.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: uc64 limit 20
+2024-10-31 17:52:03 - Processing dataset: uc64 limit 30 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/uc64 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/uc64/30.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: uc64 limit 30
+2024-10-31 17:52:03 - Processing dataset: uc64 limit 40 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/uc64 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/uc64/40.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: uc64 limit 40
+2024-10-31 17:52:03 - Processing dataset: uc64 limit 50 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/uc64 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/uc64/50.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: uc64 limit 50
+2024-10-31 17:52:03 - Processing dataset: uc64 limit 60 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/uc64 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/uc64/60.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: uc64 limit 60
+2024-10-31 17:52:03 - Processing dataset: uc64 limit 70 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/uc64 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/uc64/70.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: uc64 limit 70
+2024-10-31 17:52:03 - Processing dataset: uc64 limit 80 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/uc64 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/uc64/80.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: uc64 limit 80
+2024-10-31 17:52:03 - Processing dataset: uc64 limit 90 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/uc64 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/uc64/90.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: uc64 limit 90
+2024-10-31 17:52:03 - Processing dataset: uc64 limit 100 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/uc64 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/uc64/100.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: uc64 limit 100
+2024-10-31 17:52:03 - Processing dataset: government limit 1 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/government 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/government/1.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: government limit 1
+2024-10-31 17:52:03 - Processing dataset: government limit 10 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/government 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/government/10.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: government limit 10
+2024-10-31 17:52:03 - Processing dataset: government limit 20 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/government 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/government/20.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: government limit 20
+2024-10-31 17:52:03 - Processing dataset: government limit 30 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/government 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/government/30.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: government limit 30
+2024-10-31 17:52:03 - Processing dataset: government limit 40 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/government 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/government/40.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: government limit 40
+2024-10-31 17:52:03 - Processing dataset: government limit 50 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/government 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/government/50.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: government limit 50
+2024-10-31 17:52:03 - Processing dataset: government limit 60 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/government 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/government/60.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: government limit 60
+2024-10-31 17:52:03 - Processing dataset: government limit 70 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/government 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/government/70.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: government limit 70
+2024-10-31 17:52:03 - Processing dataset: government limit 80 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/government 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/government/80.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: government limit 80
+2024-10-31 17:52:03 - Processing dataset: government limit 90 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/government 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/government/90.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: government limit 90
+2024-10-31 17:52:03 - Processing dataset: government limit 100 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/government 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/government/100.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: government limit 100
+2024-10-31 17:52:03 - Processing dataset: wiki-elec limit 1 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/wiki-elec 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/wiki-elec/1.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: wiki-elec limit 1
+2024-10-31 17:52:03 - Processing dataset: wiki-elec limit 10 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/wiki-elec 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/wiki-elec/10.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: wiki-elec limit 10
+2024-10-31 17:52:03 - Processing dataset: wiki-elec limit 20 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/wiki-elec 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/wiki-elec/20.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: wiki-elec limit 20
+2024-10-31 17:52:03 - Processing dataset: wiki-elec limit 30 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/wiki-elec 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/wiki-elec/30.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: wiki-elec limit 30
+2024-10-31 17:52:03 - Processing dataset: wiki-elec limit 40 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/wiki-elec 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/wiki-elec/40.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: wiki-elec limit 40
+2024-10-31 17:52:03 - Processing dataset: wiki-elec limit 50 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/wiki-elec 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/wiki-elec/50.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: wiki-elec limit 50
+2024-10-31 17:52:03 - Processing dataset: wiki-elec limit 60 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/wiki-elec 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/wiki-elec/60.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: wiki-elec limit 60
+2024-10-31 17:52:03 - Processing dataset: wiki-elec limit 70 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/wiki-elec 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/wiki-elec/70.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: wiki-elec limit 70
+2024-10-31 17:52:03 - Processing dataset: wiki-elec limit 80 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/wiki-elec 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/wiki-elec/80.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: wiki-elec limit 80
+2024-10-31 17:52:03 - Processing dataset: wiki-elec limit 90 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/wiki-elec 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/wiki-elec/90.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: wiki-elec limit 90
+2024-10-31 17:52:03 - Processing dataset: wiki-elec limit 100 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/wiki-elec 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/wiki-elec/100.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: wiki-elec limit 100
+2024-10-31 17:52:03 - Processing dataset: lastfm limit 1 
+2024-10-31 17:52:03 - Starting server
+2024-10-31 17:52:03 - ../../data/edgeList/lastfm 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/lastfm/1.txt
+2024-10-31 17:52:03 - Server process completed successfully
+2024-10-31 17:52:03 - Finished processing dataset: lastfm limit 1
+2024-10-31 17:52:03 - Processing dataset: lastfm limit 10 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/lastfm 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/lastfm/10.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: lastfm limit 10
+2024-10-31 17:52:04 - Processing dataset: lastfm limit 20 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/lastfm 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/lastfm/20.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: lastfm limit 20
+2024-10-31 17:52:04 - Processing dataset: lastfm limit 30 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/lastfm 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/lastfm/30.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: lastfm limit 30
+2024-10-31 17:52:04 - Processing dataset: lastfm limit 40 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/lastfm 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/lastfm/40.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: lastfm limit 40
+2024-10-31 17:52:04 - Processing dataset: lastfm limit 50 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/lastfm 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/lastfm/50.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: lastfm limit 50
+2024-10-31 17:52:04 - Processing dataset: lastfm limit 60 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/lastfm 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/lastfm/60.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: lastfm limit 60
+2024-10-31 17:52:04 - Processing dataset: lastfm limit 70 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/lastfm 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/lastfm/70.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: lastfm limit 70
+2024-10-31 17:52:04 - Processing dataset: lastfm limit 80 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/lastfm 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/lastfm/80.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: lastfm limit 80
+2024-10-31 17:52:04 - Processing dataset: lastfm limit 90 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/lastfm 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/lastfm/90.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: lastfm limit 90
+2024-10-31 17:52:04 - Processing dataset: lastfm limit 100 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/lastfm 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/lastfm/100.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: lastfm limit 100
+2024-10-31 17:52:04 - Processing dataset: hepPh limit 1 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/hepPh 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/hepPh/1.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: hepPh limit 1
+2024-10-31 17:52:04 - Processing dataset: hepPh limit 10 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/hepPh 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/hepPh/10.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: hepPh limit 10
+2024-10-31 17:52:04 - Processing dataset: hepPh limit 20 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/hepPh 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/hepPh/20.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: hepPh limit 20
+2024-10-31 17:52:04 - Processing dataset: hepPh limit 30 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/hepPh 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/hepPh/30.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: hepPh limit 30
+2024-10-31 17:52:04 - Processing dataset: hepPh limit 40 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/hepPh 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/hepPh/40.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: hepPh limit 40
+2024-10-31 17:52:04 - Processing dataset: hepPh limit 50 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/hepPh 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/hepPh/50.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: hepPh limit 50
+2024-10-31 17:52:04 - Processing dataset: hepPh limit 60 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/hepPh 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/hepPh/60.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: hepPh limit 60
+2024-10-31 17:52:04 - Processing dataset: hepPh limit 70 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/hepPh 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/hepPh/70.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: hepPh limit 70
+2024-10-31 17:52:04 - Processing dataset: hepPh limit 80 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/hepPh 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/hepPh/80.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: hepPh limit 80
+2024-10-31 17:52:04 - Processing dataset: hepPh limit 90 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/hepPh 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/hepPh/90.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: hepPh limit 90
+2024-10-31 17:52:04 - Processing dataset: hepPh limit 100 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/hepPh 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/hepPh/100.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: hepPh limit 100
+2024-10-31 17:52:04 - Processing dataset: astroPh limit 1 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/astroPh 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/astroPh/1.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: astroPh limit 1
+2024-10-31 17:52:04 - Processing dataset: astroPh limit 10 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/astroPh 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/astroPh/10.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: astroPh limit 10
+2024-10-31 17:52:04 - Processing dataset: astroPh limit 20 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/astroPh 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/astroPh/20.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: astroPh limit 20
+2024-10-31 17:52:04 - Processing dataset: astroPh limit 30 
+2024-10-31 17:52:04 - Starting server
+2024-10-31 17:52:04 - ../../data/edgeList/astroPh 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/astroPh/30.txt
+2024-10-31 17:52:04 - Server process completed successfully
+2024-10-31 17:52:04 - Finished processing dataset: astroPh limit 30
+2024-10-31 17:52:04 - Processing dataset: astroPh limit 40 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/astroPh 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/astroPh/40.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: astroPh limit 40
+2024-10-31 17:52:05 - Processing dataset: astroPh limit 50 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/astroPh 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/astroPh/50.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: astroPh limit 50
+2024-10-31 17:52:05 - Processing dataset: astroPh limit 60 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/astroPh 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/astroPh/60.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: astroPh limit 60
+2024-10-31 17:52:05 - Processing dataset: astroPh limit 70 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/astroPh 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/astroPh/70.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: astroPh limit 70
+2024-10-31 17:52:05 - Processing dataset: astroPh limit 80 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/astroPh 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/astroPh/80.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: astroPh limit 80
+2024-10-31 17:52:05 - Processing dataset: astroPh limit 90 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/astroPh 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/astroPh/90.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: astroPh limit 90
+2024-10-31 17:52:05 - Processing dataset: astroPh limit 100 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/astroPh 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/astroPh/100.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: astroPh limit 100
+2024-10-31 17:52:05 - Processing dataset: condmat limit 1 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/condmat 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/condmat/1.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: condmat limit 1
+2024-10-31 17:52:05 - Processing dataset: condmat limit 10 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/condmat 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/condmat/10.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: condmat limit 10
+2024-10-31 17:52:05 - Processing dataset: condmat limit 20 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/condmat 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/condmat/20.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: condmat limit 20
+2024-10-31 17:52:05 - Processing dataset: condmat limit 30 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/condmat 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/condmat/30.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: condmat limit 30
+2024-10-31 17:52:05 - Processing dataset: condmat limit 40 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/condmat 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/condmat/40.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: condmat limit 40
+2024-10-31 17:52:05 - Processing dataset: condmat limit 50 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/condmat 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/condmat/50.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: condmat limit 50
+2024-10-31 17:52:05 - Processing dataset: condmat limit 60 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/condmat 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/condmat/60.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: condmat limit 60
+2024-10-31 17:52:05 - Processing dataset: condmat limit 70 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/condmat 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/condmat/70.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: condmat limit 70
+2024-10-31 17:52:05 - Processing dataset: condmat limit 80 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/condmat 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/condmat/80.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: condmat limit 80
+2024-10-31 17:52:05 - Processing dataset: condmat limit 90 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/condmat 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/condmat/90.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: condmat limit 90
+2024-10-31 17:52:05 - Processing dataset: condmat limit 100 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/condmat 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/condmat/100.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: condmat limit 100
+2024-10-31 17:52:05 - Processing dataset: Enron_q limit 1 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/Enron_q 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/Enron_q/1.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: Enron_q limit 1
+2024-10-31 17:52:05 - Processing dataset: Enron_q limit 10 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/Enron_q 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/Enron_q/10.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: Enron_q limit 10
+2024-10-31 17:52:05 - Processing dataset: Enron_q limit 20 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/Enron_q 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/Enron_q/20.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: Enron_q limit 20
+2024-10-31 17:52:05 - Processing dataset: Enron_q limit 30 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/Enron_q 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/Enron_q/30.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: Enron_q limit 30
+2024-10-31 17:52:05 - Processing dataset: Enron_q limit 40 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/Enron_q 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/Enron_q/40.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: Enron_q limit 40
+2024-10-31 17:52:05 - Processing dataset: Enron_q limit 50 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/Enron_q 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/Enron_q/50.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: Enron_q limit 50
+2024-10-31 17:52:05 - Processing dataset: Enron_q limit 60 
+2024-10-31 17:52:05 - Starting server
+2024-10-31 17:52:05 - ../../data/edgeList/Enron_q 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/Enron_q/60.txt
+2024-10-31 17:52:05 - Server process completed successfully
+2024-10-31 17:52:05 - Finished processing dataset: Enron_q limit 60
+2024-10-31 17:52:05 - Processing dataset: Enron_q limit 70 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/Enron_q 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/Enron_q/70.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: Enron_q limit 70
+2024-10-31 17:52:06 - Processing dataset: Enron_q limit 80 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/Enron_q 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/Enron_q/80.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: Enron_q limit 80
+2024-10-31 17:52:06 - Processing dataset: Enron_q limit 90 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/Enron_q 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/Enron_q/90.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: Enron_q limit 90
+2024-10-31 17:52:06 - Processing dataset: Enron_q limit 100 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/Enron_q 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/Enron_q/100.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: Enron_q limit 100
+2024-10-31 17:52:06 - Processing dataset: fb-pages limit 1 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/fb-pages 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/fb-pages/1.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: fb-pages limit 1
+2024-10-31 17:52:06 - Processing dataset: fb-pages limit 10 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/fb-pages 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/fb-pages/10.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: fb-pages limit 10
+2024-10-31 17:52:06 - Processing dataset: fb-pages limit 20 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/fb-pages 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/fb-pages/20.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: fb-pages limit 20
+2024-10-31 17:52:06 - Processing dataset: fb-pages limit 30 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/fb-pages 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/fb-pages/30.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: fb-pages limit 30
+2024-10-31 17:52:06 - Processing dataset: fb-pages limit 40 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/fb-pages 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/fb-pages/40.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: fb-pages limit 40
+2024-10-31 17:52:06 - Processing dataset: fb-pages limit 50 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/fb-pages 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/fb-pages/50.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: fb-pages limit 50
+2024-10-31 17:52:06 - Processing dataset: fb-pages limit 60 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/fb-pages 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/fb-pages/60.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: fb-pages limit 60
+2024-10-31 17:52:06 - Processing dataset: fb-pages limit 70 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/fb-pages 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/fb-pages/70.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: fb-pages limit 70
+2024-10-31 17:52:06 - Processing dataset: fb-pages limit 80 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/fb-pages 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/fb-pages/80.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: fb-pages limit 80
+2024-10-31 17:52:06 - Processing dataset: fb-pages limit 90 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/fb-pages 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/fb-pages/90.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: fb-pages limit 90
+2024-10-31 17:52:06 - Processing dataset: fb-pages limit 100 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/fb-pages 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/fb-pages/100.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: fb-pages limit 100
+2024-10-31 17:52:06 - Processing dataset: brightkite limit 1 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/brightkite 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/brightkite/1.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: brightkite limit 1
+2024-10-31 17:52:06 - Processing dataset: brightkite limit 10 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/brightkite 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/brightkite/10.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: brightkite limit 10
+2024-10-31 17:52:06 - Processing dataset: brightkite limit 20 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/brightkite 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/brightkite/20.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: brightkite limit 20
+2024-10-31 17:52:06 - Processing dataset: brightkite limit 30 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/brightkite 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/brightkite/30.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: brightkite limit 30
+2024-10-31 17:52:06 - Processing dataset: brightkite limit 40 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/brightkite 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/brightkite/40.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: brightkite limit 40
+2024-10-31 17:52:06 - Processing dataset: brightkite limit 50 
+2024-10-31 17:52:06 - Starting server
+2024-10-31 17:52:06 - ../../data/edgeList/brightkite 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/brightkite/50.txt
+2024-10-31 17:52:06 - Server process completed successfully
+2024-10-31 17:52:06 - Finished processing dataset: brightkite limit 50
+2024-10-31 17:52:06 - Processing dataset: brightkite limit 60 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/brightkite 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/brightkite/60.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: brightkite limit 60
+2024-10-31 17:52:07 - Processing dataset: brightkite limit 70 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/brightkite 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/brightkite/70.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: brightkite limit 70
+2024-10-31 17:52:07 - Processing dataset: brightkite limit 80 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/brightkite 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/brightkite/80.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: brightkite limit 80
+2024-10-31 17:52:07 - Processing dataset: brightkite limit 90 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/brightkite 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/brightkite/90.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: brightkite limit 90
+2024-10-31 17:52:07 - Processing dataset: brightkite limit 100 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/brightkite 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/brightkite/100.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: brightkite limit 100
+2024-10-31 17:52:07 - Processing dataset: livemocha limit 1 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/livemocha 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/livemocha/1.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: livemocha limit 1
+2024-10-31 17:52:07 - Processing dataset: livemocha limit 10 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/livemocha 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/livemocha/10.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: livemocha limit 10
+2024-10-31 17:52:07 - Processing dataset: livemocha limit 20 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/livemocha 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/livemocha/20.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: livemocha limit 20
+2024-10-31 17:52:07 - Processing dataset: livemocha limit 30 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/livemocha 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/livemocha/30.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: livemocha limit 30
+2024-10-31 17:52:07 - Processing dataset: livemocha limit 40 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/livemocha 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/livemocha/40.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: livemocha limit 40
+2024-10-31 17:52:07 - Processing dataset: livemocha limit 50 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/livemocha 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/livemocha/50.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: livemocha limit 50
+2024-10-31 17:52:07 - Processing dataset: livemocha limit 60 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/livemocha 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/livemocha/60.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: livemocha limit 60
+2024-10-31 17:52:07 - Processing dataset: livemocha limit 70 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/livemocha 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/livemocha/70.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: livemocha limit 70
+2024-10-31 17:52:07 - Processing dataset: livemocha limit 80 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/livemocha 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/livemocha/80.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: livemocha limit 80
+2024-10-31 17:52:07 - Processing dataset: livemocha limit 90 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/livemocha 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/livemocha/90.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: livemocha limit 90
+2024-10-31 17:52:07 - Processing dataset: livemocha limit 100 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/livemocha 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/livemocha/100.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: livemocha limit 100
+2024-10-31 17:52:07 - Processing dataset: gowalla limit 1 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/gowalla 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/gowalla/1.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: gowalla limit 1
+2024-10-31 17:52:07 - Processing dataset: gowalla limit 10 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/gowalla 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/gowalla/10.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: gowalla limit 10
+2024-10-31 17:52:07 - Processing dataset: gowalla limit 20 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/gowalla 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/gowalla/20.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: gowalla limit 20
+2024-10-31 17:52:07 - Processing dataset: gowalla limit 30 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/gowalla 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/gowalla/30.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: gowalla limit 30
+2024-10-31 17:52:07 - Processing dataset: gowalla limit 40 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/gowalla 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/gowalla/40.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: gowalla limit 40
+2024-10-31 17:52:07 - Processing dataset: gowalla limit 50 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/gowalla 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/gowalla/50.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: gowalla limit 50
+2024-10-31 17:52:07 - Processing dataset: gowalla limit 60 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/gowalla 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/gowalla/60.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: gowalla limit 60
+2024-10-31 17:52:07 - Processing dataset: gowalla limit 70 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/gowalla 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/gowalla/70.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: gowalla limit 70
+2024-10-31 17:52:07 - Processing dataset: gowalla limit 80 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/gowalla 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/gowalla/80.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: gowalla limit 80
+2024-10-31 17:52:07 - Processing dataset: gowalla limit 90 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/gowalla 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/gowalla/90.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: gowalla limit 90
+2024-10-31 17:52:07 - Processing dataset: gowalla limit 100 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/gowalla 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/gowalla/100.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: gowalla limit 100
+2024-10-31 17:52:07 - Processing dataset: citeseer limit 1 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/citeseer 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/citeseer/1.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: citeseer limit 1
+2024-10-31 17:52:07 - Processing dataset: citeseer limit 10 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/citeseer 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/citeseer/10.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: citeseer limit 10
+2024-10-31 17:52:07 - Processing dataset: citeseer limit 20 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/citeseer 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/citeseer/20.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: citeseer limit 20
+2024-10-31 17:52:07 - Processing dataset: citeseer limit 30 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/citeseer 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/citeseer/30.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: citeseer limit 30
+2024-10-31 17:52:07 - Processing dataset: citeseer limit 40 
+2024-10-31 17:52:07 - Starting server
+2024-10-31 17:52:07 - ../../data/edgeList/citeseer 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/citeseer/40.txt
+2024-10-31 17:52:07 - Server process completed successfully
+2024-10-31 17:52:07 - Finished processing dataset: citeseer limit 40
+2024-10-31 17:52:08 - Processing dataset: citeseer limit 50 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/citeseer 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/citeseer/50.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: citeseer limit 50
+2024-10-31 17:52:08 - Processing dataset: citeseer limit 60 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/citeseer 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/citeseer/60.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: citeseer limit 60
+2024-10-31 17:52:08 - Processing dataset: citeseer limit 70 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/citeseer 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/citeseer/70.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: citeseer limit 70
+2024-10-31 17:52:08 - Processing dataset: citeseer limit 80 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/citeseer 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/citeseer/80.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: citeseer limit 80
+2024-10-31 17:52:08 - Processing dataset: citeseer limit 90 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/citeseer 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/citeseer/90.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: citeseer limit 90
+2024-10-31 17:52:08 - Processing dataset: citeseer limit 100 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/citeseer 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/citeseer/100.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: citeseer limit 100
+2024-10-31 17:52:08 - Processing dataset: com-dblp limit 1 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/com-dblp 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/com-dblp/1.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: com-dblp limit 1
+2024-10-31 17:52:08 - Processing dataset: com-dblp limit 10 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/com-dblp 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/com-dblp/10.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: com-dblp limit 10
+2024-10-31 17:52:08 - Processing dataset: com-dblp limit 20 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/com-dblp 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/com-dblp/20.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: com-dblp limit 20
+2024-10-31 17:52:08 - Processing dataset: com-dblp limit 30 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/com-dblp 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/com-dblp/30.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: com-dblp limit 30
+2024-10-31 17:52:08 - Processing dataset: com-dblp limit 40 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/com-dblp 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/com-dblp/40.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: com-dblp limit 40
+2024-10-31 17:52:08 - Processing dataset: com-dblp limit 50 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/com-dblp 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/com-dblp/50.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: com-dblp limit 50
+2024-10-31 17:52:08 - Processing dataset: com-dblp limit 60 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/com-dblp 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/com-dblp/60.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: com-dblp limit 60
+2024-10-31 17:52:08 - Processing dataset: com-dblp limit 70 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/com-dblp 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/com-dblp/70.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: com-dblp limit 70
+2024-10-31 17:52:08 - Processing dataset: com-dblp limit 80 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/com-dblp 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/com-dblp/80.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: com-dblp limit 80
+2024-10-31 17:52:08 - Processing dataset: com-dblp limit 90 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/com-dblp 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/com-dblp/90.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: com-dblp limit 90
+2024-10-31 17:52:08 - Processing dataset: com-dblp limit 100 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/com-dblp 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/com-dblp/100.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: com-dblp limit 100
+2024-10-31 17:52:08 - Processing dataset: amazon_q limit 1 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/amazon_q 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/amazon_q/1.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: amazon_q limit 1
+2024-10-31 17:52:08 - Processing dataset: amazon_q limit 10 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/amazon_q 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/amazon_q/10.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: amazon_q limit 10
+2024-10-31 17:52:08 - Processing dataset: amazon_q limit 20 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/amazon_q 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/amazon_q/20.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: amazon_q limit 20
+2024-10-31 17:52:08 - Processing dataset: amazon_q limit 30 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/amazon_q 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/amazon_q/30.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:08 - Finished processing dataset: amazon_q limit 30
+2024-10-31 17:52:08 - Processing dataset: amazon_q limit 40 
+2024-10-31 17:52:08 - Starting server
+2024-10-31 17:52:08 - ../../data/edgeList/amazon_q 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/amazon_q/40.txt
+2024-10-31 17:52:08 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: amazon_q limit 40
+2024-10-31 17:52:09 - Processing dataset: amazon_q limit 50 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/amazon_q 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/amazon_q/50.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: amazon_q limit 50
+2024-10-31 17:52:09 - Processing dataset: amazon_q limit 60 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/amazon_q 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/amazon_q/60.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: amazon_q limit 60
+2024-10-31 17:52:09 - Processing dataset: amazon_q limit 70 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/amazon_q 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/amazon_q/70.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: amazon_q limit 70
+2024-10-31 17:52:09 - Processing dataset: amazon_q limit 80 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/amazon_q 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/amazon_q/80.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: amazon_q limit 80
+2024-10-31 17:52:09 - Processing dataset: amazon_q limit 90 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/amazon_q 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/amazon_q/90.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: amazon_q limit 90
+2024-10-31 17:52:09 - Processing dataset: amazon_q limit 100 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/amazon_q 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/amazon_q/100.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: amazon_q limit 100
+2024-10-31 17:52:09 - Processing dataset: youtube_q limit 1 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/youtube_q 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/youtube_q/1.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: youtube_q limit 1
+2024-10-31 17:52:09 - Processing dataset: youtube_q limit 10 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/youtube_q 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/youtube_q/10.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: youtube_q limit 10
+2024-10-31 17:52:09 - Processing dataset: youtube_q limit 20 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/youtube_q 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/youtube_q/20.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: youtube_q limit 20
+2024-10-31 17:52:09 - Processing dataset: youtube_q limit 30 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/youtube_q 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/youtube_q/30.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: youtube_q limit 30
+2024-10-31 17:52:09 - Processing dataset: youtube_q limit 40 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/youtube_q 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/youtube_q/40.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: youtube_q limit 40
+2024-10-31 17:52:09 - Processing dataset: youtube_q limit 50 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/youtube_q 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/youtube_q/50.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: youtube_q limit 50
+2024-10-31 17:52:09 - Processing dataset: youtube_q limit 60 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/youtube_q 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/youtube_q/60.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: youtube_q limit 60
+2024-10-31 17:52:09 - Processing dataset: youtube_q limit 70 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/youtube_q 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/youtube_q/70.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: youtube_q limit 70
+2024-10-31 17:52:09 - Processing dataset: youtube_q limit 80 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/youtube_q 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/youtube_q/80.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: youtube_q limit 80
+2024-10-31 17:52:09 - Processing dataset: youtube_q limit 90 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/youtube_q 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/youtube_q/90.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: youtube_q limit 90
+2024-10-31 17:52:09 - Processing dataset: youtube_q limit 100 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/youtube_q 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/youtube_q/100.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: youtube_q limit 100
+2024-10-31 17:52:09 - Processing dataset: hyves_q limit 1 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/hyves_q 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/hyves_q/1.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: hyves_q limit 1
+2024-10-31 17:52:09 - Processing dataset: hyves_q limit 10 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/hyves_q 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/hyves_q/10.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: hyves_q limit 10
+2024-10-31 17:52:09 - Processing dataset: hyves_q limit 20 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/hyves_q 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/hyves_q/20.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: hyves_q limit 20
+2024-10-31 17:52:09 - Processing dataset: hyves_q limit 30 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/hyves_q 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/hyves_q/30.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: hyves_q limit 30
+2024-10-31 17:52:09 - Processing dataset: hyves_q limit 40 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/hyves_q 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/hyves_q/40.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: hyves_q limit 40
+2024-10-31 17:52:09 - Processing dataset: hyves_q limit 50 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/hyves_q 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/hyves_q/50.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: hyves_q limit 50
+2024-10-31 17:52:09 - Processing dataset: hyves_q limit 60 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/hyves_q 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/hyves_q/60.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: hyves_q limit 60
+2024-10-31 17:52:09 - Processing dataset: hyves_q limit 70 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/hyves_q 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/hyves_q/70.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: hyves_q limit 70
+2024-10-31 17:52:09 - Processing dataset: hyves_q limit 80 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/hyves_q 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/hyves_q/80.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: hyves_q limit 80
+2024-10-31 17:52:09 - Processing dataset: hyves_q limit 90 
+2024-10-31 17:52:09 - Starting server
+2024-10-31 17:52:09 - ../../data/edgeList/hyves_q 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/hyves_q/90.txt
+2024-10-31 17:52:09 - Server process completed successfully
+2024-10-31 17:52:09 - Finished processing dataset: hyves_q limit 90
+2024-10-31 17:52:09 - Processing dataset: hyves_q limit 100 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/hyves_q 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/hyves_q/100.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: hyves_q limit 100
+2024-10-31 17:52:10 - Processing dataset: skitter limit 1 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/skitter 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/skitter/1.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: skitter limit 1
+2024-10-31 17:52:10 - Processing dataset: skitter limit 10 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/skitter 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/skitter/10.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: skitter limit 10
+2024-10-31 17:52:10 - Processing dataset: skitter limit 20 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/skitter 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/skitter/20.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: skitter limit 20
+2024-10-31 17:52:10 - Processing dataset: skitter limit 30 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/skitter 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/skitter/30.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: skitter limit 30
+2024-10-31 17:52:10 - Processing dataset: skitter limit 40 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/skitter 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/skitter/40.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: skitter limit 40
+2024-10-31 17:52:10 - Processing dataset: skitter limit 50 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/skitter 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/skitter/50.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: skitter limit 50
+2024-10-31 17:52:10 - Processing dataset: skitter limit 60 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/skitter 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/skitter/60.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: skitter limit 60
+2024-10-31 17:52:10 - Processing dataset: skitter limit 70 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/skitter 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/skitter/70.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: skitter limit 70
+2024-10-31 17:52:10 - Processing dataset: skitter limit 80 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/skitter 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/skitter/80.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: skitter limit 80
+2024-10-31 17:52:10 - Processing dataset: skitter limit 90 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/skitter 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/skitter/90.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: skitter limit 90
+2024-10-31 17:52:10 - Processing dataset: skitter limit 100 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/skitter 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/skitter/100.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: skitter limit 100
+2024-10-31 17:52:10 - Processing dataset: flixster limit 1 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/flixster 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/flixster/1.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: flixster limit 1
+2024-10-31 17:52:10 - Processing dataset: flixster limit 10 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/flixster 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/flixster/10.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: flixster limit 10
+2024-10-31 17:52:10 - Processing dataset: flixster limit 20 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/flixster 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/flixster/20.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: flixster limit 20
+2024-10-31 17:52:10 - Processing dataset: flixster limit 30 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/flixster 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/flixster/30.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: flixster limit 30
+2024-10-31 17:52:10 - Processing dataset: flixster limit 40 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/flixster 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/flixster/40.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: flixster limit 40
+2024-10-31 17:52:10 - Processing dataset: flixster limit 50 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/flixster 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/flixster/50.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: flixster limit 50
+2024-10-31 17:52:10 - Processing dataset: flixster limit 60 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/flixster 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/flixster/60.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: flixster limit 60
+2024-10-31 17:52:10 - Processing dataset: flixster limit 70 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/flixster 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/flixster/70.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: flixster limit 70
+2024-10-31 17:52:10 - Processing dataset: flixster limit 80 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/flixster 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/flixster/80.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: flixster limit 80
+2024-10-31 17:52:10 - Processing dataset: flixster limit 90 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/flixster 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/flixster/90.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: flixster limit 90
+2024-10-31 17:52:10 - Processing dataset: flixster limit 100 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/flixster 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/flixster/100.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: flixster limit 100
+2024-10-31 17:52:10 - Processing dataset: patent_q limit 1 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/patent_q 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/patent_q/1.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: patent_q limit 1
+2024-10-31 17:52:10 - Processing dataset: patent_q limit 10 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/patent_q 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/patent_q/10.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: patent_q limit 10
+2024-10-31 17:52:10 - Processing dataset: patent_q limit 20 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/patent_q 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/patent_q/20.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: patent_q limit 20
+2024-10-31 17:52:10 - Processing dataset: patent_q limit 30 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/patent_q 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/patent_q/30.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: patent_q limit 30
+2024-10-31 17:52:10 - Processing dataset: patent_q limit 40 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/patent_q 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/patent_q/40.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: patent_q limit 40
+2024-10-31 17:52:10 - Processing dataset: patent_q limit 50 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/patent_q 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/patent_q/50.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: patent_q limit 50
+2024-10-31 17:52:10 - Processing dataset: patent_q limit 60 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/patent_q 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/patent_q/60.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: patent_q limit 60
+2024-10-31 17:52:10 - Processing dataset: patent_q limit 70 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/patent_q 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/patent_q/70.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: patent_q limit 70
+2024-10-31 17:52:10 - Processing dataset: patent_q limit 80 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/patent_q 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/patent_q/80.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: patent_q limit 80
+2024-10-31 17:52:10 - Processing dataset: patent_q limit 90 
+2024-10-31 17:52:10 - Starting server
+2024-10-31 17:52:10 - ../../data/edgeList/patent_q 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/patent_q/90.txt
+2024-10-31 17:52:10 - Server process completed successfully
+2024-10-31 17:52:10 - Finished processing dataset: patent_q limit 90
+2024-10-31 17:52:11 - Processing dataset: patent_q limit 100 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/patent_q 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/patent_q/100.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: patent_q limit 100
+2024-10-31 17:52:11 - Processing dataset: soc-livejournal limit 1 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/soc-livejournal 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/soc-livejournal/1.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: soc-livejournal limit 1
+2024-10-31 17:52:11 - Processing dataset: soc-livejournal limit 10 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/soc-livejournal 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/soc-livejournal/10.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: soc-livejournal limit 10
+2024-10-31 17:52:11 - Processing dataset: soc-livejournal limit 20 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/soc-livejournal 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/soc-livejournal/20.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: soc-livejournal limit 20
+2024-10-31 17:52:11 - Processing dataset: soc-livejournal limit 30 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/soc-livejournal 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/soc-livejournal/30.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: soc-livejournal limit 30
+2024-10-31 17:52:11 - Processing dataset: soc-livejournal limit 40 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/soc-livejournal 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/soc-livejournal/40.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: soc-livejournal limit 40
+2024-10-31 17:52:11 - Processing dataset: soc-livejournal limit 50 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/soc-livejournal 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/soc-livejournal/50.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: soc-livejournal limit 50
+2024-10-31 17:52:11 - Processing dataset: soc-livejournal limit 60 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/soc-livejournal 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/soc-livejournal/60.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: soc-livejournal limit 60
+2024-10-31 17:52:11 - Processing dataset: soc-livejournal limit 70 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/soc-livejournal 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/soc-livejournal/70.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: soc-livejournal limit 70
+2024-10-31 17:52:11 - Processing dataset: soc-livejournal limit 80 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/soc-livejournal 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/soc-livejournal/80.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: soc-livejournal limit 80
+2024-10-31 17:52:11 - Processing dataset: soc-livejournal limit 90 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/soc-livejournal 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/soc-livejournal/90.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: soc-livejournal limit 90
+2024-10-31 17:52:11 - Processing dataset: soc-livejournal limit 100 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/soc-livejournal 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/soc-livejournal/100.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: soc-livejournal limit 100
+2024-10-31 17:52:11 - Processing dataset: dblp-author limit 1 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/dblp-author 300000 100000 0.5 1 1 100 1 1 1 1 1  ./results/exp3/ /1.txt ./client/query/exp3/dblp-author/1.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: dblp-author limit 1
+2024-10-31 17:52:11 - Processing dataset: dblp-author limit 10 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/dblp-author 300000 100000 0.5 1 10 100 1 1 1 1 1  ./results/exp3/ /10.txt ./client/query/exp3/dblp-author/10.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: dblp-author limit 10
+2024-10-31 17:52:11 - Processing dataset: dblp-author limit 20 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/dblp-author 300000 100000 0.5 1 20 100 1 1 1 1 1  ./results/exp3/ /20.txt ./client/query/exp3/dblp-author/20.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: dblp-author limit 20
+2024-10-31 17:52:11 - Processing dataset: dblp-author limit 30 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/dblp-author 300000 100000 0.5 1 30 100 1 1 1 1 1  ./results/exp3/ /30.txt ./client/query/exp3/dblp-author/30.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: dblp-author limit 30
+2024-10-31 17:52:11 - Processing dataset: dblp-author limit 40 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/dblp-author 300000 100000 0.5 1 40 100 1 1 1 1 1  ./results/exp3/ /40.txt ./client/query/exp3/dblp-author/40.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: dblp-author limit 40
+2024-10-31 17:52:11 - Processing dataset: dblp-author limit 50 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/dblp-author 300000 100000 0.5 1 50 100 1 1 1 1 1  ./results/exp3/ /50.txt ./client/query/exp3/dblp-author/50.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: dblp-author limit 50
+2024-10-31 17:52:11 - Processing dataset: dblp-author limit 60 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/dblp-author 300000 100000 0.5 1 60 100 1 1 1 1 1  ./results/exp3/ /60.txt ./client/query/exp3/dblp-author/60.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: dblp-author limit 60
+2024-10-31 17:52:11 - Processing dataset: dblp-author limit 70 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/dblp-author 300000 100000 0.5 1 70 100 1 1 1 1 1  ./results/exp3/ /70.txt ./client/query/exp3/dblp-author/70.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: dblp-author limit 70
+2024-10-31 17:52:11 - Processing dataset: dblp-author limit 80 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/dblp-author 300000 100000 0.5 1 80 100 1 1 1 1 1  ./results/exp3/ /80.txt ./client/query/exp3/dblp-author/80.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: dblp-author limit 80
+2024-10-31 17:52:11 - Processing dataset: dblp-author limit 90 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/dblp-author 300000 100000 0.5 1 90 100 1 1 1 1 1  ./results/exp3/ /90.txt ./client/query/exp3/dblp-author/90.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: dblp-author limit 90
+2024-10-31 17:52:11 - Processing dataset: dblp-author limit 100 
+2024-10-31 17:52:11 - Starting server
+2024-10-31 17:52:11 - ../../data/edgeList/dblp-author 300000 100000 0.5 1 100 100 1 1 1 1 1  ./results/exp3/ /100.txt ./client/query/exp3/dblp-author/100.txt
+2024-10-31 17:52:11 - Server process completed successfully
+2024-10-31 17:52:11 - Finished processing dataset: dblp-author limit 100
+2024-10-31 17:52:11 - All datasets processed successfully

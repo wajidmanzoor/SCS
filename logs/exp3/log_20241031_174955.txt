@@ -1,0 +1,1321 @@
+2024-10-31 17:49:55 - Processing dataset: ego-facebook limit 1 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/ego-facebook
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: ego-facebook limit 1
+2024-10-31 17:49:55 - Processing dataset: ego-facebook limit 10 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/ego-facebook
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: ego-facebook limit 10
+2024-10-31 17:49:55 - Processing dataset: ego-facebook limit 20 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/ego-facebook
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: ego-facebook limit 20
+2024-10-31 17:49:55 - Processing dataset: ego-facebook limit 30 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/ego-facebook
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: ego-facebook limit 30
+2024-10-31 17:49:55 - Processing dataset: ego-facebook limit 40 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/ego-facebook
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: ego-facebook limit 40
+2024-10-31 17:49:55 - Processing dataset: ego-facebook limit 50 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - ../../data/edgeList/ego-facebook
+2024-10-31 17:49:55 - Finished processing dataset: ego-facebook limit 50
+2024-10-31 17:49:55 - Processing dataset: ego-facebook limit 60 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/ego-facebook
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: ego-facebook limit 60
+2024-10-31 17:49:55 - Processing dataset: ego-facebook limit 70 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/ego-facebook
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: ego-facebook limit 70
+2024-10-31 17:49:55 - Processing dataset: ego-facebook limit 80 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - ../../data/edgeList/ego-facebook
+2024-10-31 17:49:55 - Finished processing dataset: ego-facebook limit 80
+2024-10-31 17:49:55 - Processing dataset: ego-facebook limit 90 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/ego-facebook
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: ego-facebook limit 90
+2024-10-31 17:49:55 - Processing dataset: ego-facebook limit 100 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/ego-facebook
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: ego-facebook limit 100
+2024-10-31 17:49:55 - Processing dataset: grqc_q limit 1 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - ../../data/edgeList/grqc_q
+2024-10-31 17:49:55 - Finished processing dataset: grqc_q limit 1
+2024-10-31 17:49:55 - Processing dataset: grqc_q limit 10 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/grqc_q
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: grqc_q limit 10
+2024-10-31 17:49:55 - Processing dataset: grqc_q limit 20 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/grqc_q
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: grqc_q limit 20
+2024-10-31 17:49:55 - Processing dataset: grqc_q limit 30 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/grqc_q
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: grqc_q limit 30
+2024-10-31 17:49:55 - Processing dataset: grqc_q limit 40 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/grqc_q
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: grqc_q limit 40
+2024-10-31 17:49:55 - Processing dataset: grqc_q limit 50 
+2024-10-31 17:49:55 - Starting server
+2024-10-31 17:49:55 - ../../data/edgeList/grqc_q
+2024-10-31 17:49:55 - Server process completed successfully
+2024-10-31 17:49:55 - Finished processing dataset: grqc_q limit 50
+2024-10-31 17:49:55 - Processing dataset: grqc_q limit 60 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/grqc_q
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: grqc_q limit 60
+2024-10-31 17:49:56 - Processing dataset: grqc_q limit 70 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/grqc_q
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: grqc_q limit 70
+2024-10-31 17:49:56 - Processing dataset: grqc_q limit 80 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/grqc_q
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: grqc_q limit 80
+2024-10-31 17:49:56 - Processing dataset: grqc_q limit 90 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/grqc_q
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: grqc_q limit 90
+2024-10-31 17:49:56 - Processing dataset: grqc_q limit 100 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/grqc_q
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: grqc_q limit 100
+2024-10-31 17:49:56 - Processing dataset: uc64 limit 1 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/uc64
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: uc64 limit 1
+2024-10-31 17:49:56 - Processing dataset: uc64 limit 10 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/uc64
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: uc64 limit 10
+2024-10-31 17:49:56 - Processing dataset: uc64 limit 20 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/uc64
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: uc64 limit 20
+2024-10-31 17:49:56 - Processing dataset: uc64 limit 30 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/uc64
+2024-10-31 17:49:56 - Finished processing dataset: uc64 limit 30
+2024-10-31 17:49:56 - Processing dataset: uc64 limit 40 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/uc64
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: uc64 limit 40
+2024-10-31 17:49:56 - Processing dataset: uc64 limit 50 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/uc64
+2024-10-31 17:49:56 - Finished processing dataset: uc64 limit 50
+2024-10-31 17:49:56 - Processing dataset: uc64 limit 60 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/uc64
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: uc64 limit 60
+2024-10-31 17:49:56 - Processing dataset: uc64 limit 70 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/uc64
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: uc64 limit 70
+2024-10-31 17:49:56 - Processing dataset: uc64 limit 80 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/uc64
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: uc64 limit 80
+2024-10-31 17:49:56 - Processing dataset: uc64 limit 90 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/uc64
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: uc64 limit 90
+2024-10-31 17:49:56 - Processing dataset: uc64 limit 100 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/uc64
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: uc64 limit 100
+2024-10-31 17:49:56 - Processing dataset: government limit 1 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/government
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: government limit 1
+2024-10-31 17:49:56 - Processing dataset: government limit 10 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/government
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: government limit 10
+2024-10-31 17:49:56 - Processing dataset: government limit 20 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/government
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: government limit 20
+2024-10-31 17:49:56 - Processing dataset: government limit 30 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/government
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: government limit 30
+2024-10-31 17:49:56 - Processing dataset: government limit 40 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/government
+2024-10-31 17:49:56 - Finished processing dataset: government limit 40
+2024-10-31 17:49:56 - Processing dataset: government limit 50 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/government
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: government limit 50
+2024-10-31 17:49:56 - Processing dataset: government limit 60 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/government
+2024-10-31 17:49:56 - Finished processing dataset: government limit 60
+2024-10-31 17:49:56 - Processing dataset: government limit 70 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/government
+2024-10-31 17:49:56 - Finished processing dataset: government limit 70
+2024-10-31 17:49:56 - Processing dataset: government limit 80 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/government
+2024-10-31 17:49:56 - Finished processing dataset: government limit 80
+2024-10-31 17:49:56 - Processing dataset: government limit 90 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/government
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: government limit 90
+2024-10-31 17:49:56 - Processing dataset: government limit 100 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/government
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: government limit 100
+2024-10-31 17:49:56 - Processing dataset: wiki-elec limit 1 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/wiki-elec
+2024-10-31 17:49:56 - Finished processing dataset: wiki-elec limit 1
+2024-10-31 17:49:56 - Processing dataset: wiki-elec limit 10 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/wiki-elec
+2024-10-31 17:49:56 - Finished processing dataset: wiki-elec limit 10
+2024-10-31 17:49:56 - Processing dataset: wiki-elec limit 20 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/wiki-elec
+2024-10-31 17:49:56 - Finished processing dataset: wiki-elec limit 20
+2024-10-31 17:49:56 - Processing dataset: wiki-elec limit 30 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/wiki-elec
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: wiki-elec limit 30
+2024-10-31 17:49:56 - Processing dataset: wiki-elec limit 40 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/wiki-elec
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: wiki-elec limit 40
+2024-10-31 17:49:56 - Processing dataset: wiki-elec limit 50 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/wiki-elec
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: wiki-elec limit 50
+2024-10-31 17:49:56 - Processing dataset: wiki-elec limit 60 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/wiki-elec
+2024-10-31 17:49:56 - Finished processing dataset: wiki-elec limit 60
+2024-10-31 17:49:56 - Processing dataset: wiki-elec limit 70 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/wiki-elec
+2024-10-31 17:49:56 - Finished processing dataset: wiki-elec limit 70
+2024-10-31 17:49:56 - Processing dataset: wiki-elec limit 80 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/wiki-elec
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: wiki-elec limit 80
+2024-10-31 17:49:56 - Processing dataset: wiki-elec limit 90 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/wiki-elec
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: wiki-elec limit 90
+2024-10-31 17:49:56 - Processing dataset: wiki-elec limit 100 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/wiki-elec
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: wiki-elec limit 100
+2024-10-31 17:49:56 - Processing dataset: lastfm limit 1 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - ../../data/edgeList/lastfm
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - Finished processing dataset: lastfm limit 1
+2024-10-31 17:49:56 - Processing dataset: lastfm limit 10 
+2024-10-31 17:49:56 - Starting server
+2024-10-31 17:49:56 - Server process completed successfully
+2024-10-31 17:49:56 - ../../data/edgeList/lastfm
+2024-10-31 17:49:56 - Finished processing dataset: lastfm limit 10
+2024-10-31 17:49:56 - Processing dataset: lastfm limit 20 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/lastfm
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: lastfm limit 20
+2024-10-31 17:49:57 - Processing dataset: lastfm limit 30 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/lastfm
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: lastfm limit 30
+2024-10-31 17:49:57 - Processing dataset: lastfm limit 40 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/lastfm
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: lastfm limit 40
+2024-10-31 17:49:57 - Processing dataset: lastfm limit 50 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/lastfm
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: lastfm limit 50
+2024-10-31 17:49:57 - Processing dataset: lastfm limit 60 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/lastfm
+2024-10-31 17:49:57 - Finished processing dataset: lastfm limit 60
+2024-10-31 17:49:57 - Processing dataset: lastfm limit 70 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/lastfm
+2024-10-31 17:49:57 - Finished processing dataset: lastfm limit 70
+2024-10-31 17:49:57 - Processing dataset: lastfm limit 80 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/lastfm
+2024-10-31 17:49:57 - Finished processing dataset: lastfm limit 80
+2024-10-31 17:49:57 - Processing dataset: lastfm limit 90 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/lastfm
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: lastfm limit 90
+2024-10-31 17:49:57 - Processing dataset: lastfm limit 100 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/lastfm
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: lastfm limit 100
+2024-10-31 17:49:57 - Processing dataset: hepPh limit 1 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/hepPh
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: hepPh limit 1
+2024-10-31 17:49:57 - Processing dataset: hepPh limit 10 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/hepPh
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: hepPh limit 10
+2024-10-31 17:49:57 - Processing dataset: hepPh limit 20 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/hepPh
+2024-10-31 17:49:57 - Finished processing dataset: hepPh limit 20
+2024-10-31 17:49:57 - Processing dataset: hepPh limit 30 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/hepPh
+2024-10-31 17:49:57 - Finished processing dataset: hepPh limit 30
+2024-10-31 17:49:57 - Processing dataset: hepPh limit 40 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/hepPh
+2024-10-31 17:49:57 - Finished processing dataset: hepPh limit 40
+2024-10-31 17:49:57 - Processing dataset: hepPh limit 50 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/hepPh
+2024-10-31 17:49:57 - Finished processing dataset: hepPh limit 50
+2024-10-31 17:49:57 - Processing dataset: hepPh limit 60 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/hepPh
+2024-10-31 17:49:57 - Finished processing dataset: hepPh limit 60
+2024-10-31 17:49:57 - Processing dataset: hepPh limit 70 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/hepPh
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: hepPh limit 70
+2024-10-31 17:49:57 - Processing dataset: hepPh limit 80 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/hepPh
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: hepPh limit 80
+2024-10-31 17:49:57 - Processing dataset: hepPh limit 90 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/hepPh
+2024-10-31 17:49:57 - Finished processing dataset: hepPh limit 90
+2024-10-31 17:49:57 - Processing dataset: hepPh limit 100 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/hepPh
+2024-10-31 17:49:57 - Finished processing dataset: hepPh limit 100
+2024-10-31 17:49:57 - Processing dataset: astroPh limit 1 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/astroPh
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: astroPh limit 1
+2024-10-31 17:49:57 - Processing dataset: astroPh limit 10 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/astroPh
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: astroPh limit 10
+2024-10-31 17:49:57 - Processing dataset: astroPh limit 20 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/astroPh
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: astroPh limit 20
+2024-10-31 17:49:57 - Processing dataset: astroPh limit 30 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/astroPh
+2024-10-31 17:49:57 - Finished processing dataset: astroPh limit 30
+2024-10-31 17:49:57 - Processing dataset: astroPh limit 40 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/astroPh
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: astroPh limit 40
+2024-10-31 17:49:57 - Processing dataset: astroPh limit 50 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/astroPh
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: astroPh limit 50
+2024-10-31 17:49:57 - Processing dataset: astroPh limit 60 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/astroPh
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: astroPh limit 60
+2024-10-31 17:49:57 - Processing dataset: astroPh limit 70 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/astroPh
+2024-10-31 17:49:57 - Finished processing dataset: astroPh limit 70
+2024-10-31 17:49:57 - Processing dataset: astroPh limit 80 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/astroPh
+2024-10-31 17:49:57 - Finished processing dataset: astroPh limit 80
+2024-10-31 17:49:57 - Processing dataset: astroPh limit 90 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/astroPh
+2024-10-31 17:49:57 - Finished processing dataset: astroPh limit 90
+2024-10-31 17:49:57 - Processing dataset: astroPh limit 100 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/astroPh
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: astroPh limit 100
+2024-10-31 17:49:57 - Processing dataset: condmat limit 1 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/condmat
+2024-10-31 17:49:57 - Finished processing dataset: condmat limit 1
+2024-10-31 17:49:57 - Processing dataset: condmat limit 10 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/condmat
+2024-10-31 17:49:57 - Finished processing dataset: condmat limit 10
+2024-10-31 17:49:57 - Processing dataset: condmat limit 20 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/condmat
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: condmat limit 20
+2024-10-31 17:49:57 - Processing dataset: condmat limit 30 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/condmat
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: condmat limit 30
+2024-10-31 17:49:57 - Processing dataset: condmat limit 40 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - ../../data/edgeList/condmat
+2024-10-31 17:49:57 - Finished processing dataset: condmat limit 40
+2024-10-31 17:49:57 - Processing dataset: condmat limit 50 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/condmat
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: condmat limit 50
+2024-10-31 17:49:57 - Processing dataset: condmat limit 60 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/condmat
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: condmat limit 60
+2024-10-31 17:49:57 - Processing dataset: condmat limit 70 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/condmat
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: condmat limit 70
+2024-10-31 17:49:57 - Processing dataset: condmat limit 80 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/condmat
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:57 - Finished processing dataset: condmat limit 80
+2024-10-31 17:49:57 - Processing dataset: condmat limit 90 
+2024-10-31 17:49:57 - Starting server
+2024-10-31 17:49:57 - ../../data/edgeList/condmat
+2024-10-31 17:49:57 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: condmat limit 90
+2024-10-31 17:49:58 - Processing dataset: condmat limit 100 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - ../../data/edgeList/condmat
+2024-10-31 17:49:58 - Finished processing dataset: condmat limit 100
+2024-10-31 17:49:58 - Processing dataset: Enron_q limit 1 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - ../../data/edgeList/Enron_q
+2024-10-31 17:49:58 - Finished processing dataset: Enron_q limit 1
+2024-10-31 17:49:58 - Processing dataset: Enron_q limit 10 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/Enron_q
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: Enron_q limit 10
+2024-10-31 17:49:58 - Processing dataset: Enron_q limit 20 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - ../../data/edgeList/Enron_q
+2024-10-31 17:49:58 - Finished processing dataset: Enron_q limit 20
+2024-10-31 17:49:58 - Processing dataset: Enron_q limit 30 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - ../../data/edgeList/Enron_q
+2024-10-31 17:49:58 - Finished processing dataset: Enron_q limit 30
+2024-10-31 17:49:58 - Processing dataset: Enron_q limit 40 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/Enron_q
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: Enron_q limit 40
+2024-10-31 17:49:58 - Processing dataset: Enron_q limit 50 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/Enron_q
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: Enron_q limit 50
+2024-10-31 17:49:58 - Processing dataset: Enron_q limit 60 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - ../../data/edgeList/Enron_q
+2024-10-31 17:49:58 - Finished processing dataset: Enron_q limit 60
+2024-10-31 17:49:58 - Processing dataset: Enron_q limit 70 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/Enron_q
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: Enron_q limit 70
+2024-10-31 17:49:58 - Processing dataset: Enron_q limit 80 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/Enron_q
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: Enron_q limit 80
+2024-10-31 17:49:58 - Processing dataset: Enron_q limit 90 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/Enron_q
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: Enron_q limit 90
+2024-10-31 17:49:58 - Processing dataset: Enron_q limit 100 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/Enron_q
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: Enron_q limit 100
+2024-10-31 17:49:58 - Processing dataset: fb-pages limit 1 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/fb-pages
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: fb-pages limit 1
+2024-10-31 17:49:58 - Processing dataset: fb-pages limit 10 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/fb-pages
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: fb-pages limit 10
+2024-10-31 17:49:58 - Processing dataset: fb-pages limit 20 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/fb-pages
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: fb-pages limit 20
+2024-10-31 17:49:58 - Processing dataset: fb-pages limit 30 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/fb-pages
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: fb-pages limit 30
+2024-10-31 17:49:58 - Processing dataset: fb-pages limit 40 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - ../../data/edgeList/fb-pages
+2024-10-31 17:49:58 - Finished processing dataset: fb-pages limit 40
+2024-10-31 17:49:58 - Processing dataset: fb-pages limit 50 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/fb-pages
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: fb-pages limit 50
+2024-10-31 17:49:58 - Processing dataset: fb-pages limit 60 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/fb-pages
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: fb-pages limit 60
+2024-10-31 17:49:58 - Processing dataset: fb-pages limit 70 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/fb-pages
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: fb-pages limit 70
+2024-10-31 17:49:58 - Processing dataset: fb-pages limit 80 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/fb-pages
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: fb-pages limit 80
+2024-10-31 17:49:58 - Processing dataset: fb-pages limit 90 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/fb-pages
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: fb-pages limit 90
+2024-10-31 17:49:58 - Processing dataset: fb-pages limit 100 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/fb-pages
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: fb-pages limit 100
+2024-10-31 17:49:58 - Processing dataset: brightkite limit 1 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/brightkite
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: brightkite limit 1
+2024-10-31 17:49:58 - Processing dataset: brightkite limit 10 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - ../../data/edgeList/brightkite
+2024-10-31 17:49:58 - Finished processing dataset: brightkite limit 10
+2024-10-31 17:49:58 - Processing dataset: brightkite limit 20 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/brightkite
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: brightkite limit 20
+2024-10-31 17:49:58 - Processing dataset: brightkite limit 30 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/brightkite
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: brightkite limit 30
+2024-10-31 17:49:58 - Processing dataset: brightkite limit 40 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/brightkite
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: brightkite limit 40
+2024-10-31 17:49:58 - Processing dataset: brightkite limit 50 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/brightkite
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: brightkite limit 50
+2024-10-31 17:49:58 - Processing dataset: brightkite limit 60 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - ../../data/edgeList/brightkite
+2024-10-31 17:49:58 - Finished processing dataset: brightkite limit 60
+2024-10-31 17:49:58 - Processing dataset: brightkite limit 70 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/brightkite
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: brightkite limit 70
+2024-10-31 17:49:58 - Processing dataset: brightkite limit 80 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - ../../data/edgeList/brightkite
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - Finished processing dataset: brightkite limit 80
+2024-10-31 17:49:58 - Processing dataset: brightkite limit 90 
+2024-10-31 17:49:58 - Starting server
+2024-10-31 17:49:58 - Server process completed successfully
+2024-10-31 17:49:58 - ../../data/edgeList/brightkite
+2024-10-31 17:49:58 - Finished processing dataset: brightkite limit 90
+2024-10-31 17:49:59 - Processing dataset: brightkite limit 100 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/brightkite
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: brightkite limit 100
+2024-10-31 17:49:59 - Processing dataset: livemocha limit 1 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/livemocha
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: livemocha limit 1
+2024-10-31 17:49:59 - Processing dataset: livemocha limit 10 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/livemocha
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: livemocha limit 10
+2024-10-31 17:49:59 - Processing dataset: livemocha limit 20 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/livemocha
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: livemocha limit 20
+2024-10-31 17:49:59 - Processing dataset: livemocha limit 30 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/livemocha
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: livemocha limit 30
+2024-10-31 17:49:59 - Processing dataset: livemocha limit 40 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/livemocha
+2024-10-31 17:49:59 - Finished processing dataset: livemocha limit 40
+2024-10-31 17:49:59 - Processing dataset: livemocha limit 50 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/livemocha
+2024-10-31 17:49:59 - Finished processing dataset: livemocha limit 50
+2024-10-31 17:49:59 - Processing dataset: livemocha limit 60 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/livemocha
+2024-10-31 17:49:59 - Finished processing dataset: livemocha limit 60
+2024-10-31 17:49:59 - Processing dataset: livemocha limit 70 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/livemocha
+2024-10-31 17:49:59 - Finished processing dataset: livemocha limit 70
+2024-10-31 17:49:59 - Processing dataset: livemocha limit 80 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/livemocha
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: livemocha limit 80
+2024-10-31 17:49:59 - Processing dataset: livemocha limit 90 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/livemocha
+2024-10-31 17:49:59 - Finished processing dataset: livemocha limit 90
+2024-10-31 17:49:59 - Processing dataset: livemocha limit 100 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/livemocha
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: livemocha limit 100
+2024-10-31 17:49:59 - Processing dataset: gowalla limit 1 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/gowalla
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: gowalla limit 1
+2024-10-31 17:49:59 - Processing dataset: gowalla limit 10 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/gowalla
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: gowalla limit 10
+2024-10-31 17:49:59 - Processing dataset: gowalla limit 20 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/gowalla
+2024-10-31 17:49:59 - Finished processing dataset: gowalla limit 20
+2024-10-31 17:49:59 - Processing dataset: gowalla limit 30 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/gowalla
+2024-10-31 17:49:59 - Finished processing dataset: gowalla limit 30
+2024-10-31 17:49:59 - Processing dataset: gowalla limit 40 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/gowalla
+2024-10-31 17:49:59 - Finished processing dataset: gowalla limit 40
+2024-10-31 17:49:59 - Processing dataset: gowalla limit 50 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/gowalla
+2024-10-31 17:49:59 - Finished processing dataset: gowalla limit 50
+2024-10-31 17:49:59 - Processing dataset: gowalla limit 60 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/gowalla
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: gowalla limit 60
+2024-10-31 17:49:59 - Processing dataset: gowalla limit 70 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/gowalla
+2024-10-31 17:49:59 - Finished processing dataset: gowalla limit 70
+2024-10-31 17:49:59 - Processing dataset: gowalla limit 80 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/gowalla
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: gowalla limit 80
+2024-10-31 17:49:59 - Processing dataset: gowalla limit 90 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/gowalla
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: gowalla limit 90
+2024-10-31 17:49:59 - Processing dataset: gowalla limit 100 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/gowalla
+2024-10-31 17:49:59 - Finished processing dataset: gowalla limit 100
+2024-10-31 17:49:59 - Processing dataset: citeseer limit 1 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/citeseer
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: citeseer limit 1
+2024-10-31 17:49:59 - Processing dataset: citeseer limit 10 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/citeseer
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: citeseer limit 10
+2024-10-31 17:49:59 - Processing dataset: citeseer limit 20 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/citeseer
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: citeseer limit 20
+2024-10-31 17:49:59 - Processing dataset: citeseer limit 30 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/citeseer
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: citeseer limit 30
+2024-10-31 17:49:59 - Processing dataset: citeseer limit 40 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/citeseer
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: citeseer limit 40
+2024-10-31 17:49:59 - Processing dataset: citeseer limit 50 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/citeseer
+2024-10-31 17:49:59 - Finished processing dataset: citeseer limit 50
+2024-10-31 17:49:59 - Processing dataset: citeseer limit 60 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/citeseer
+2024-10-31 17:49:59 - Finished processing dataset: citeseer limit 60
+2024-10-31 17:49:59 - Processing dataset: citeseer limit 70 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/citeseer
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: citeseer limit 70
+2024-10-31 17:49:59 - Processing dataset: citeseer limit 80 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/citeseer
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: citeseer limit 80
+2024-10-31 17:49:59 - Processing dataset: citeseer limit 90 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - ../../data/edgeList/citeseer
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - Finished processing dataset: citeseer limit 90
+2024-10-31 17:49:59 - Processing dataset: citeseer limit 100 
+2024-10-31 17:49:59 - Starting server
+2024-10-31 17:49:59 - Server process completed successfully
+2024-10-31 17:49:59 - ../../data/edgeList/citeseer
+2024-10-31 17:49:59 - Finished processing dataset: citeseer limit 100
+2024-10-31 17:50:00 - Processing dataset: com-dblp limit 1 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/com-dblp
+2024-10-31 17:50:00 - Finished processing dataset: com-dblp limit 1
+2024-10-31 17:50:00 - Processing dataset: com-dblp limit 10 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/com-dblp
+2024-10-31 17:50:00 - Finished processing dataset: com-dblp limit 10
+2024-10-31 17:50:00 - Processing dataset: com-dblp limit 20 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/com-dblp
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: com-dblp limit 20
+2024-10-31 17:50:00 - Processing dataset: com-dblp limit 30 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/com-dblp
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: com-dblp limit 30
+2024-10-31 17:50:00 - Processing dataset: com-dblp limit 40 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/com-dblp
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: com-dblp limit 40
+2024-10-31 17:50:00 - Processing dataset: com-dblp limit 50 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/com-dblp
+2024-10-31 17:50:00 - Finished processing dataset: com-dblp limit 50
+2024-10-31 17:50:00 - Processing dataset: com-dblp limit 60 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/com-dblp
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: com-dblp limit 60
+2024-10-31 17:50:00 - Processing dataset: com-dblp limit 70 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/com-dblp
+2024-10-31 17:50:00 - Finished processing dataset: com-dblp limit 70
+2024-10-31 17:50:00 - Processing dataset: com-dblp limit 80 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/com-dblp
+2024-10-31 17:50:00 - Finished processing dataset: com-dblp limit 80
+2024-10-31 17:50:00 - Processing dataset: com-dblp limit 90 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/com-dblp
+2024-10-31 17:50:00 - Finished processing dataset: com-dblp limit 90
+2024-10-31 17:50:00 - Processing dataset: com-dblp limit 100 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/com-dblp
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: com-dblp limit 100
+2024-10-31 17:50:00 - Processing dataset: amazon_q limit 1 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/amazon_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: amazon_q limit 1
+2024-10-31 17:50:00 - Processing dataset: amazon_q limit 10 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/amazon_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: amazon_q limit 10
+2024-10-31 17:50:00 - Processing dataset: amazon_q limit 20 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/amazon_q
+2024-10-31 17:50:00 - Finished processing dataset: amazon_q limit 20
+2024-10-31 17:50:00 - Processing dataset: amazon_q limit 30 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/amazon_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: amazon_q limit 30
+2024-10-31 17:50:00 - Processing dataset: amazon_q limit 40 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/amazon_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: amazon_q limit 40
+2024-10-31 17:50:00 - Processing dataset: amazon_q limit 50 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/amazon_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: amazon_q limit 50
+2024-10-31 17:50:00 - Processing dataset: amazon_q limit 60 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/amazon_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: amazon_q limit 60
+2024-10-31 17:50:00 - Processing dataset: amazon_q limit 70 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/amazon_q
+2024-10-31 17:50:00 - Finished processing dataset: amazon_q limit 70
+2024-10-31 17:50:00 - Processing dataset: amazon_q limit 80 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/amazon_q
+2024-10-31 17:50:00 - Finished processing dataset: amazon_q limit 80
+2024-10-31 17:50:00 - Processing dataset: amazon_q limit 90 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/amazon_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: amazon_q limit 90
+2024-10-31 17:50:00 - Processing dataset: amazon_q limit 100 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/amazon_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: amazon_q limit 100
+2024-10-31 17:50:00 - Processing dataset: youtube_q limit 1 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/youtube_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: youtube_q limit 1
+2024-10-31 17:50:00 - Processing dataset: youtube_q limit 10 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/youtube_q
+2024-10-31 17:50:00 - Finished processing dataset: youtube_q limit 10
+2024-10-31 17:50:00 - Processing dataset: youtube_q limit 20 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/youtube_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: youtube_q limit 20
+2024-10-31 17:50:00 - Processing dataset: youtube_q limit 30 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/youtube_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: youtube_q limit 30
+2024-10-31 17:50:00 - Processing dataset: youtube_q limit 40 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/youtube_q
+2024-10-31 17:50:00 - Finished processing dataset: youtube_q limit 40
+2024-10-31 17:50:00 - Processing dataset: youtube_q limit 50 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/youtube_q
+2024-10-31 17:50:00 - Finished processing dataset: youtube_q limit 50
+2024-10-31 17:50:00 - Processing dataset: youtube_q limit 60 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/youtube_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: youtube_q limit 60
+2024-10-31 17:50:00 - Processing dataset: youtube_q limit 70 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/youtube_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: youtube_q limit 70
+2024-10-31 17:50:00 - Processing dataset: youtube_q limit 80 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - ../../data/edgeList/youtube_q
+2024-10-31 17:50:00 - Finished processing dataset: youtube_q limit 80
+2024-10-31 17:50:00 - Processing dataset: youtube_q limit 90 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/youtube_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: youtube_q limit 90
+2024-10-31 17:50:00 - Processing dataset: youtube_q limit 100 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/youtube_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: youtube_q limit 100
+2024-10-31 17:50:00 - Processing dataset: hyves_q limit 1 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/hyves_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: hyves_q limit 1
+2024-10-31 17:50:00 - Processing dataset: hyves_q limit 10 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/hyves_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: hyves_q limit 10
+2024-10-31 17:50:00 - Processing dataset: hyves_q limit 20 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:00 - ../../data/edgeList/hyves_q
+2024-10-31 17:50:00 - Server process completed successfully
+2024-10-31 17:50:00 - Finished processing dataset: hyves_q limit 20
+2024-10-31 17:50:00 - Processing dataset: hyves_q limit 30 
+2024-10-31 17:50:00 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/hyves_q
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: hyves_q limit 30
+2024-10-31 17:50:01 - Processing dataset: hyves_q limit 40 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/hyves_q
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: hyves_q limit 40
+2024-10-31 17:50:01 - Processing dataset: hyves_q limit 50 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/hyves_q
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: hyves_q limit 50
+2024-10-31 17:50:01 - Processing dataset: hyves_q limit 60 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/hyves_q
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: hyves_q limit 60
+2024-10-31 17:50:01 - Processing dataset: hyves_q limit 70 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/hyves_q
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: hyves_q limit 70
+2024-10-31 17:50:01 - Processing dataset: hyves_q limit 80 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/hyves_q
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: hyves_q limit 80
+2024-10-31 17:50:01 - Processing dataset: hyves_q limit 90 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - ../../data/edgeList/hyves_q
+2024-10-31 17:50:01 - Finished processing dataset: hyves_q limit 90
+2024-10-31 17:50:01 - Processing dataset: hyves_q limit 100 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/hyves_q
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: hyves_q limit 100
+2024-10-31 17:50:01 - Processing dataset: skitter limit 1 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/skitter
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: skitter limit 1
+2024-10-31 17:50:01 - Processing dataset: skitter limit 10 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/skitter
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: skitter limit 10
+2024-10-31 17:50:01 - Processing dataset: skitter limit 20 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/skitter
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: skitter limit 20
+2024-10-31 17:50:01 - Processing dataset: skitter limit 30 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - ../../data/edgeList/skitter
+2024-10-31 17:50:01 - Finished processing dataset: skitter limit 30
+2024-10-31 17:50:01 - Processing dataset: skitter limit 40 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - ../../data/edgeList/skitter
+2024-10-31 17:50:01 - Finished processing dataset: skitter limit 40
+2024-10-31 17:50:01 - Processing dataset: skitter limit 50 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/skitter
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: skitter limit 50
+2024-10-31 17:50:01 - Processing dataset: skitter limit 60 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/skitter
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: skitter limit 60
+2024-10-31 17:50:01 - Processing dataset: skitter limit 70 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - ../../data/edgeList/skitter
+2024-10-31 17:50:01 - Finished processing dataset: skitter limit 70
+2024-10-31 17:50:01 - Processing dataset: skitter limit 80 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/skitter
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: skitter limit 80
+2024-10-31 17:50:01 - Processing dataset: skitter limit 90 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - ../../data/edgeList/skitter
+2024-10-31 17:50:01 - Finished processing dataset: skitter limit 90
+2024-10-31 17:50:01 - Processing dataset: skitter limit 100 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/skitter
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: skitter limit 100
+2024-10-31 17:50:01 - Processing dataset: flixster limit 1 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - ../../data/edgeList/flixster
+2024-10-31 17:50:01 - Finished processing dataset: flixster limit 1
+2024-10-31 17:50:01 - Processing dataset: flixster limit 10 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - ../../data/edgeList/flixster
+2024-10-31 17:50:01 - Finished processing dataset: flixster limit 10
+2024-10-31 17:50:01 - Processing dataset: flixster limit 20 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/flixster
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: flixster limit 20
+2024-10-31 17:50:01 - Processing dataset: flixster limit 30 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/flixster
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: flixster limit 30
+2024-10-31 17:50:01 - Processing dataset: flixster limit 40 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/flixster
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: flixster limit 40
+2024-10-31 17:50:01 - Processing dataset: flixster limit 50 
+2024-10-31 17:50:01 - Starting server
+2024-10-31 17:50:01 - ../../data/edgeList/flixster
+2024-10-31 17:50:01 - Server process completed successfully
+2024-10-31 17:50:01 - Finished processing dataset: flixster limit 50
+2024-10-31 17:50:02 - Processing dataset: flixster limit 60 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/flixster
+2024-10-31 17:50:02 - Finished processing dataset: flixster limit 60
+2024-10-31 17:50:02 - Processing dataset: flixster limit 70 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/flixster
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: flixster limit 70
+2024-10-31 17:50:02 - Processing dataset: flixster limit 80 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/flixster
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: flixster limit 80
+2024-10-31 17:50:02 - Processing dataset: flixster limit 90 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/flixster
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: flixster limit 90
+2024-10-31 17:50:02 - Processing dataset: flixster limit 100 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/flixster
+2024-10-31 17:50:02 - Finished processing dataset: flixster limit 100
+2024-10-31 17:50:02 - Processing dataset: patent_q limit 1 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/patent_q
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: patent_q limit 1
+2024-10-31 17:50:02 - Processing dataset: patent_q limit 10 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/patent_q
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: patent_q limit 10
+2024-10-31 17:50:02 - Processing dataset: patent_q limit 20 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/patent_q
+2024-10-31 17:50:02 - Finished processing dataset: patent_q limit 20
+2024-10-31 17:50:02 - Processing dataset: patent_q limit 30 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/patent_q
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: patent_q limit 30
+2024-10-31 17:50:02 - Processing dataset: patent_q limit 40 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/patent_q
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: patent_q limit 40
+2024-10-31 17:50:02 - Processing dataset: patent_q limit 50 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/patent_q
+2024-10-31 17:50:02 - Finished processing dataset: patent_q limit 50
+2024-10-31 17:50:02 - Processing dataset: patent_q limit 60 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/patent_q
+2024-10-31 17:50:02 - Finished processing dataset: patent_q limit 60
+2024-10-31 17:50:02 - Processing dataset: patent_q limit 70 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/patent_q
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: patent_q limit 70
+2024-10-31 17:50:02 - Processing dataset: patent_q limit 80 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/patent_q
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: patent_q limit 80
+2024-10-31 17:50:02 - Processing dataset: patent_q limit 90 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/patent_q
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: patent_q limit 90
+2024-10-31 17:50:02 - Processing dataset: patent_q limit 100 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/patent_q
+2024-10-31 17:50:02 - Finished processing dataset: patent_q limit 100
+2024-10-31 17:50:02 - Processing dataset: soc-livejournal limit 1 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/soc-livejournal
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: soc-livejournal limit 1
+2024-10-31 17:50:02 - Processing dataset: soc-livejournal limit 10 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/soc-livejournal
+2024-10-31 17:50:02 - Finished processing dataset: soc-livejournal limit 10
+2024-10-31 17:50:02 - Processing dataset: soc-livejournal limit 20 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/soc-livejournal
+2024-10-31 17:50:02 - Finished processing dataset: soc-livejournal limit 20
+2024-10-31 17:50:02 - Processing dataset: soc-livejournal limit 30 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/soc-livejournal
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: soc-livejournal limit 30
+2024-10-31 17:50:02 - Processing dataset: soc-livejournal limit 40 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/soc-livejournal
+2024-10-31 17:50:02 - Finished processing dataset: soc-livejournal limit 40
+2024-10-31 17:50:02 - Processing dataset: soc-livejournal limit 50 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/soc-livejournal
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: soc-livejournal limit 50
+2024-10-31 17:50:02 - Processing dataset: soc-livejournal limit 60 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/soc-livejournal
+2024-10-31 17:50:02 - Finished processing dataset: soc-livejournal limit 60
+2024-10-31 17:50:02 - Processing dataset: soc-livejournal limit 70 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/soc-livejournal
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: soc-livejournal limit 70
+2024-10-31 17:50:02 - Processing dataset: soc-livejournal limit 80 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/soc-livejournal
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: soc-livejournal limit 80
+2024-10-31 17:50:02 - Processing dataset: soc-livejournal limit 90 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/soc-livejournal
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: soc-livejournal limit 90
+2024-10-31 17:50:02 - Processing dataset: soc-livejournal limit 100 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/soc-livejournal
+2024-10-31 17:50:02 - Finished processing dataset: soc-livejournal limit 100
+2024-10-31 17:50:02 - Processing dataset: dblp-author limit 1 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - ../../data/edgeList/dblp-author
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - Finished processing dataset: dblp-author limit 1
+2024-10-31 17:50:02 - Processing dataset: dblp-author limit 10 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/dblp-author
+2024-10-31 17:50:02 - Finished processing dataset: dblp-author limit 10
+2024-10-31 17:50:02 - Processing dataset: dblp-author limit 20 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/dblp-author
+2024-10-31 17:50:02 - Finished processing dataset: dblp-author limit 20
+2024-10-31 17:50:02 - Processing dataset: dblp-author limit 30 
+2024-10-31 17:50:02 - Starting server
+2024-10-31 17:50:02 - Server process completed successfully
+2024-10-31 17:50:02 - ../../data/edgeList/dblp-author
+2024-10-31 17:50:03 - Finished processing dataset: dblp-author limit 30
+2024-10-31 17:50:03 - Processing dataset: dblp-author limit 40 
+2024-10-31 17:50:03 - Starting server
+2024-10-31 17:50:03 - ../../data/edgeList/dblp-author
+2024-10-31 17:50:03 - Server process completed successfully
+2024-10-31 17:50:03 - Finished processing dataset: dblp-author limit 40
+2024-10-31 17:50:03 - Processing dataset: dblp-author limit 50 
+2024-10-31 17:50:03 - Starting server
+2024-10-31 17:50:03 - ../../data/edgeList/dblp-author
+2024-10-31 17:50:03 - Server process completed successfully
+2024-10-31 17:50:03 - Finished processing dataset: dblp-author limit 50
+2024-10-31 17:50:03 - Processing dataset: dblp-author limit 60 
+2024-10-31 17:50:03 - Starting server
+2024-10-31 17:50:03 - ../../data/edgeList/dblp-author
+2024-10-31 17:50:03 - Server process completed successfully
+2024-10-31 17:50:03 - Finished processing dataset: dblp-author limit 60
+2024-10-31 17:50:03 - Processing dataset: dblp-author limit 70 
+2024-10-31 17:50:03 - Starting server
+2024-10-31 17:50:03 - ../../data/edgeList/dblp-author
+2024-10-31 17:50:03 - Server process completed successfully
+2024-10-31 17:50:03 - Finished processing dataset: dblp-author limit 70
+2024-10-31 17:50:03 - Processing dataset: dblp-author limit 80 
+2024-10-31 17:50:03 - Starting server
+2024-10-31 17:50:03 - Server process completed successfully
+2024-10-31 17:50:03 - ../../data/edgeList/dblp-author
+2024-10-31 17:50:03 - Finished processing dataset: dblp-author limit 80
+2024-10-31 17:50:03 - Processing dataset: dblp-author limit 90 
+2024-10-31 17:50:03 - Starting server
+2024-10-31 17:50:03 - Server process completed successfully
+2024-10-31 17:50:03 - ../../data/edgeList/dblp-author
+2024-10-31 17:50:03 - Finished processing dataset: dblp-author limit 90
+2024-10-31 17:50:03 - Processing dataset: dblp-author limit 100 
+2024-10-31 17:50:03 - Starting server
+2024-10-31 17:50:03 - Server process completed successfully
+2024-10-31 17:50:03 - ../../data/edgeList/dblp-author
+2024-10-31 17:50:03 - Finished processing dataset: dblp-author limit 100
+2024-10-31 17:50:03 - All datasets processed successfully

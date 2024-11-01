@@ -1,0 +1,9 @@
+2024-10-31 20:26:39 - Processing dataset: ego-facebook with reduction rule 1 1 1
+2024-10-31 20:26:39 - Error: Dataset file '../../../data/edgeList/ego-facebook' not found
+2024-10-31 20:26:39 - Processing dataset: ego-facebook with reduction rule 1 1 0
+2024-10-31 20:26:39 - Error: Dataset file '../../../data/edgeList/ego-facebook' not found
+2024-10-31 20:26:39 - Processing dataset: ego-facebook with reduction rule 1 0 1
+2024-10-31 20:26:39 - Error: Dataset file '../../../data/edgeList/ego-facebook' not found
+2024-10-31 20:26:39 - Processing dataset: ego-facebook with reduction rule 0 1 1
+2024-10-31 20:26:39 - Error: Dataset file '../../../data/edgeList/ego-facebook' not found
+2024-10-31 20:26:39 - Script completed successfully

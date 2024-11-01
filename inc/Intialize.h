@@ -20,6 +20,8 @@
 #include <thread>
 #include "../ipc/msgtool.h"
 
+#include <sys/stat.h>
+
 
 #define BLK_NUMS 432
 #define BLK_DIM 512

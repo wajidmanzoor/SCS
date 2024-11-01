@@ -1,6 +1,0 @@
-,graph,N1,N2,QID,Query Limit,Total Queries,Degree,Overtime /p1,Time /p1,Overtime /p2,Time /p2,Overtime all,Time all
-0,amazon_q,9,12,321,10,10,6,0,419546,0,417569,0,416036
-1,com-dblp,9,12,79920,10,10,11,0,1327,0,1246,0,1426
-2,ego-facebook,9,12,1127,10,10,9,0,3538243,0,3426140,0,3422796
-3,government,9,12,6876,10,10,8,0,136055,0,135505,0,135860
-4,orani,9,12,1452,10,10,9,0,14495909,0,2637204,0,2640964

@@ -418,7 +418,7 @@ void processMessages() {
   }
 
   stringstream ss;
-  ss <<"-1|-1|-1|-1|-1|-1|-1|"<<integer_to_string(totalTimer.receiveTimer.elapsed()).c_str();
+  ss <<"-1|-1|-1|-1|-1|-1|-1|"<<integer_to_string(totalTimer.elapsed()).c_str();
   writeOrAppend(fileName,ss.str());  
 }
 
@@ -440,8 +440,8 @@ int main(int argc, const char * argv[]) {
   red3 = atoi(argv[10]);
   prun1 = atoi(argv[11]);
   prun2 = atoi(argv[12]);
-  ui prefix = argv[13];
-  ui postfix = argv[14];
+  const char * prefix = argv[13];
+  const char * postfix = argv[14];
 
   
   graphPath = argv[1];
