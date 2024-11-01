@@ -183,9 +183,9 @@ void processMessages() {
 
         ui writeWarp, ntasks, space;
 
-        auto minElementIter = thrust::min_element(thrust::device, numTasks.begin(), numTasks.end());
+        auto minElementIter = thrust::min_element(thrust::device, deviceTask.numTasks.begin(), .edeviceTask.numTasks.end());
 
-        int writeWarp = minElementIter - numTasks.begin();
+        writeWarp = minElementIter - numTasks.begin();
 
         chkerr(cudaMemcpy( &ntasks, deviceTask.numTasks + writeWarp, sizeof(ui), cudaMemcpyDeviceToHost));
         ui offsetPsize = partitionSize/factor;

@@ -210,10 +210,6 @@ void freeTaskPointer(deviceTaskPointers &p){
 
     chkerr(cudaFree(p.numTasks));
     chkerr(cudaFree(p.limitTasks));
-    chkerr(cudaFree(p.sortedIndex));
-    chkerr(cudaFree(p.mapping));
-
-
 
 }
 

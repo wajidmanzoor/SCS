@@ -748,7 +748,7 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
                  } else {
           if (( * B.numTask > 0)) {
 
-            readFromBuffer( G,  G_,  T,  B,  copyLimit, lastWritten, startIndex,  start,  total,  iter,  pSize, offsetPsize, otherPsize,  size,  totalEdges,  bufferSize, warpId, laneId);
+            readFromBuffer( G,  G_,  T,  B,  copyLimit, lastWritten, startIndex,  start,  total,  iter,  pSize, offsetPsize, otherPsize,  size,  totalEdges,  bufferSize, warpId, jump, laneId);
             
         }
         }
