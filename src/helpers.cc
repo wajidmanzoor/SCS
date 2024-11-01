@@ -7,7 +7,7 @@ __device__ __forceinline__ void selectUstar(deviceGraphGenPointers G, deviceGrap
 __device__ __forceinline__ void writeTasks(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T,ui* sharedCounter, ui ustar, ui writePartition,ui writeOffset,ui totalTasksWrite, ui startIndex,ui start, ui end, ui otherStartIndex,ui pSize,ui offsetPsize, ui otherPsize, ui size, ui totalEdges,ui queryId,ui total, ui iter, ui warpId, ui laneId);
 __device__ __forceinline__ void writeDomTasks(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T, deviceBufferPointers B, ui* sharedCounter,ui ustar, ui writePartition, ui overFlow, ui totalDoms, ui writeOffset,ui domsWriteOffset,ui newTotalTasksWrite, ui startIndex,ui start, ui end, ui pSize, ui  offsetPsize, ui otherPsize, ui size, ui totalEdges,ui totalWrite,ui queryId, ui iter,ui warpId, ui laneId);
 __device__ __forceinline__ void writeDomsBuffer(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T, deviceBufferPointers B,ui ustar, ui overFlow, ui totalDoms, ui writeOffset, ui startIndex,ui start, ui size,ui totalWrite,ui queryId,ui bufferSize, ui otherPsize,ui iter,ui warpId,ui laneId); 
-__device__ __forceinline__ void readFromBuffer(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T, deviceBufferPointers B, double copyLimit,ui lastWritten, ui startIndex, ui start, ui total, ui iter, ui pSize,ui offsetPsize,ui otherPsize, ui size, ui totalEdges, ui bufferSize,ui warpId, ui laneId);
+__device__ __forceinline__ void readFromBuffer(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T, deviceBufferPointers B, double copyLimit,ui lastWritten, ui startIndex, ui start, ui total, ui iter, ui pSize,ui offsetPsize,ui otherPsize, ui size, ui totalEdges, ui bufferSize,ui warpId,ui jump, ui laneId);
 __device__ __forceinline__ void writeToBuffer(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T, deviceBufferPointers B, ui writePartition, ui totalTasksWrite, ui writeOffset, ui ustar, ui startIndex, ui start,ui pSize,ui otherPsize, ui bufferSize, ui size, ui totalEdges,ui total,ui queryId,ui iter,ui warpId,ui laneId);
 
 
@@ -248,7 +248,7 @@ __global__ void initialReductionRules(deviceGraphGenPointers G, deviceGraphPoint
 }
 
 __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, deviceInterPointers P,
-  deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size, ui taskPSize, ui totalWarps, ui factor) {
+  deviceTaskPointers T, ui pSize, ui queryVertex, ui queryId, ui size, ui taskPSize, ui totalWarps, ui factor, ui writeWarp) {
 
   ui idx = blockIdx.x * blockDim.x + threadIdx.x;
   int warpId = idx / warpSize;
@@ -261,7 +261,6 @@ __global__ void CompressTask(deviceGraphGenPointers G, deviceGraphPointers G_, d
   ui otherPsize = * T.limitTasks;
   // add some of mechanism
   //ui minTasks = UINT_MAX;
-  ui writeWarp = T.sortedIndex[0];
   //ui spaceLeft;
   ui numTasks;
 
@@ -664,7 +663,7 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
  
   __global__ void Expand(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T,
   deviceBufferPointers B, ui pSize, ui factor, double copyLimit,
-  ui bufferSize, ui lastWritten, ui readLimit, ui size, ui totalEdges, ui dmax, ui limitQueries) {
+  ui bufferSize, ui lastWritten, ui readLimit, ui size, ui totalEdges, ui dmax, ui limitQueries, ui jump) {
 
   extern __shared__ char sharedMemory[];
   size_t sizeOffset = 0;
@@ -705,7 +704,8 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
     if ((T.ustar[otherStartIndex + iter] != INT_MAX) &&
       (T.ustar[otherStartIndex + iter] != -1) &&
       (T.size[otherStartIndex + iter] < upperBoundSize) && (queryId != UINT_MAX) &&  (queryId != limitQueries)) {
-      ui writePartition = T.sortedIndex[T.mapping[warpId]];
+      ui writePartition = warpId + jump;
+      writePartition = writePartition % TOTAL_WARPS;
       ui totalTasksWrite = T.numTasks[writePartition];
       ui writeOffset = ((writePartition) * pSize) +
         T.taskOffset[(writePartition) * offsetPsize + totalTasksWrite];
@@ -765,7 +765,8 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
     for (ui iterRead = 0; iterRead < readLimit; iterRead++) {
       __syncwarp();
 
-      ui writePartition = T.sortedIndex[T.mapping[warpId]];
+      ui writePartition = warpId + jump;
+      writePartition = writePartition % TOTAL_WARPS;
       ui totalTasksWrite = T.numTasks[writePartition];
       ui writeOffset = ((writePartition) * pSize) +
         T.taskOffset[(writePartition) * offsetPsize + totalTasksWrite];
@@ -1442,8 +1443,9 @@ __device__ __forceinline__ void writeDomsBuffer(deviceGraphGenPointers G, device
 
 }
 
-__device__ __forceinline__ void readFromBuffer(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T, deviceBufferPointers B, double copyLimit,ui lastWritten, ui startIndex, ui start, ui total, ui iter, ui pSize,ui offsetPsize,ui otherPsize, ui size, ui totalEdges, ui bufferSize,ui warpId, ui laneId) {
-            ui writePartition = T.sortedIndex[T.mapping[warpId]];
+__device__ __forceinline__ void readFromBuffer(deviceGraphGenPointers G, deviceGraphPointers G_, deviceTaskPointers T, deviceBufferPointers B, double copyLimit,ui lastWritten, ui startIndex, ui start, ui total, ui iter, ui pSize,ui offsetPsize,ui otherPsize, ui size, ui totalEdges, ui bufferSize,ui warpId,ui jump, ui laneId) {
+            ui writePartition = warpId + jump;
+            writePartition = writePartition % TOTAL_WARPS;
             ui totalTasksWrite = T.numTasks[writePartition];
             ui writeOffset = ((writePartition) * pSize) + T.taskOffset[(writePartition) * offsetPsize + totalTasksWrite];
             if ((T.taskOffset[(writePartition) * offsetPsize + totalTasksWrite] < (ui)(pSize * copyLimit)) && (totalTasksWrite < * T.limitTasks)) {

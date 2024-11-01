@@ -16,9 +16,13 @@
 #include <thrust/sort.h>
 #include <thrust/gather.h>
 #include <thrust/scatter.h>
+#include <thrust/extrema.h>
+#include <thrust/execution_policy.h>
 
 #include <thread>
 #include "../ipc/msgtool.h"
+#include <sys/stat.h>
+
 
 
 #define BLK_NUMS 432
@@ -33,6 +37,9 @@ using namespace std;
 int BLK_DIM2 ;
 int BLK_NUM2;
 int INTOTAL_WARPS;
+
+Timer totalTimer;
+
 
 
 vector<ui> H;
@@ -54,6 +61,7 @@ ui *neighboroffset, *neighborList;
 
 string graphPath;
 string fileName;
+string queryPath;
 
 ui initialPartitionSize;
 ui outMemFlag;
@@ -129,8 +137,6 @@ typedef struct  {
      ui *queryIndicator;
      ui *numTasks;
      ui *limitTasks;
-     ui *sortedIndex;
-     ui *mapping;
 
 
 }deviceTaskPointers;
