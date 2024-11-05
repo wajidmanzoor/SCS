@@ -1386,7 +1386,7 @@ __device__ __forceinline__ void writeDomsBuffer(deviceGraphGenPointers G, device
             if (laneId == 0) {
               while (1) {
                 if (atomicCAS(B.writeMutex, 0, 1) == 0) {
-                  if (((bufferSize - B.taskOffset[ * B.temp]) > totalWrite) && ( * B.temp < * B.limitTasks)) {
+                  if (((bufferSize - B.taskOffset[ * B.temp]) > totalWrite) && ( * B.temp < *B.limitTasks)) {
                     numTaskBuffer = atomicAdd(B.temp, 1);
                     __threadfence();
                     B.taskOffset[numTaskBuffer + 1] =
