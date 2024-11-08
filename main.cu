@@ -184,7 +184,7 @@ void processMessages() {
         ui writeWarp, ntasks, space;
 
      
-        writeWarp =ind;
+        writeWarp =0;
 
         for(int i=0;i<TOTAL_WARPS;i++){
           chkerr(cudaMemcpy( &ntasks, deviceTask.numTasks + writeWarp, sizeof(ui), cudaMemcpyDeviceToHost));
