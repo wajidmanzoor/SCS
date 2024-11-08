@@ -184,7 +184,7 @@ void processMessages() {
         ui writeWarp, ntasks, space;
 
      
-        writeWarp =0;
+        writeWarp =ind;
 
         for(int i=0;i<TOTAL_WARPS;i++){
           chkerr(cudaMemcpy( &ntasks, deviceTask.numTasks + writeWarp, sizeof(ui), cudaMemcpyDeviceToHost));
@@ -193,6 +193,7 @@ void processMessages() {
            if(globalCounter<(partitionSize-space)){
             break;
            }
+           writeWarp++;
 
         }
         if(globalCounter>=(partitionSize-space)){
