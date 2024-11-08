@@ -608,7 +608,7 @@ __global__ void FindDoms(deviceGraphGenPointers G, deviceGraphPointers G_, devic
                 if (neighbor == G_.newNeighbors[(2 * totalEdges * queryId) + k]) {
                   found = true;
                   break;
-                }else if (neighbor > G_.newNeighbors[(2 * totalEdges * queryId) + k]){
+                }else if (neighbor < G_.newNeighbors[(2 * totalEdges * queryId) + k]){
                   break;
                 }
               }

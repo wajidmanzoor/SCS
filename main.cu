@@ -208,7 +208,7 @@ void processMessages() {
         thrust::device_ptr < ui > d_sortedIndex_ptr(deviceTask.sortedIndex);
         thrust::device_ptr < ui > d_mapping_ptr(deviceTask.mapping);
 
-        thrust::device_vector < ui > d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+        thrust::device_vector < ui > d_temp_input(d_input_ptr, d_input_ptr + TOTAL_WARPS);
       
         thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
 
@@ -376,7 +376,7 @@ void processMessages() {
       thrust::device_ptr < ui > d_sortedIndex_ptr(deviceTask.sortedIndex);
       thrust::device_ptr < ui > d_mapping_ptr(deviceTask.mapping);
 
-      thrust::device_vector < ui > d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+      thrust::device_vector < ui > d_temp_input(d_input_ptr, d_input_ptr + TOTAL_WARPS);
       
      thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
 
