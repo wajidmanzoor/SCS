@@ -194,6 +194,7 @@ void processMessages() {
             break;
            }
            writeWarp++;
+           writeWarp= writeWarp%TOTAL_WARPS;
 
         }
         if(globalCounter>=(partitionSize-space)){
