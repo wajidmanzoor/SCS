@@ -183,16 +183,18 @@ void processMessages() {
 
         ui writeWarp, ntasks, space;
 
-      thrust::device_ptr<ui> devicePtr(deviceTask.numTasks);
+     
+        writeWarp =0;
 
-      thrust::device_vector<ui> deviceNumTasks(devicePtr, devicePtr + TOTAL_WARPS);
+        for(int i=0;i<TOTAL_WARPS;i++){
+          chkerr(cudaMemcpy( &ntasks, deviceTask.numTasks + writeWarp, sizeof(ui), cudaMemcpyDeviceToHost));
+          ui offsetPsize = partitionSize/factor;
+          chkerr(cudaMemcpy( &space, deviceTask.taskOffset + (writeWarp*offsetPsize + ntasks) , sizeof(ui), cudaMemcpyDeviceToHost));
+           if(globalCounter<(partitionSize-space)){
+            break;
+           }
 
-      auto minElementIter = thrust::min_element(thrust::device, deviceNumTasks.begin(), deviceNumTasks.end());
-      writeWarp = minElementIter - deviceNumTasks.begin();
-
-        chkerr(cudaMemcpy( &ntasks, deviceTask.numTasks + writeWarp, sizeof(ui), cudaMemcpyDeviceToHost));
-        ui offsetPsize = partitionSize/factor;
-        chkerr(cudaMemcpy( &space, deviceTask.taskOffset + (writeWarp*offsetPsize + ntasks) , sizeof(ui), cudaMemcpyDeviceToHost));
+        }
         if(globalCounter>=(partitionSize-space)){
           cout << "Intial Task > partition Size " << message << endl;
           continue;
