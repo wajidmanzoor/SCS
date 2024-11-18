@@ -33,7 +33,7 @@ cd /data/user/kefan/Wajid/finalSCS/dist/
 
 
 # Define the datasets to run
-datasets=( "amazon_q" )
+datasets=( "ego-facebook" )
 
 # Loop through the datasets and run the program
 for dataset in "${datasets[@]}"; do

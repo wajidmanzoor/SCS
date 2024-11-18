@@ -59,24 +59,19 @@ bool isServerExit(const string & str) {
 
 void listenForMessages() {
 
-  ifstream fin(queryPath, ios::in);
-  int MAX_LINE_LENGTH = 1000;
-  char line[MAX_LINE_LENGTH];
-  vector < string > quer;
-  while (fin.getline(line, MAX_LINE_LENGTH)) {
-    string q = line;
-    quer.push_back(q);
-  }
-  fin.close();
-
-  int query_num = 0;
-  while (query_num < quer.size()) {
-    queryInfo query(query_num, quer[query_num].c_str());
-    query_num++;
-    messageQueueMutex.lock();
-    messageQueue.push_back(query);
-    messageQueueMutex.unlock();
-
+  msg_queue_server server('g');
+  long type = 1;
+  while (true) {
+    if (server.recv_msg(type)) {
+      string msg = server.get_msg();
+      queryInfo query(totalQuerry, msg);
+      totalQuerry++;
+      messageQueueMutex.lock();
+      messageQueue.push_back(query);
+      messageQueueMutex.unlock();
+      if(isServerExit(msg))
+      break;
+    }
   }
 }
 
