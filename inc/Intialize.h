@@ -19,6 +19,8 @@
 #include <thrust/scatter.h>
 
 #include <thread>
+#include <sys/stat.h>
+
 #include "../ipc/msgtool.h"
 
 #include <mpi.h>
@@ -26,8 +28,8 @@
 
 
 
-#define BLK_NUMS 432
-#define BLK_DIM 512
+#define BLK_NUMS 216
+#define BLK_DIM 1024
 #define TOTAL_THREAD (BLK_NUMS*BLK_DIM)
 #define WARPSIZE 32
 #define WARPS_EACH_BLK (BLK_DIM/32)
@@ -43,19 +45,14 @@
 
 using namespace std;
 
-
-string graphPath;
-string fileName;
+int worldRank, worldSize; 
 
 int BLK_DIM2 ;
 int BLK_NUM2;
 int INTOTAL_WARPS;
 
+Timer totalTimer;
 
-
-
-
-int worldRank, worldSize; 
 
 vector<ui> H;
 
@@ -70,10 +67,14 @@ ui * degree;
 ui * core;
 ui * q_dist;
 
+ui *neighboroffset, *neighborList;
+
+string graphPath;
+string fileName;
+string queryPath;
 ui initialPartitionSize;
 ui outMemFlag;
 ui *queryStopFlag;
-ui jump;
 
 ui partitionSize;
 ui bufferSize;
@@ -90,7 +91,6 @@ ui endOffset;
 
 ui totalQuerry;
 ui leastQuery;
-ui leastRank;
 int numQueriesProcessing;
 ui maxN2;
 
@@ -273,6 +273,7 @@ struct queryInfo
 };
 vector<queryInfo> messageQueue;
 mutex messageQueueMutex;
+
 queryData *queries;
 
 deviceGraphGenPointers deviceGenGraph;
