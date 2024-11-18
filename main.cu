@@ -1,9 +1,7 @@
 #include "./inc/heuristic.h"
 #include "./src/gpuMemoryAllocation.cc"
 #include "./src/helpers.cc"
-#include <unistd.h>  
-
-
+#include <unistd.h>
 
 #define CUDA_CHECK_ERROR(kernelName) { \
     cudaError_t err = cudaGetLastError(); \
@@ -13,30 +11,30 @@
     } \
 }
 
-bool fileExists(const string& filename) {
-    struct stat buffer;
-    return (stat(filename.c_str(), &buffer) == 0);
+int c = 0;
+bool serverQuit = false;
+
+bool fileExists(const string & filename) {
+  struct stat buffer;
+  return (stat(filename.c_str(), & buffer) == 0);
 }
 
-// Function to write or append data to the file
-void writeOrAppend(const string& filename, const string& data) {
-    ofstream file;
-    
-    // Check if the file exists
-    if (fileExists(filename)) {
-        // Open the file in append mode if it exists
-        file.open(filename, ios::app);
-    } else {
-        // Open the file in write mode if it doesn't exist
-        file.open(filename);
-    }
-    
-    if (file.is_open()) {
-        file << data << endl;
-        file.close();
-    } else {
-        cerr << "Unable to open the file." << endl;
-    }
+void writeOrAppend(const string & filename,
+  const string & data) {
+  ofstream file;
+
+  if (fileExists(filename)) {
+    file.open(filename, ios::app);
+  } else {
+    file.open(filename);
+  }
+
+  if (file.is_open()) {
+    file << data << endl;
+    file.close();
+  } else {
+    cerr << "Unable to open the file." << endl;
+  }
 }
 
 struct subtract_functor {
@@ -61,23 +59,24 @@ bool isServerExit(const string & str) {
 
 void listenForMessages() {
 
-  msg_queue_server server('g');
-  long type = 1;
-  //cout<<"rank "<<worldRank<<" listen here "<<endl;
-  ui id =0;
-  while (true) {
-    if (server.recv_msg(type)) {
+  ifstream fin(queryPath, ios::in);
+  int MAX_LINE_LENGTH = 1000;
+  char line[MAX_LINE_LENGTH];
+  vector < string > quer;
+  while (fin.getline(line, MAX_LINE_LENGTH)) {
+    string q = line;
+    quer.push_back(q);
+  }
+  fin.close();
 
-      string msg = server.get_msg();
-      queryInfo query(id, msg);
-      //totalQuerry++;
-      id++;
-      messageQueueMutex.lock();
-      messageQueue.push_back(query);
-      messageQueueMutex.unlock();
-      if (isServerExit(msg))
-        break;
-    }
+  int query_num = 0;
+  while (query_num < quer.size()) {
+    queryInfo query(query_num, quer[query_num].c_str());
+    query_num++;
+    messageQueueMutex.lock();
+    messageQueue.push_back(query);
+    messageQueueMutex.unlock();
+
   }
 }
 
@@ -97,21 +96,21 @@ inline void preprocessQuery(string msg, ui queryId) {
       break;
     }
   }
+  if (ind == -1) {
+    cout << "Ind -1" << msg << queryId << limitQueries << endl;
+  }
 
-  //cout<<"Rank: "<<worldRank<<" Ind "<<ind<<" msg "<<msg<<endl;
-
-  queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4],queryId, ind);
+  queries[ind].updateQueryData(argValues[0], argValues[1], argValues[2], argValues[3], argValues[4], queryId, ind);
   if (queries[ind].isHeu)
     CSSC_heu(ind);
-  //cout <<"Rank "<<worldRank<< " : Processing : " << queries[ind] << endl;
   if (queries[ind].kl == queries[ind].ku) {
     stringstream ss;
-    ss <<queries[ind].N1<< "|" << queries[ind].N2 << "|"<< queries[ind].QID << "|"<< integer_to_string(queries[ind].receiveTimer.elapsed()).c_str() << "|"<< queries[ind].kl << "|"<<"0"<< "|"<<"1";
-    writeOrAppend(fileName,ss.str());
+    ss << queries[ind].N1 << "|" << queries[ind].N2 << "|" << queries[ind].QID << "|" << integer_to_string(queries[ind].receiveTimer.elapsed()).c_str() << "|" << queries[ind].kl << "|" << "0" << "|" << "1|0";
+    writeOrAppend(fileName, ss.str());
     queries[ind].solFlag = 1;
     numQueriesProcessing--;
-    
-  }else{
+
+  } else {
     cal_query_dist(queries[ind].QID);
     chkerr(cudaMemcpy(deviceGraph.degree + (ind * n), degree, n * sizeof(ui), cudaMemcpyHostToDevice));
     chkerr(cudaMemcpy(deviceGraph.distance + (ind * n), q_dist, n * sizeof(ui), cudaMemcpyHostToDevice));
@@ -143,9 +142,6 @@ inline void preprocessQuery(string msg, ui queryId) {
       }
     }
     maxN2 = mav(maxN2, queries[ind].N2);
-
-    //queries[ind].receiveTimer.restart();
-
     initialReductionRules << < BLK_NUM2, BLK_DIM2, sharedMemorySizeinitial >>> (deviceGenGraph, deviceGraph, initialTask, n, queries[ind].ubD, initialPartitionSize, ind);
     cudaDeviceSynchronize();
     CUDA_CHECK_ERROR("Intial Reduction ");
@@ -154,15 +150,14 @@ inline void preprocessQuery(string msg, ui queryId) {
     chkerr(cudaMemcpy( & globalCounter, initialTask.globalCounter, sizeof(ui), cudaMemcpyDeviceToHost));
 
     ui writeWarp, ntasks, space;
-    chkerr(cudaMemcpy( &writeWarp, deviceTask.sortedIndex, sizeof(ui), cudaMemcpyDeviceToHost));
-    chkerr(cudaMemcpy( &ntasks, deviceTask.numTasks + writeWarp, sizeof(ui), cudaMemcpyDeviceToHost));
-    ui offsetPsize = partitionSize/factor;
-    chkerr(cudaMemcpy( &space, deviceTask.taskOffset + (writeWarp*offsetPsize + ntasks) , sizeof(ui), cudaMemcpyDeviceToHost));
-    if(globalCounter>=(partitionSize-space)){
-      //cout <<"Rank "<<worldRank<<" : "<< "Intial Task > partition Size " << msg << endl;
-      
+    chkerr(cudaMemcpy( & writeWarp, deviceTask.sortedIndex, sizeof(ui), cudaMemcpyDeviceToHost));
+    chkerr(cudaMemcpy( & ntasks, deviceTask.numTasks + writeWarp, sizeof(ui), cudaMemcpyDeviceToHost));
+    ui offsetPsize = partitionSize / factor;
+    chkerr(cudaMemcpy( & space, deviceTask.taskOffset + (writeWarp * offsetPsize + ntasks), sizeof(ui), cudaMemcpyDeviceToHost));
+    if (globalCounter >= (partitionSize - space)) {
+      cout << "Rank " << worldRank << " : " << "Intial Task > partition Size " << msg << endl;
 
-    }else{
+    } else {
       CompressTask << < BLK_NUM2, BLK_DIM2 >>> (deviceGenGraph, deviceGraph, initialTask, deviceTask, initialPartitionSize, queries[ind].QID, ind, n, partitionSize, TOTAL_WARPS, factor);
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Compress ");
@@ -170,68 +165,61 @@ inline void preprocessQuery(string msg, ui queryId) {
       thrust::inclusive_scan(thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * (ind + 1))), thrust::device_ptr < ui > (deviceGraph.newOffset + ((n + 1) * ind)));
       cudaDeviceSynchronize();
 
-
-      NeighborUpdate << < BLK_NUMS, BLK_DIM , sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph,deviceTask, TOTAL_WARPS, ind, n, m,partitionSize,factor);
+      NeighborUpdate << < BLK_NUMS, BLK_DIM, sharedMemoryUpdateNeigh >>> (deviceGenGraph, deviceGraph, deviceTask, TOTAL_WARPS, ind, n, m, partitionSize, factor);
       cudaDeviceSynchronize();
       CUDA_CHECK_ERROR("Neighbor  ");
-      thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
-      thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
+      thrust::device_ptr < ui > d_sortedIndex_ptr(deviceTask.sortedIndex);
+      thrust::device_ptr < ui > d_mapping_ptr(deviceTask.mapping);
 
-      thrust::device_vector<ui> d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+      thrust::device_vector < ui > d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
 
       thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
 
       thrust::sort_by_key(thrust::device,
-                          d_temp_input.begin(), d_temp_input.end(),
-                          d_sortedIndex_ptr,
-                          thrust::less<ui>());
+        d_temp_input.begin(), d_temp_input.end(),
+        d_sortedIndex_ptr,
+        thrust::less < ui > ());
 
       thrust::scatter(thrust::device,
-                      thrust::make_counting_iterator<ui>(0),
-                      thrust::make_counting_iterator<ui>(TOTAL_WARPS),
-                      d_sortedIndex_ptr,
-                      d_mapping_ptr);
+        thrust::make_counting_iterator < ui > (0),
+        thrust::make_counting_iterator < ui > (TOTAL_WARPS),
+        d_sortedIndex_ptr,
+        d_mapping_ptr);
 
-
-      thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
+      thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS - 1));
     }
-    
+
   }
-  
+
 }
 
 inline void processQueries() {
   chkerr(cudaMemset(deviceGraph.flag, 0, limitQueries * sizeof(ui)));
   chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
-  
+
   sharedMemorySizeTask = 2 * WARPS_EACH_BLK * sizeof(ui) + WARPS_EACH_BLK * sizeof(int) + WARPS_EACH_BLK * sizeof(double) + 2 * WARPS_EACH_BLK * sizeof(ui) + maxN2 * WARPS_EACH_BLK * sizeof(ui);
 
   ProcessTask << < BLK_NUMS, BLK_DIM, sharedMemorySizeTask >>> (
-        deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor,maxN2, n, m,dMAX,limitQueries, red1, red2, red3 , prun1, prun2);
+    deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor, maxN2, n, m, dMAX, limitQueries, red1, red2, red3, prun1, prun2);
   cudaDeviceSynchronize();
   CUDA_CHECK_ERROR("Process Task");
   chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
   // This kernel identifies vertices dominated by ustar and sorts them in decreasing order of their connection score.
   FindDoms << < BLK_NUMS, BLK_DIM, sharedMemorySizeDoms >>> (
-    deviceGenGraph, deviceGraph, deviceTask, partitionSize,factor, n, m,dMAX,limitQueries);
+    deviceGenGraph, deviceGraph, deviceTask, partitionSize, factor, n, m, dMAX, limitQueries);
   cudaDeviceSynchronize();
   CUDA_CHECK_ERROR("Find Doms");
 
-  // This kernel writes new tasks, based on ustar and the dominating set, into the task array or buffer. It reads from the buffer and writes to the task array.
-  //ui flag = 1 ;
-  //chkerr(cudaMemcpy( &flag, &deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
-
   Expand << < BLK_NUMS, BLK_DIM, sharedMemorySizeExpand >>> (
-        deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize,factor, copyLimit, bufferSize, numTaskHost-numReadHost, readLimit, n, m, dMAX,limitQueries);
+    deviceGenGraph, deviceGraph, deviceTask, deviceBuffer, partitionSize, factor, copyLimit, bufferSize, numTaskHost - numReadHost, readLimit, n, m, dMAX, limitQueries);
   cudaDeviceSynchronize();
   CUDA_CHECK_ERROR("Expand ");
-  RemoveCompletedTasks<<<BLK_NUMS, BLK_DIM>>>( deviceGraph,deviceTask, partitionSize,factor);
+  RemoveCompletedTasks << < BLK_NUMS, BLK_DIM >>> (deviceGraph, deviceTask, partitionSize, factor);
   cudaDeviceSynchronize();
   CUDA_CHECK_ERROR("Remove Completed ");
 
+  chkerr(cudaMemcpy( & (outMemFlag), deviceBuffer.outOfMemoryFlag, sizeof(ui), cudaMemcpyDeviceToHost));
 
-  chkerr(cudaMemcpy(&(outMemFlag), deviceBuffer.outOfMemoryFlag, sizeof(ui),cudaMemcpyDeviceToHost));
-    
   chkerr(cudaMemcpy( & tempHost, deviceBuffer.temp, sizeof(ui),
     cudaMemcpyDeviceToHost));
   chkerr(cudaMemcpy( & numReadHost, deviceBuffer.numReadTasks, sizeof(ui),
@@ -248,30 +236,28 @@ inline void processQueries() {
       if ((queries[i].numRead == queries[i].numWrite)) {
         chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
         stringstream ss;
-        ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"0"<< "|"<<"0";
-        writeOrAppend(fileName,ss.str());
-        //Send result Data to Rank 0 system 
+        ss << queries[i].N1 << "|" << queries[i].N2 << "|" << queries[i].QID << "|" << integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|" << queries[i].kl << "|" << "0" << "|" << "0|0";
+        writeOrAppend(fileName, ss.str());
         queries[i].solFlag = 1;
         numQueriesProcessing--;
       }
     }
 
   }
-   if(outMemFlag){
-      for (ui i = 0; i < limitQueries; i++) {
-        if ( queries[i].solFlag==0) {
+  if (outMemFlag) {
+    for (ui i = 0; i < limitQueries; i++) {
+      if (queries[i].solFlag == 0) {
         chkerr(cudaMemcpy( & (queries[i].kl), deviceGraph.lowerBoundDegree + i, sizeof(ui), cudaMemcpyDeviceToHost));
         stringstream ss;
-        ss <<queries[i].N1<< "|" << queries[i].N2 << "|"<< queries[i].QID << "|"<< integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|"<< queries[i].kl << "|"<<"1"<< "|"<<"0";
+        ss << queries[i].N1 << "|" << queries[i].N2 << "|" << queries[i].QID << "|" << integer_to_string(queries[i].receiveTimer.elapsed()).c_str() << "|" << queries[i].kl << "|" << "2" << "|" << "0|0";
+        writeOrAppend(fileName, ss.str());
 
-        writeOrAppend(fileName,ss.str());
-        
         queries[i].solFlag = 1;
         numQueriesProcessing--;
-          
-        }
+
       }
     }
+  }
 
   if (numTaskHost == numReadHost) {
     chkerr(cudaMemset(deviceBuffer.numTask, 0, sizeof(ui)));
@@ -282,9 +268,7 @@ inline void processQueries() {
     chkerr(cudaMemset(deviceBuffer.taskOffset, 0, (numReadHost + 1) * sizeof(ui)));
   }
 
-  // If the number of tasks written to the buffer exceeds the number read at this level, left shift the tasks that were written but not read to the start of the array.
   if ((numReadHost < numTaskHost) && (numReadHost > 0)) {
-    cout << "Num read " << numReadHost << " num Task " << numTaskHost << endl;
     chkerr(cudaMemcpy( & startOffset, deviceBuffer.taskOffset + numReadHost,
       sizeof(ui), cudaMemcpyDeviceToHost));
     chkerr(cudaMemcpy( & endOffset, deviceBuffer.taskOffset + numTaskHost, sizeof(ui),
@@ -329,96 +313,89 @@ inline void processQueries() {
     chkerr(cudaMemset(deviceBuffer.readMutex, 0, sizeof(ui)));
   }
   chkerr(cudaMemset(deviceTask.doms, 0, TOTAL_WARPS * partitionSize * sizeof(ui)));
+  c++;
+  thrust::device_ptr < ui > d_sortedIndex_ptr(deviceTask.sortedIndex);
+  thrust::device_ptr < ui > d_mapping_ptr(deviceTask.mapping);
 
-   thrust::device_ptr<ui> d_sortedIndex_ptr(deviceTask.sortedIndex);
-    thrust::device_ptr<ui> d_mapping_ptr(deviceTask.mapping);
+  thrust::device_vector < ui > d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
 
-    thrust::device_vector<ui> d_temp_input(d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+  thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
 
-    thrust::sequence(thrust::device, d_sortedIndex_ptr, d_sortedIndex_ptr + TOTAL_WARPS);
+  thrust::sort_by_key(thrust::device,
+    d_temp_input.begin(), d_temp_input.end(),
+    d_sortedIndex_ptr,
+    thrust::less < ui > ());
 
-    thrust::sort_by_key(thrust::device,
-                        d_temp_input.begin(), d_temp_input.end(),
-                        d_sortedIndex_ptr,
-                        thrust::less<ui>());
+  thrust::scatter(thrust::device,
+    thrust::make_counting_iterator < ui > (0),
+    thrust::make_counting_iterator < ui > (TOTAL_WARPS),
+    d_sortedIndex_ptr,
+    d_mapping_ptr);
 
-    thrust::scatter(thrust::device,
-                    thrust::make_counting_iterator<ui>(0),
-                    thrust::make_counting_iterator<ui>(TOTAL_WARPS),
-                    d_sortedIndex_ptr,
-                    d_mapping_ptr);
-
-
-    thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS-1));
-
+  thrust::transform(thrust::device, d_mapping_ptr, d_mapping_ptr + TOTAL_WARPS, d_mapping_ptr, subtract_from(TOTAL_WARPS - 1));
 
 }
-
-
-
 
 void processMessageMasterServer() {
   bool stopListening = false;
 
-  vector <MPI_Request> requests(worldSize);
-  vector <MPI_Status> status(worldSize);
-  
+  vector < MPI_Request > requests(worldSize);
+  vector < MPI_Status > status(worldSize);
+
   vector < SystemInfo > systems(worldSize);
   vector < int > nQP(worldSize);
 
-  vector <MPI_Request> endRequests(worldSize);
-  vector <MPI_Status> endStatus(worldSize);
-  vector <int> endFlag(worldSize);
-  vector <SystemStatus> systemStatus(worldSize);
-  for(int i = 0; i <worldSize;i++){
+  vector < MPI_Request > endRequests(worldSize);
+  vector < MPI_Status > endStatus(worldSize);
+  vector < int > endFlag(worldSize);
+  vector < SystemStatus > systemStatus(worldSize);
+  for (int i = 0; i < worldSize; i++) {
     endFlag[i] = 0;
     systemStatus[i] = IDLE;
   }
 
-  systems[0] = {0, 0, 0};
+  systems[0] = {0, 0, 0 };
   nQP[0] = 0;
   for (int i = 1; i < worldSize; i++) {
-    systems[i] = { i, 0, 1 };
+    systems[i] = {i,0,1};
     nQP[i] = 0;
   }
-  ui id =0;
-  //cout<<"rank "<<worldRank<<" process here "<<endl;
+  ui id = 0;
+  int leastRank;
+
+  totalTimer.restart();
   while (true) {
-    if (!stopListening) {
 
-
-      for (int i = 1; i < worldSize; i++) {
-        
-        if (systems[i].flag) {
-
-          MPI_Irecv( & nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
-        }
-
-        MPI_Test( &requests[i], & systems[i].flag, & status[i]);
-        if (systems[i].flag) {
-          systems[i].numQueriesProcessing = nQP[i];
-          //cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
-
-        }
-
-    }
     systems[0].numQueriesProcessing = numQueriesProcessing;
 
-    auto leastLoadedSystem = *std::min_element(systems.begin(), systems.end(),
-      [](const SystemInfo & a,
-        const SystemInfo & b) {
-        return a.numQueriesProcessing < b.numQueriesProcessing;
-      });
-    leastQuery = leastLoadedSystem.numQueriesProcessing;
-    leastRank = leastLoadedSystem.rank;
+    for (int i = 1; i < worldSize; i++) {
 
+      if (systems[i].flag) {
 
-      if(!messageQueue.empty() && (leastQuery < limitQueries)) {
-        messageQueueMutex.lock();
-      //while ((!messageQueue.empty()) && (leastQuery < limitQueries)) {
+        MPI_Irecv( & nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
+      }
 
-        //cout<<"Rank with : "<<leastLoadedSystem.rank<<" Least "<<leastQuery<<" limit "<<limitQueries<<endl;
-        
+      MPI_Test( & requests[i], & systems[i].flag, & status[i]);
+      if (systems[i].flag) {
+        systems[i].numQueriesProcessing = nQP[i];
+
+      }
+
+    }
+    SystemInfo * leastLoadedSystem = & systems[0]; // Start with first element
+
+    for (int i = 1; i < systems.size(); i++) {
+      if (systems[i].numQueriesProcessing <= leastLoadedSystem -> numQueriesProcessing) {
+        leastLoadedSystem = & systems[i];
+      }
+    }
+    leastQuery = leastLoadedSystem->numQueriesProcessing;
+    leastRank = leastLoadedSystem->rank;
+
+    if (!stopListening) {
+      messageQueueMutex.lock();
+      while ((!messageQueue.empty()) && (leastQuery < limitQueries)) {
+
         queryInfo message = messageQueue.front();
 
         messageQueue.erase(messageQueue.begin());
@@ -432,109 +409,89 @@ void processMessageMasterServer() {
             MPI_Send( & msgType, 1, MPI_INT, i, TAG_MTYPE, MPI_COMM_WORLD);
           }
         } else {
-          //cout<<"Rank "<<worldRank<<" : System with min np "<<leastLoadedSystem.rank<<endl;
           if (leastRank == 0) {
-            //cout<<"Rank 0 : Processed itself.  msg :  "<<msg<<endl;
-           
             numQueriesProcessing++;
-
-            preprocessQuery(msg,id);
+            preprocessQuery(msg, id);
             id++;
-
-            
 
           } else {
 
-            if(systemStatus[leastRank] == IDLE){
+            if (systemStatus[leastRank] == IDLE) {
               systemStatus[leastRank] = PROCESSING;
+              systems[leastRank].flag = 1;
               endFlag[leastRank] = 1;
 
             }
-            //msg.erase(std::remove(msg.begin(), msg.end(), '\n'), msg.end());
 
-            //cout<<"Rank 0 : Sending to rank "<<leastLoadedSystem.rank<<" msg "<<msg<<endl;
             MessageType msgType = PROCESS_MESSAGE;
             MPI_Send( & msgType, 1, MPI_INT, leastRank, TAG_MTYPE, MPI_COMM_WORLD);
             MPI_Send(msg.c_str(), msg.length(), MPI_CHAR, leastRank, TAG_MSG, MPI_COMM_WORLD);
             systems[leastRank].numQueriesProcessing++;
-
-            // Get confirmation 
-
           }
 
         }
 
+        systems[0].numQueriesProcessing = numQueriesProcessing;
 
-      for (int i = 1; i < worldSize; i++) {
-        
-        if (systems[i].flag) {
+        for (int i = 1; i < worldSize; i++) {
 
-          MPI_Irecv( &nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
+          if (systems[i].flag) {
+
+            MPI_Irecv( & nQP[i], 1, MPI_INT, i, TAG_NQP, MPI_COMM_WORLD, & requests[i]);
+          }
+
+          MPI_Test( & requests[i], & systems[i].flag, & status[i]);
+          if (systems[i].flag) {
+            systems[i].numQueriesProcessing = nQP[i];
+
+          }
+
         }
+        SystemInfo * leastLoadedSystem = & systems[0]; // Start with first element
 
-        MPI_Test( &requests[i], & systems[i].flag, & status[i]);
-        if (systems[i].flag) {
-          systems[i].numQueriesProcessing = nQP[i];
-          //cout<<"Rank "<<worldRank<<" : Num Processing of system "<<i<<" updated to "<<systems[i].numQueriesProcessing<<endl;
-
+        for (int i = 1; i < systems.size(); i++) {
+          if (systems[i].numQueriesProcessing <= leastLoadedSystem -> numQueriesProcessing) {
+            leastLoadedSystem = & systems[i];
+          }
         }
+        leastQuery = leastLoadedSystem->numQueriesProcessing;
+        leastRank = leastLoadedSystem->rank;
 
-     }
-     systems[0].numQueriesProcessing = numQueriesProcessing;
-
-
-    
-    auto leastLoadedSystem = *std::min_element(systems.begin(), systems.end(),
-      [](const SystemInfo & a,
-        const SystemInfo & b) {
-        return a.numQueriesProcessing < b.numQueriesProcessing;
-      });
-    leastQuery = leastLoadedSystem.numQueriesProcessing;
-    leastRank = leastLoadedSystem.rank;
-    //cout<<"Rank "<<worldRank<<" : System with min np "<<leastRank<<endl;
-
-
-
-        //messageQueueMutex.lock();
+        messageQueueMutex.lock();
       }
-      //messageQueueMutex.unlock();
+      messageQueueMutex.unlock();
     }
 
     if (numQueriesProcessing != 0) {
       processQueries();
     }
 
-   
-    for(int i =1 ; i < worldSize ; i ++){
-        if(systemStatus[i]==PROCESSING){
-          if (endFlag[i]) {
+    for (int i = 1; i < worldSize; i++) {
+      if (systemStatus[i] == PROCESSING) {
+        if (endFlag[i]) {
 
-                MPI_Irecv( &systemStatus[i], 1, MPI_INT, i,TAG_TERMINATE, MPI_COMM_WORLD, & endRequests[i]);
-                //cout<<"Rank "<<worldRank<<" : Recieved terminate from system "<<i<<endl;
-            }
-
-          MPI_Test( &endRequests[i], &endFlag[i], & endStatus[i]);
-
-
+          MPI_Irecv( & systemStatus[i], 1, MPI_INT, i, TAG_TERMINATE, MPI_COMM_WORLD, & endRequests[i]);
         }
-       
+
+        MPI_Test( & endRequests[i], & endFlag[i], & endStatus[i]);
+
+      }
+
     }
 
-    
-    
-    
-
-    if ((numQueriesProcessing == 0) && (stopListening)){
-      bool allTerminatedOrIdle = std::all_of(systemStatus.begin(), systemStatus.end(), [](SystemStatus status) { return status == SystemStatus::TERMINATED || status == SystemStatus::IDLE; });
+    if ((numQueriesProcessing == 0) && (stopListening)) {
+      bool allTerminatedOrIdle = std::all_of(systemStatus.begin(), systemStatus.end(), [](SystemStatus status) {
+        return status == SystemStatus::TERMINATED || status == SystemStatus::IDLE;
+      });
       if (allTerminatedOrIdle)
         break;
-      
+
     }
 
-
-
   }
-
+  stringstream ss;
+  ss << "-1|-1|-1|-1|-1|-1|-1|" << integer_to_string(totalTimer.elapsed()).c_str();
+  writeOrAppend(fileName, ss.str());
 }
 
 void processMessageOtherServer() {
@@ -543,9 +500,11 @@ void processMessageOtherServer() {
   MPI_Status status;
   bool stopListening = false;
   MessageType msgType;
+  int old = 0;
   ui id = 0;
+  totalTimer.restart();
   while (true) {
-    if ((!stopListening) && (numQueriesProcessing < limitQueries)){
+    if ((!stopListening) && (numQueriesProcessing < limitQueries)) {
       if (flag) {
         MPI_Irecv( & msgType, 1, MPI_INT, 0, TAG_MTYPE, MPI_COMM_WORLD, & request);
       }
@@ -560,23 +519,26 @@ void processMessageOtherServer() {
           MPI_Recv(buffer, 1024, MPI_CHAR, 0, TAG_MSG, MPI_COMM_WORLD, & status);
 
           int count;
-          MPI_Get_count(&status, MPI_CHAR, &count);
+          MPI_Get_count( & status, MPI_CHAR, & count);
           buffer[count] = '\0';
           string msg(buffer);
 
-          //cout<<"Rank "<<worldRank<<" : Recieved from  rank 0  msg "<<msg<<endl;
           numQueriesProcessing++;
+          /*if (old != numQueriesProcessing) {
+            MPI_Send( & numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
+            old = numQueriesProcessing;
 
-         
-          MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
-            //cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
-          
-          preprocessQuery(msg,id);
-          id ++;
-          
-          MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
-            //cout<<"Rank "<<worldRank<<" : Num Processing updated to  "<<numQueriesProcessing<<endl;
-          
+          }*/
+
+          preprocessQuery(msg, id);
+          id++;
+
+          if (old != numQueriesProcessing) {
+            MPI_Send( & numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
+            old = numQueriesProcessing;
+
+          }
+
         }
       }
     }
@@ -584,35 +546,38 @@ void processMessageOtherServer() {
     if (numQueriesProcessing != 0) {
       processQueries();
 
+      if (old != numQueriesProcessing) {
+        MPI_Send( & numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
+        old = numQueriesProcessing;
+
+      }
+
     }
 
-    if(!stopListening){
-      MPI_Send( &numQueriesProcessing, 1, MPI_INT, 0, TAG_NQP, MPI_COMM_WORLD);
-    }
-    
-
-    if ((numQueriesProcessing == 0) && (stopListening))
-    {
+    if ((numQueriesProcessing == 0) && (stopListening)) {
       SystemStatus ss = TERMINATED;
-      MPI_Send( &ss, 1, MPI_INT, 0 , TAG_TERMINATE, MPI_COMM_WORLD);
-      //cout<<"Rank "<<worldRank<<" : Send terminate "<<endl;
+      MPI_Send( & ss, 1, MPI_INT, 0, TAG_TERMINATE, MPI_COMM_WORLD);
       break;
 
     }
 
   }
+  stringstream ss;
+  ss << "-1|-1|-1|-1|-1|-1|-1|" << integer_to_string(totalTimer.elapsed()).c_str();
+  writeOrAppend(fileName, ss.str());
+
 }
 
-
-int main(int argc,const char * argv[]) {
-  if (argc != 13) {
+int main(int argc,
+  const char * argv[]) {
+  if (argc != 14) {
     cerr << "Server wrong input parameters!" << endl;
     exit(1);
   }
 
-  char** new_argv = new char*[argc];
+  char ** new_argv = new char * [argc];
   for (int i = 0; i < argc; i++) {
-      new_argv[i] = const_cast<char*>(argv[i]);
+    new_argv[i] = const_cast < char * > (argv[i]);
   }
 
   int mpi_init_result = MPI_Init( & argc, & new_argv);
@@ -623,22 +588,8 @@ int main(int argc,const char * argv[]) {
 
   MPI_Comm_size(MPI_COMM_WORLD, & worldSize);
   MPI_Comm_rank(MPI_COMM_WORLD, & worldRank);
-  graphPath = argv[1];
-  size_t pos = graphPath.find_last_of("/\\");
-  fileName = (pos != string::npos) ? graphPath.substr(pos + 1) : graphPath;
 
-  fileName = "./results/exp9/" + fileName+"/"+to_string(worldSize)+"/Rank_"+to_string(worldRank)+".txt";
-  if (!fileExists(fileName)) {
-      string header = "N1|N2|QID|Time|Degree|Overtime|Heu";
-      ofstream file;
-      file.open(fileName, ios::app);
-          if (file.is_open()) {
-              file << header << endl;
-              file.close();
-          }
-  }
-  
-  cout<<"rank "<<worldRank<<" Size "<<worldSize<<endl;
+  cout << "rank " << worldRank << " Size " << worldSize << endl;
 
   const char * filepath = argv[1]; // Path to the graph file. The graph should be represented as an edge list with tab (\t) separators
   partitionSize = atoi(argv[2]); // Defines the partition size, in number of elements, that a single warp will read from and write to.
@@ -652,6 +603,23 @@ int main(int argc,const char * argv[]) {
   red3 = atoi(argv[10]);
   prun1 = atoi(argv[11]);
   prun2 = atoi(argv[12]);
+
+  queryPath = argv[13];
+
+  graphPath = argv[1];
+  size_t pos = graphPath.find_last_of("/\\");
+  fileName = (pos != string::npos) ? graphPath.substr(pos + 1) : graphPath;
+
+  fileName = "/data/user/kefan/Wajid/finalSCS/dist/results/exp9/" + fileName + "/" + to_string(worldSize) + "/Rank_" + to_string(worldRank) + ".txt";
+  if (!fileExists(fileName)) {
+    string header = "N1|N2|QID|Time|Degree|Overtime|Heu|TotalTime";
+    ofstream file;
+    file.open(fileName, ios::app);
+    if (file.is_open()) {
+      file << header << endl;
+      file.close();
+    }
+  }
 
   queries = new queryData[limitQueries];
 
@@ -671,21 +639,21 @@ int main(int argc,const char * argv[]) {
   outMemFlag = 0;
 
   maxN2 = 0;
-  
+
   if (n <= WARPSIZE) {
-        BLK_DIM2 = WARPSIZE;
-        BLK_NUM2 = 1;
+    BLK_DIM2 = WARPSIZE;
+    BLK_NUM2 = 1;
   } else if (n <= BLK_NUMS) {
-      BLK_DIM2 = std::ceil(static_cast<float>(n) / WARPSIZE) * WARPSIZE;
-      BLK_NUM2 = 1;
+    BLK_DIM2 = std::ceil(static_cast < float > (n) / WARPSIZE) * WARPSIZE;
+    BLK_NUM2 = 1;
   } else {
-      BLK_DIM2 = BLK_DIM;
-      BLK_NUM2 = std::min(BLK_NUMS, static_cast<int>(std::ceil(static_cast<float>(n) / BLK_DIM2)));
+    BLK_DIM2 = BLK_DIM;
+    BLK_NUM2 = std::min(BLK_NUMS, static_cast < int > (std::ceil(static_cast < float > (n) / BLK_DIM2)));
   }
 
   INTOTAL_WARPS = (BLK_NUM2 * BLK_DIM2) / WARPSIZE;
 
-  initialPartitionSize = static_cast<ui>(std::ceil(static_cast<float>(n) / INTOTAL_WARPS));
+  initialPartitionSize = static_cast < ui > (std::ceil(static_cast < float > (n) / INTOTAL_WARPS));
 
   memoryAllocationinitialTask(initialTask, INTOTAL_WARPS, initialPartitionSize);
   memoryAllocationTask(deviceTask, TOTAL_WARPS, partitionSize, limitQueries, factor);
@@ -707,7 +675,7 @@ int main(int argc,const char * argv[]) {
   startOffset = 0;
   endOffset = 0;
   numQueriesProcessing = 0;
-  
+
   if (worldRank == 0) {
     leastQuery = 0;
     thread listener(listenForMessages);
@@ -726,6 +694,7 @@ int main(int argc,const char * argv[]) {
   freeInterPointer(initialTask);
   freeTaskPointer(deviceTask);
   freeBufferPointer(deviceBuffer);
-
+  cudaDeviceSynchronize();
+  cudaDeviceReset();
   return 0;
 }
