@@ -1,19 +1,5 @@
 # size-bounded community search (SCS)
 
-# Issue in SCS paper and Code: 
-
-In case of dominating branching, code didnt impelement one of the branches. Lets say we have for a given $ (C, R) $, we have a $u^{*}$ and a vertex $v$ is dominated by $u^{*}$. Then as per the paper we should have 3 branches. 
-1. $C + \{u^{*} ,u\}, R -  \{u^{*} ,u\}$
-2. $C + \{u^{*}\}, R -  \{u^{*} ,u\}$
-3. $C , R -  \{u^{*} ,u\}$
-
-In code the branch 2 is missing
-
-![alt text](pics/problem_code.png)
-
-Code doesn't search the entire search space and it also makes the code faster. 
-
-
 ## Problem Statement
 
 Given:
@@ -26,7 +12,87 @@ Find subgraph $H$ of $G$ that satisfies the bellow conditions
 2. Size bound : $l < |V(H)| < h $.
 3. Minimum degree of H is maximum among all sub graphs that satisfy above conditions
 
+# Execution Guide
 
+## 1. Compilation
+
+### Server Side (in `./SCS` folder)
+If you are running on an **NVIDIA A100 (80 GB)**, compile using:
+```bash
+nvcc main.cu -o SCS -std=c++14 -lpthread -ccbin=mpic++ -lmpi \
+    -arch=sm_80 -gencode=arch=compute_80,code=sm_80
+```
+
+> 🔹 If using a different GPU, update the `-arch` flag accordingly.
+
+### Client Side (in `./SCS/Client` folder)
+For continuous query sending, compile with:
+```bash
+g++ client.cpp -o client
+```
+
+For batch query processing (using a `.txt` file), compile with:
+```bash
+g++ batchClient.cpp -o batchClient
+```
+
+---
+
+## 2. Input Data Format
+The input graph must be provided as an **edge list** in `.txt` format:  
+
+- **First line**:  
+  ```
+  <#Vertices> <#Edges>
+  ```
+- **Subsequent lines**:  
+  ```
+  <u> <v>
+  ```
+  (each line represents an undirected edge, space-separated)
+
+---
+
+## 3. Running the Server
+Example run command:
+```bash
+./SCS data/ego-facebook.txt 30000 100000 0.5 1 8 100 1 1 1 1 1
+```
+
+---
+
+## 4. Query Format
+Queries should follow the format:
+```
+<l> <h> <qid> <heuristic_flag> <limit_dominating_set>
+```
+
+- `<l>` = lower bound  
+- `<h>` = upper bound  
+- `<qid>` = query ID  
+- `<heuristic_flag>` = whether to run heuristic (0/1)  
+- `<limit_dominating_set>` = cap for dominating set  
+
+To terminate the server, issue:
+```
+server_exit
+```
+
+---
+
+## 5. Running the Client
+
+### Continuous Query Mode
+```bash
+./client
+```
+
+### Batch Processing Mode
+Provide a file containing queries in the same format:
+Example
+```bash
+./client client/batch_in.txt
+```
 # Notes
 
 This code solves the problem by allowing a server to handle the computational workload on a GPU, while multiple clients can simultaneously submit queries. Each query must pertain to the same graph $G$. The server processes the queries independently, leveraging the GPU for efficient computation, ensuring scalability and parallel execution.
@@ -301,9 +367,18 @@ Using the array that tracks the space occupied in each partition, map the most o
 
 *Steps 2 and 3 are performed using the standard Thrust library for improved efficiency.*
 
-## Progress
+# Issue in SCS paper and Code: 
 
-1. Implemented the one graph multiple querry implementation. 
+In case of dominating branching, code didnt impelement one of the branches. Lets say we have for a given $ (C, R) $, we have a $u^{*}$ and a vertex $v$ is dominated by $u^{*}$. Then as per the paper we should have 3 branches. 
+1. $C + \{u^{*} ,u\}, R -  \{u^{*} ,u\}$
+2. $C + \{u^{*}\}, R -  \{u^{*} ,u\}$
+3. $C , R -  \{u^{*} ,u\}$
+
+In code the branch 2 is missing
+
+![alt text](pics/problem_code.png)
+
+Code doesn't search the entire search space.
 
 
 
