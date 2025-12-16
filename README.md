@@ -367,7 +367,12 @@ Using the array that tracks the space occupied in each partition, map the most o
 
 *Steps 2 and 3 are performed using the standard Thrust library for improved efficiency.*
 
-# Issue in SCS paper and Code: 
+# Issue in orginal CPU SCS Code: 
+
+By orginal cpu code we mean the code implemented by:
+[12] K. Yao and L. Chang, “Efficient size-bounded community search over
+large networks,” Proc. VLDB Endow., vol. 14, no. 8, pp. 1441–1453,
+2021
 
 In case of dominating branching, code didnt impelement one of the branches. Lets say we have for a given $ (C, R) $, we have a $u^{*}$ and a vertex $v$ is dominated by $u^{*}$. Then as per the paper we should have 3 branches. 
 1. $C + \{u^{*} ,u\}, R -  \{u^{*} ,u\}$
@@ -389,5 +394,6 @@ Code doesn't search the entire search space.
 
 
 ### [Parallel Code ](ParallelCode.md)
+
 
 
