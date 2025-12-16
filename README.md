@@ -367,7 +367,7 @@ Using the array that tracks the space occupied in each partition, map the most o
 
 *Steps 2 and 3 are performed using the standard Thrust library for improved efficiency.*
 
-# Issue in orginal CPU SCS Code: 
+# Issue in the original 2021 VLDB paper’s code (detected and fixed by our work):
 
 By orginal cpu code we mean the code implemented by:
 [12] K. Yao and L. Chang, “Efficient size-bounded community search over
@@ -394,6 +394,7 @@ Code doesn't search the entire search space.
 
 
 ### [Parallel Code ](ParallelCode.md)
+
 
 
 
