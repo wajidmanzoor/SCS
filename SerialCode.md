@@ -1,6 +1,5 @@
 # Serial Code 
 
-Code available [here](https://drive.google.com/drive/folders/1yW2aDTX1o8mPuXFYd8WWMcQ_MZrFVyjm?usp=sharing)
 
 The Serial code can be divided into the following steps
 
@@ -310,5 +309,6 @@ I have highlighted a step that needs attention. According to the paper, we shoul
  1. After appying recuction rule 3, which included all verticies of R whose degree = K+1 in C, if size of C exceeds h, we remove all verticies. Shouldn't we just add till the size is less than h . Rather than removing all. *SBS.h line 118, 630*
  2. After adding ustar to C and removing from R, code doesn't decreament 1 from the neighbors of ustar in R. *code 352*
  3. Code doesn't update subgraph with max min degree (H) correctly. *Heusritic.h line 100*
+
 
  
