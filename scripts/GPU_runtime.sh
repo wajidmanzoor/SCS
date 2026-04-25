@@ -3,9 +3,9 @@ set -e
 set -u
 
 # Paths
-log_dir="../scripts/logs/exp1_2"
-results_dir="../scripts/results/exp1_2"
-data_dir="../scripts/data"
+log_dir="../logs/exp1_2"
+results_dir="../results/exp1_2"
+data_dir="../data"
 
 # Create required directories
 mkdir -p "$log_dir"
@@ -40,8 +40,8 @@ trap cleanup EXIT
 log_message "Script started"
 
 # Validate executable exists
-if [ ! -x "./SCS" ]; then
-    log_message "Error: Server executable './SCS' not found or not executable"
+if [ ! -x "../SCS" ]; then
+    log_message "Error: Server executable '../SCS' not found or not executable"
     exit 1
 fi
 
@@ -54,7 +54,7 @@ for dataset in "${datasets[@]}"; do
         continue
     fi
 
-    query_dir="../scripts/client/query/exp1_2/${dataset}"
+    query_dir="../client/query/exp1_2/${dataset}"
 
     # Create query directory if missing
     mkdir -p "$query_dir"
@@ -63,7 +63,7 @@ for dataset in "${datasets[@]}"; do
 
     log_message "Starting server with arguments: $server_args"
 
-    ./SCS $server_args &
+    ../SCS $server_args &
     SERVER_PID=$!
 
     wait "$SERVER_PID"
