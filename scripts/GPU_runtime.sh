@@ -11,11 +11,11 @@ exec 1>>"$log_file" 2>&1
 
 
 # Configuration
-datasets=( 'ego-facebook')
+datasets=( '100.txt')
 
 fixed_args="300000 100000 0.5 1 8 100 1 1 1 1 1"
 results_dir="../scripts/results/exp1_2"
-data_dir=<Data DirectoryPath>
+data_dir="../scripts/data"
 
 
 # Function to log messages with timestamps
