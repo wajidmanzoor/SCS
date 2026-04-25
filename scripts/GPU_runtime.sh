@@ -2,16 +2,9 @@
 set -e  # Exit immediately if a command exits with a non-zero status
 set -u  # Treat unset variables as errors
 
-# Change to the required directory first
-cd /data/user/kefan/Wajid/finalSCS/totalTime/SCS || {
-    echo "Failed to change to directory /data/user/kefan/Wajid/finalSCS/totalTime/SCS"
-    exit 1
-}
-
-
 # Redirect all output to log file
 timestamp=$(date +"%Y%m%d_%H%M%S")
-log_dir="./logs/exp1_2"
+log_dir="../scripts/logs/exp1_2"
 log_file="${log_dir}/log_${timestamp}.txt"
 exec 1>>"$log_file" 2>&1
 
@@ -21,8 +14,8 @@ exec 1>>"$log_file" 2>&1
 datasets=( 'ego-facebook')
 
 fixed_args="300000 100000 0.5 1 8 100 1 1 1 1 1"
-results_dir="./results/exp1_2"
-data_dir="../../../data/edgeList"
+results_dir="../scripts/results/exp1_2"
+data_dir=<Data DirectoryPath>
 
 
 # Function to log messages with timestamps
@@ -42,8 +35,8 @@ cleanup() {
 trap cleanup EXIT
 
 # Validate executables exist
-if [ ! -x "./SCS" ]; then
-    log_message "Error: Server executable './SCS' not found or not executable"
+if [ ! -x "../scripts/SCS" ]; then
+    log_message "Error: Server executable '../scripts/SCS' not found or not executable"
     exit 1
 fi
 
@@ -56,7 +49,7 @@ for dataset in "${datasets[@]}"; do
         continue
     fi
     
-    query_dir="./client/query/exp1_2/${dataset}"
+    query_dir="../scripts/client/query/exp1_2/${dataset}"
     
     
     server_args="${data_dir}/${dataset} $fixed_args ${results_dir}/ .txt $query_dir"

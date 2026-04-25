@@ -43,8 +43,8 @@ cleanup() {
 trap cleanup EXIT
 
 # Validate executables exist
-if [ ! -x "./SCS" ]; then
-    log_message "Error: Server executable './SCS' not found or not executable"
+if [ ! -x "../scripts/SCS" ]; then
+    log_message "Error: Server executable '../scripts/SCS' not found or not executable"
     exit 1
 fi
 
@@ -57,7 +57,7 @@ for dataset in "${datasets[@]}"; do
             continue
         fi
         
-        query_dir="./client/query/exp3/${dataset}"
+        query_dir="../scripts/client/query/exp3/${dataset}"
         
         
         server_args=(
@@ -71,7 +71,7 @@ for dataset in "${datasets[@]}"; do
         )
 
         log_message "Starting server with arguments: ${server_args[*]}"
-        ./SCS "${server_args[@]}" &
+        ../scripts/SCS "${server_args[@]}" &
         SERVER_PID=$!
 
         wait $SERVER_PID
